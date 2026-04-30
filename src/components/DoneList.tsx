@@ -1,9 +1,9 @@
-import { useState } from "react";
 import type { Todo, TodoTag } from "../types/todo";
 import { formatDateKey } from "../utils/todos";
 import { Panel } from "./Shared/Panel";
 import { PanelHeader } from "./Shared/PanelHeader";
 import { TagPicker } from "./Shared/TagPicker";
+import { useMobileCollapsedState } from "./Shared/useMobileCollapsedState";
 import "./DoneList.css";
 
 type DoneListProps = {
@@ -25,7 +25,7 @@ export function DoneList({
   onResetTodoCount,
   onToggleEndOfDayRepeat,
 }: DoneListProps) {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useMobileCollapsedState();
 
   function assignTodoTag(todoId: string, tagId: string | null) {
     onAssignTodoTag(todoId, tagId);

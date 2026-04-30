@@ -1,7 +1,8 @@
-import { type DragEvent, useState } from "react";
+import type { DragEvent } from "react";
 import type { Todo } from "../types/todo";
 import { Panel } from "./Shared/Panel";
 import { PanelHeader } from "./Shared/PanelHeader";
+import { useMobileCollapsedState } from "./Shared/useMobileCollapsedState";
 import "./NotNowList.css";
 
 type NotNowListProps = {
@@ -15,7 +16,7 @@ export function NotNowList({
   onDropTodo,
   onRestoreTodo,
 }: NotNowListProps) {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useMobileCollapsedState();
 
   function handleDragOver(event: DragEvent<HTMLElement>) {
     event.preventDefault();

@@ -11,6 +11,7 @@ import type { TodoTag } from "../types/todo";
 import { Panel } from "./Shared/Panel";
 import { PanelHeader } from "./Shared/PanelHeader";
 import { SectionAddButton } from "./Shared/SectionAddButton";
+import { useMobileCollapsedState } from "./Shared/useMobileCollapsedState";
 import "./TagPanel.css";
 
 type TagPanelProps = {
@@ -32,7 +33,7 @@ export function TagPanel({
 }: TagPanelProps) {
   const [name, setName] = useState("");
   const [selectedColor, setSelectedColor] = useState(colors[0]);
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useMobileCollapsedState();
   const [isTagFormOpen, setIsTagFormOpen] = useState(false);
   const [editingTagId, setEditingTagId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");

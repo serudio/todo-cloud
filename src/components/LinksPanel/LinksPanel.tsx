@@ -9,6 +9,7 @@ import type { CustomLink } from "../../types/todo";
 import { Panel } from "../Shared/Panel";
 import { PanelHeader } from "../Shared/PanelHeader";
 import { SectionAddButton } from "../Shared/SectionAddButton";
+import { useMobileCollapsedState } from "../Shared/useMobileCollapsedState";
 import { LinkCreateForm } from "./LinkCreateForm";
 import { LinksList } from "./LinksList";
 import "./LinksPanel.css";
@@ -28,7 +29,7 @@ export function LinksPanel({
 }: LinksPanelProps) {
   const [linkName, setLinkName] = useState("");
   const [linkUrl, setLinkUrl] = useState("");
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useMobileCollapsedState();
   const [isLinkFormOpen, setIsLinkFormOpen] = useState(false);
   const [editLinkId, setEditLinkId] = useState<string | null>(null);
   const [editLinkName, setEditLinkName] = useState("");
