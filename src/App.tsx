@@ -1,33 +1,28 @@
-import { type FormEvent, useEffect, useState } from 'react';
-import type { Session } from '@supabase/supabase-js';
-import { isSupabaseConfigured, supabase } from './supabase';
-
-type Todo = {
-  id: string;
-  text: string;
-  done: boolean;
-};
-
-type TodoListRow = {
-  id: string;
-  items: unknown;
-};
-
-function parseTodos(items: unknown): Todo[] {
-  if (!Array.isArray(items)) return [];
-
-  return items.filter((item): item is Todo => {
-    if (!item || typeof item !== 'object') return false;
-
-    const todo = item as Record<string, unknown>;
-
-    return (
-      typeof todo.id === 'string' &&
-      typeof todo.text === 'string' &&
-      typeof todo.done === 'boolean'
-    );
-  });
-}
+import {
+  type FormEvent,
+  type KeyboardEvent,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import type { Session } from "@supabase/supabase-js";
+import { AuthCard } from "./components/AuthCard";
+import { DoneList } from "./components/DoneList";
+import { LoadingPage } from "./components/LoadingPage";
+import { NotificationToast } from "./components/NotificationToast";
+import { SetupRequired } from "./components/SetupRequired";
+import { TodoCloud } from "./components/TodoCloud";
+import { TopBar } from "./components/TopBar";
+import { isSupabaseConfigured, supabase } from "./supabase";
+import type { Notification } from "./types/notification";
+import type { Todo } from "./types/todo";
+import {
+  createTodoList,
+  getFirstTodoList,
+  updateTodoListItems,
+  updateTodoListName,
+} from "./utils/db/todoLists";
+import { normalizeTodoText, parseTodos } from "./utils/todos";
 
 export default function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -36,8 +31,18 @@ export default function App() {
   const [authError, setAuthError] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [todoListId, setTodoListId] = useState<string | null>(null);
+  const [todoListName, setTodoListName] = useState("My todo list");
+  const [todoListNameDraft, setTodoListNameDraft] = useState("My todo list");
+  const [isEditingTodoListName, setIsEditingTodoListName] = useState(false);
   const [todos, setTodos] = useState<Todo[]>([]);
-  const [text, setText] = useState('');
+  const [text, setText] = useState("");
+  const [notification, setNotification] = useState<Notification | null>(null);
+  const todoListNameInputRef = useRef<HTMLInputElement>(null);
+
+  const suggestedTodos = [...todos]
+    .filter((todo) => todo.done)
+    .sort((firstTodo, secondTodo) => secondTodo.count - firstTodo.count);
+  const activeTodos = todos.filter((todo) => !todo.done);
 
   useEffect(() => {
     if (!supabase) {
@@ -63,6 +68,9 @@ export default function App() {
     if (!session || !supabase) {
       setTodos([]);
       setTodoListId(null);
+      setTodoListName("My todo list");
+      setTodoListNameDraft("My todo list");
+      setIsEditingTodoListName(false);
       setIsLoadingTodos(false);
       return;
     }
@@ -70,50 +78,85 @@ export default function App() {
     loadTodoList(session.user.id);
   }, [session]);
 
+  useEffect(() => {
+    if (!notification) return;
+
+    const timeoutId = window.setTimeout(() => {
+      setNotification(null);
+    }, 3000);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [notification?.id]);
+
+  useEffect(() => {
+    if (!isEditingTodoListName) return;
+
+    todoListNameInputRef.current?.focus();
+    todoListNameInputRef.current?.select();
+  }, [isEditingTodoListName]);
+
+  function showNotification(message: string) {
+    setNotification({
+      id: crypto.randomUUID(),
+      message,
+    });
+  }
+
   async function loadTodoList(userId: string) {
     if (!supabase) return;
 
     setIsLoadingTodos(true);
     setSaveError(null);
 
-    const { data, error } = await supabase
-      .from('todo_lists')
-      .select('id, items')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: true })
-      .limit(1)
-      .maybeSingle<TodoListRow>();
+    const { data, error } = await getFirstTodoList(userId);
 
     if (error) {
       setSaveError(error.message);
       setTodos([]);
       setTodoListId(null);
+      setTodoListName("My todo list");
+      setTodoListNameDraft("My todo list");
       setIsLoadingTodos(false);
       return;
     }
 
     if (data) {
+      const parsedTodos = parseTodos(data.items);
+
       setTodoListId(data.id);
-      setTodos(parseTodos(data.items));
+      setTodoListName(data.name);
+      setTodoListNameDraft(data.name);
+      setTodos(parsedTodos);
       setIsLoadingTodos(false);
+
+      if (
+        !Array.isArray(data.items) ||
+        parsedTodos.length !== data.items.length
+      ) {
+        await updateTodoListItems(data.id, parsedTodos);
+      }
+
       return;
     }
 
-    const { data: createdTodoList, error: createError } = await supabase
-      .from('todo_lists')
-      .insert({ user_id: userId, items: [] })
-      .select('id, items')
-      .single<TodoListRow>();
+    const { data: createdTodoList, error: createError } =
+      await createTodoList(userId);
 
-    if (createError) {
-      setSaveError(createError.message);
+    if (createError || !createdTodoList) {
+      setSaveError(createError?.message ?? "Todo list could not be created.");
       setTodos([]);
       setTodoListId(null);
+      setTodoListName("My todo list");
+      setTodoListNameDraft("My todo list");
       setIsLoadingTodos(false);
       return;
     }
 
     setTodoListId(createdTodoList.id);
+    setTodoListName(createdTodoList.name);
+    setTodoListNameDraft(createdTodoList.name);
     setTodos(parseTodos(createdTodoList.items));
     setIsLoadingTodos(false);
   }
@@ -123,13 +166,63 @@ export default function App() {
 
     setSaveError(null);
 
-    const { error } = await supabase
-      .from('todo_lists')
-      .update({ items: nextTodos })
-      .eq('id', todoListId);
+    const { error } = await updateTodoListItems(todoListId, nextTodos);
 
     if (error) {
       setSaveError(error.message);
+    }
+  }
+
+  async function saveTodoListName(nextName: string) {
+    if (!supabase || !todoListId) return;
+
+    setSaveError(null);
+
+    const { error } = await updateTodoListName(todoListId, nextName);
+
+    if (error) {
+      setSaveError(error.message);
+    }
+  }
+
+  function startEditingTodoListName() {
+    setTodoListNameDraft(todoListName);
+    setIsEditingTodoListName(true);
+  }
+
+  function finishEditingTodoListName() {
+    const nextName = todoListNameDraft.trim().replace(/\s+/g, " ");
+
+    setIsEditingTodoListName(false);
+
+    if (!nextName) {
+      setTodoListNameDraft(todoListName);
+      return;
+    }
+
+    if (nextName === todoListName) {
+      setTodoListNameDraft(nextName);
+      return;
+    }
+
+    setTodoListName(nextName);
+    setTodoListNameDraft(nextName);
+    saveTodoListName(nextName);
+  }
+
+  function cancelEditingTodoListName() {
+    setTodoListNameDraft(todoListName);
+    setIsEditingTodoListName(false);
+  }
+
+  function handleTodoListNameKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+    if (event.key === "Enter") {
+      event.currentTarget.blur();
+      return;
+    }
+
+    if (event.key === "Escape") {
+      cancelEditingTodoListName();
     }
   }
 
@@ -139,9 +232,12 @@ export default function App() {
     setAuthError(null);
 
     const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
+      provider: "google",
       options: {
-        redirectTo: new URL(import.meta.env.BASE_URL, window.location.origin).toString(),
+        redirectTo: new URL(
+          import.meta.env.BASE_URL,
+          window.location.origin,
+        ).toString(),
       },
     });
 
@@ -156,20 +252,46 @@ export default function App() {
     await supabase.auth.signOut();
   }
 
-  function addTodo(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    const trimmedText = text.trim();
+  function addTodoText(todoText: string) {
+    const trimmedText = todoText.trim().replace(/\s+/g, " ");
     if (!trimmedText || isLoadingTodos) return;
 
-    const nextTodos = [
-      ...todos,
-      { id: crypto.randomUUID(), text: trimmedText, done: false },
-    ];
+    const normalizedText = normalizeTodoText(trimmedText);
+    const existingTodo = todos.find(
+      (todo) => normalizeTodoText(todo.text) === normalizedText,
+    );
+
+    if (existingTodo && !existingTodo.done) {
+      showNotification(`"${existingTodo.text}" is already there.`);
+      setText("");
+      return;
+    }
+
+    const nextTodos = existingTodo
+      ? todos.map((todo) =>
+          todo.id === existingTodo.id
+            ? { ...todo, count: todo.count + 1, done: false }
+            : todo,
+        )
+      : [
+          ...todos,
+          {
+            id: crypto.randomUUID(),
+            text: trimmedText,
+            done: false,
+            count: 1,
+          },
+        ];
 
     setTodos(nextTodos);
-    setText('');
+    setText("");
+    showNotification(`"${trimmedText}" added.`);
     saveTodos(nextTodos);
+  }
+
+  function addTodo(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    addTodoText(text);
   }
 
   function toggleTodo(id: string) {
@@ -189,94 +311,48 @@ export default function App() {
   }
 
   if (!isSupabaseConfigured) {
-    return (
-      <main className="app auth-page">
-        <section className="auth-card">
-          <p className="eyebrow">setup needed</p>
-          <h1>Connect Supabase first.</h1>
-          <p>
-            Add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` to `.env`,
-            then restart `pnpm dev`.
-          </p>
-        </section>
-      </main>
-    );
+    return <SetupRequired />;
   }
 
   if (isLoadingSession) {
-    return (
-      <main className="app auth-page">
-        <section className="auth-card">
-          <p className="eyebrow">todo cloud</p>
-          <h1>Loading...</h1>
-        </section>
-      </main>
-    );
+    return <LoadingPage />;
   }
 
-  if (!session) {
-    return (
-      <main className="app auth-page">
-        <section className="auth-card">
-          <p className="eyebrow">todo cloud</p>
-          <h1>Sign in to sync your cloud.</h1>
-          <p>Use Google to keep your todos available across devices.</p>
-          <button className="google-button" type="button" onClick={signInWithGoogle}>
-            Continue with Google
-          </button>
-          {authError ? <p className="error">{authError}</p> : null}
-        </section>
-      </main>
-    );
-  }
+  if (!session)
+    return <AuthCard authError={authError} onSignIn={signInWithGoogle} />;
 
   return (
     <main className="app">
-      <header className="topbar">
-        <span>{session.user.email}</span>
-        <button type="button" onClick={signOut}>
-          Sign out
-        </button>
-      </header>
+      <NotificationToast notification={notification} />
 
-      <section className="hero">
-        <p className="eyebrow">todo cloud</p>
-        <h1>Turn tasks into a tag cloud.</h1>
-      </section>
+      <TopBar
+        email={session.user.email}
+        isEditingTodoListName={isEditingTodoListName}
+        todoListName={todoListName}
+        todoListNameDraft={todoListNameDraft}
+        todoListNameInputRef={todoListNameInputRef}
+        onFinishEditingTodoListName={finishEditingTodoListName}
+        onSignOut={signOut}
+        onStartEditingTodoListName={startEditingTodoListName}
+        onTodoListNameDraftChange={setTodoListNameDraft}
+        onTodoListNameKeyDown={handleTodoListNameKeyDown}
+      />
 
-      <form className="todo-form" onSubmit={addTodo}>
-        <input
-          aria-label="New todo"
-          disabled={isLoadingTodos}
-          placeholder="Add a task"
-          value={text}
-          onChange={(event) => setText(event.target.value)}
+      <div className="workspace">
+        <TodoCloud
+          activeTodos={activeTodos}
+          isLoadingTodos={isLoadingTodos}
+          text={text}
+          onTextChange={setText}
+          onAddTodo={addTodo}
+          onToggleTodo={toggleTodo}
         />
-        <button disabled={isLoadingTodos} type="submit">
-          Add
-        </button>
-      </form>
 
-      <div className="cloud" aria-label="Todo list">
-        {isLoadingTodos ? <p className="status">Loading todos...</p> : null}
-        {!isLoadingTodos && todos.length === 0 ? (
-          <p className="status">No todos yet. Add the first one.</p>
-        ) : null}
-        {todos.map((todo) => (
-          <span className={`tag ${todo.done ? 'done' : ''}`} key={todo.id}>
-            <button type="button" onClick={() => toggleTodo(todo.id)}>
-              {todo.text}
-            </button>
-            <button
-              aria-label={`Delete ${todo.text}`}
-              className="delete"
-              type="button"
-              onClick={() => deleteTodo(todo.id)}
-            >
-              x
-            </button>
-          </span>
-        ))}
+        <DoneList
+          todos={suggestedTodos}
+          onAddTodoText={addTodoText}
+          onDeleteTodo={deleteTodo}
+        />
       </div>
       {saveError ? <p className="error">{saveError}</p> : null}
     </main>
