@@ -1,3 +1,4 @@
+import { PanelHeader } from "./Shared/PanelHeader";
 import "./AppState/AppState.css";
 
 type AuthCardProps = {
@@ -9,7 +10,7 @@ export function AuthCard({ authError, onSignIn }: AuthCardProps) {
   return (
     <main className="app auth-page">
       <section className="auth-card">
-        <p className="eyebrow">todo cloud</p>
+        <PanelHeader>todo cloud</PanelHeader>
         <h1>Sign in to sync your cloud.</h1>
         <p>Use Google to keep your todos available across devices.</p>
         <button className="google-button" type="button" onClick={onSignIn}>

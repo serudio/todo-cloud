@@ -1,16 +1,6 @@
-.not-now-panel {
-  display: grid;
-  gap: 12px;
-  overflow: hidden;
-}
-
-.not-now-panel .status {
-  margin: 0;
-}
-
 .not-now-list {
   display: grid;
-  gap: 8px;
+  gap: 4px;
   margin: 0;
   padding: 0;
   min-width: 0;
@@ -26,15 +16,15 @@
   min-width: 0;
   border: 2px solid #172033;
   border-radius: 16px;
-  padding: 9px 10px;
+  padding: 4px 8px;
   background: #f0eadf;
   color: #172033;
   cursor: grab;
-  font-weight: 800;
   overflow: hidden;
   text-align: left;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-size: 0.8rem;
 }
 
 .not-now-list button:active {

@@ -218,6 +218,6 @@ function getLatestDate(firstDate: string | null, secondDate: string | null) {
   return firstDate > secondDate ? firstDate : secondDate;
 }
 
-export function getTagSize(count: number) {
+export function getTodoSize(count: number) {
   return Math.min(5, Math.max(1, count));
 }

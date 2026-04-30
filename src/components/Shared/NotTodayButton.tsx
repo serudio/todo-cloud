@@ -5,7 +5,7 @@ type NotTodayButtonProps = {
 export function NotTodayButton({ onClick }: NotTodayButtonProps) {
   return (
     <button
-      className="tag-not-today"
+      className="todo-not-today"
       title="Hide from cloud today"
       type="button"
       onClick={onClick}

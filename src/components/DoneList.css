@@ -1,11 +1,6 @@
 .done {
   position: sticky;
   top: 24px;
-  border: 2px solid #172033;
-  border-radius: 28px;
-  padding: 22px;
-  background: #fffaf2;
-  box-shadow: 6px 6px 0 #172033;
 }
 
 .done h2 {
@@ -55,7 +50,7 @@
   gap: 12px;
   border: 2px solid #172033 !important;
   border-radius: 18px;
-  padding: 10px 12px;
+  padding: 5px 10px;
   background: #e6f3df;
   color: #172033;
   cursor: pointer;

@@ -41,15 +41,6 @@ input:disabled {
   color: #b42318 !important;
 }
 
-.eyebrow {
-  margin: 0 0 8px;
-  color: #7d6c55;
-  font-size: 0.82rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
 h1 {
   max-width: 520px;
   margin: 0;

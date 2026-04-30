@@ -5,7 +5,7 @@ type NotNowButtonProps = {
 export function NotNowButton({ onClick }: NotNowButtonProps) {
   return (
     <button
-      className="tag-not-now"
+      className="todo-not-now"
       title="Hide from cloud for now"
       type="button"
       onClick={onClick}

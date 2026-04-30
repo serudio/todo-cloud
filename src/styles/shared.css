@@ -1,44 +1,8 @@
-.tag-panel,
-.links-panel,
-.not-now-panel {
-  min-width: 0;
-  border: 2px solid #172033;
-  border-radius: 28px;
-  padding: 18px;
-  background: #fffaf2;
-  box-shadow: 6px 6px 0 #172033;
-}
-
 .section-title-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-}
-
-.section-title-row .eyebrow {
-  margin: 0;
-}
-
-.section-add-button {
-  display: inline-grid;
-  width: 24px;
-  height: 24px;
-  place-items: center;
-  border: 0;
-  border-radius: 50%;
-  padding: 0;
-  background: rgb(23 32 51 / 12%);
-  color: #172033;
-  cursor: pointer;
-  font-size: 1rem;
-  font-weight: 900;
-  line-height: 1;
-}
-
-.section-add-button[aria-expanded="true"] {
-  background: #172033;
-  color: white;
 }
 
 .tag-list-action {
