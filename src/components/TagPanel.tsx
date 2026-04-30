@@ -3,6 +3,7 @@ import {
   type FormEvent,
   type KeyboardEvent,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -35,15 +36,23 @@ export function TagPanel({
 }: TagPanelProps) {
   const [name, setName] = useState("");
   const [selectedColor, setSelectedColor] = useState(colors[0]);
+  const [isTagFormOpen, setIsTagFormOpen] = useState(false);
   const [editingTagId, setEditingTagId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
+  const [colorPickerTagId, setColorPickerTagId] = useState<string | null>(null);
   const [linkName, setLinkName] = useState("");
   const [linkUrl, setLinkUrl] = useState("");
+  const [isLinkFormOpen, setIsLinkFormOpen] = useState(false);
   const [editingLinkId, setEditingLinkId] = useState<string | null>(null);
   const [editingLinkName, setEditingLinkName] = useState("");
   const [editingLinkUrl, setEditingLinkUrl] = useState("");
   const editingInputRef = useRef<HTMLInputElement>(null);
   const editingLinkInputRef = useRef<HTMLInputElement>(null);
+  const usedTagColors = useMemo(
+    () => new Set(tags.map((tag) => tag.color)),
+    [tags],
+  );
+  const firstAvailableColor = colors.find((color) => !usedTagColors.has(color));
 
   useEffect(() => {
     if (!editingTagId) return;
@@ -59,12 +68,22 @@ export function TagPanel({
     editingLinkInputRef.current?.select();
   }, [editingLinkId]);
 
+  useEffect(() => {
+    if (!firstAvailableColor) return;
+    if (!selectedColor || usedTagColors.has(selectedColor)) {
+      setSelectedColor(firstAvailableColor);
+    }
+  }, [firstAvailableColor, selectedColor, usedTagColors]);
+
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
+    if (!firstAvailableColor) return;
+
     if (onCreateTag(name, selectedColor)) {
       setName("");
-      setSelectedColor(colors[0]);
+      setSelectedColor(firstAvailableColor);
+      setIsTagFormOpen(false);
     }
   }
 
@@ -76,6 +95,17 @@ export function TagPanel({
   function cancelEditingTag() {
     setEditingTagId(null);
     setEditingName("");
+  }
+
+  function toggleTagColorPicker(tagId: string) {
+    setColorPickerTagId((currentTagId) =>
+      currentTagId === tagId ? null : tagId,
+    );
+  }
+
+  function selectTagColor(tagId: string, color: string) {
+    onUpdateTagColor(tagId, color);
+    setColorPickerTagId(null);
   }
 
   function finishEditingTag(tag: TodoTag) {
@@ -109,6 +139,7 @@ export function TagPanel({
     if (onCreateLink(linkName, linkUrl)) {
       setLinkName("");
       setLinkUrl("");
+      setIsLinkFormOpen(false);
     }
   }
 
@@ -163,29 +194,53 @@ export function TagPanel({
 
   return (
     <aside className="tag-panel" aria-label="Tags">
-      <p className="eyebrow">tags</p>
-      <form className="tag-form" onSubmit={handleSubmit}>
-        <input
-          aria-label="New tag name"
-          placeholder="Create tag"
-          value={name}
-          onChange={(event) => setName(event.target.value)}
-        />
-        <div className="tag-color-grid" aria-label="Tag color">
-          {colors.map((color) => (
-            <button
-              aria-label={`Use ${color} tag color`}
-              aria-pressed={selectedColor === color}
-              className="tag-color-option"
-              key={color}
-              style={{ "--tag-option-color": color } as CSSProperties}
-              type="button"
-              onClick={() => setSelectedColor(color)}
-            />
-          ))}
-        </div>
-        <button type="submit">Add tag</button>
-      </form>
+      <div className="section-title-row">
+        <p className="eyebrow">tags</p>
+        <button
+          aria-expanded={isTagFormOpen}
+          aria-label={isTagFormOpen ? "Hide tag form" : "Add tag"}
+          className="section-add-button"
+          type="button"
+          onClick={() => setIsTagFormOpen((isOpen) => !isOpen)}
+        >
+          +
+        </button>
+      </div>
+      {isTagFormOpen ? (
+        <form className="tag-form" onSubmit={handleSubmit}>
+          <input
+            aria-label="New tag name"
+            placeholder="Create tag"
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+          />
+          <div className="tag-color-grid" aria-label="Tag color">
+            {colors.map((color) => {
+              const isColorUsed = usedTagColors.has(color);
+
+              return (
+                <button
+                  aria-label={
+                    isColorUsed
+                      ? `${color} tag color is already used`
+                      : `Use ${color} tag color`
+                  }
+                  aria-pressed={selectedColor === color}
+                  className="tag-color-option"
+                  disabled={isColorUsed}
+                  key={color}
+                  style={{ "--tag-option-color": color } as CSSProperties}
+                  type="button"
+                  onClick={() => setSelectedColor(color)}
+                />
+              );
+            })}
+          </div>
+          <button disabled={!firstAvailableColor} type="submit">
+            Add tag
+          </button>
+        </form>
+      ) : null}
 
       {tags.length === 0 ? (
         <p className="status">Create tags to color your tasks.</p>
@@ -193,13 +248,18 @@ export function TagPanel({
         <ol className="tag-list">
           {tags.map((tag) => {
             const isEditing = editingTagId === tag.id;
+            const isColorPickerOpen = colorPickerTagId === tag.id;
 
             return (
               <li key={tag.id}>
                 <div className="tag-list-row">
-                  <span
-                    className="tag-color-dot"
+                  <button
+                    aria-expanded={isColorPickerOpen}
+                    aria-label={`Change ${tag.name} color`}
+                    className="tag-color-dot tag-color-dot-button"
                     style={{ "--tag-option-color": tag.color } as CSSProperties}
+                    type="button"
+                    onClick={() => toggleTagColorPicker(tag.id)}
                   />
                   {isEditing ? (
                     <form
@@ -239,19 +299,33 @@ export function TagPanel({
                     </>
                   )}
                 </div>
-                <div className="tag-color-grid tag-color-grid-small">
-                  {colors.map((color) => (
-                    <button
-                      aria-label={`Set ${tag.name} color to ${color}`}
-                      aria-pressed={tag.color === color}
-                      className="tag-color-option"
-                      key={color}
-                      style={{ "--tag-option-color": color } as CSSProperties}
-                      type="button"
-                      onClick={() => onUpdateTagColor(tag.id, color)}
-                    />
-                  ))}
-                </div>
+                {isColorPickerOpen ? (
+                  <div className="tag-color-grid tag-color-grid-small">
+                    {colors.map((color) => {
+                      const isColorUsedByAnotherTag = tags.some(
+                        (currentTag) =>
+                          currentTag.id !== tag.id && currentTag.color === color,
+                      );
+
+                      return (
+                        <button
+                          aria-label={
+                            isColorUsedByAnotherTag
+                              ? `${color} is already used by another tag`
+                              : `Set ${tag.name} color to ${color}`
+                          }
+                          aria-pressed={tag.color === color}
+                          className="tag-color-option"
+                          disabled={isColorUsedByAnotherTag}
+                          key={color}
+                          style={{ "--tag-option-color": color } as CSSProperties}
+                          type="button"
+                          onClick={() => selectTagColor(tag.id, color)}
+                        />
+                      );
+                    })}
+                  </div>
+                ) : null}
               </li>
             );
           })}
@@ -259,22 +333,35 @@ export function TagPanel({
       )}
 
       <div className="link-section">
-        <p className="eyebrow">links</p>
-        <form className="link-form" onSubmit={handleLinkSubmit}>
-          <input
-            aria-label="New link name"
-            placeholder="Link name"
-            value={linkName}
-            onChange={(event) => setLinkName(event.target.value)}
-          />
-          <input
-            aria-label="New link URL"
-            placeholder="example.com"
-            value={linkUrl}
-            onChange={(event) => setLinkUrl(event.target.value)}
-          />
-          <button type="submit">Add link</button>
-        </form>
+        <div className="section-title-row">
+          <p className="eyebrow">links</p>
+          <button
+            aria-expanded={isLinkFormOpen}
+            aria-label={isLinkFormOpen ? "Hide link form" : "Add link"}
+            className="section-add-button"
+            type="button"
+            onClick={() => setIsLinkFormOpen((isOpen) => !isOpen)}
+          >
+            +
+          </button>
+        </div>
+        {isLinkFormOpen ? (
+          <form className="link-form" onSubmit={handleLinkSubmit}>
+            <input
+              aria-label="New link name"
+              placeholder="Link name"
+              value={linkName}
+              onChange={(event) => setLinkName(event.target.value)}
+            />
+            <input
+              aria-label="New link URL"
+              placeholder="example.com"
+              value={linkUrl}
+              onChange={(event) => setLinkUrl(event.target.value)}
+            />
+            <button type="submit">Add link</button>
+          </form>
+        ) : null}
 
         {links.length === 0 ? (
           <p className="status">Add quick links you use often.</p>

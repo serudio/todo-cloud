@@ -2,11 +2,14 @@ export type Todo = {
   id: string;
   text: string;
   done: boolean;
+  doneAt: string | null;
   count: number;
   lastAddedDate: string | null;
   repeatAtEndOfDay: boolean;
   lastAutoAddedDate: string | null;
   tagId: string | null;
+  notNow: boolean;
+  notToday: boolean;
 };
 
 export type TodoTag = {

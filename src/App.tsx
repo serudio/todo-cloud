@@ -3,6 +3,7 @@ import type { Session } from "@supabase/supabase-js";
 import { AuthCard } from "./components/AuthCard";
 import { DoneList } from "./components/DoneList";
 import { LoadingPage } from "./components/LoadingPage";
+import { NotNowList } from "./components/NotNowList.tsx";
 import { NotificationToast } from "./components/NotificationToast";
 import { SetupRequired } from "./components/SetupRequired";
 import { TagPanel } from "./components/TagPanel.tsx";
@@ -70,6 +71,9 @@ function getTodosWithEndOfDayRepeats(currentTodos: Todo[]) {
     return {
       ...todo,
       done: false,
+      doneAt: null,
+      notNow: false,
+      notToday: false,
       count: todo.count + 1,
       lastAddedDate: today,
       lastAutoAddedDate: today,
@@ -168,8 +172,23 @@ export default function App() {
 
   const suggestedTodos = [...todos]
     .filter((todo) => todo.done)
-    .sort((firstTodo, secondTodo) => secondTodo.count - firstTodo.count);
-  const activeTodos = todos.filter((todo) => !todo.done);
+    .sort((firstTodo, secondTodo) => {
+      if (firstTodo.doneAt && secondTodo.doneAt) {
+        return secondTodo.doneAt.localeCompare(firstTodo.doneAt);
+      }
+
+      if (firstTodo.doneAt) return -1;
+      if (secondTodo.doneAt) return 1;
+
+      return secondTodo.count - firstTodo.count;
+    });
+  const activeTodos = todos.filter(
+    (todo) => !todo.done && !todo.notNow && !todo.notToday,
+  );
+  const notNowTodos = todos.filter((todo) => !todo.done && todo.notNow);
+  const notTodayTodos = todos.filter(
+    (todo) => !todo.done && !todo.notNow && todo.notToday,
+  );
 
   useEffect(() => {
     if (!supabase) {
@@ -427,7 +446,10 @@ export default function App() {
               ? {
                   ...todo,
                   count: todo.count + 1,
+                  notNow: false,
+                  notToday: false,
                   done: false,
+                  doneAt: null,
                   lastAddedDate: today,
                 }
               : todo,
@@ -438,11 +460,14 @@ export default function App() {
           id: crypto.randomUUID(),
           text: trimmedText,
           done: false,
+          doneAt: null,
           count: 1,
           lastAddedDate: today,
           repeatAtEndOfDay: false,
           lastAutoAddedDate: null,
           tagId: null,
+          notNow: false,
+          notToday: false,
         });
 
     setTodos(nextTodos);
@@ -457,8 +482,17 @@ export default function App() {
   }
 
   function toggleTodo(id: string) {
+    const now = new Date().toISOString();
     const nextTodos = todos.map((todo) =>
-      todo.id === id ? { ...todo, done: !todo.done } : todo,
+      todo.id === id
+        ? {
+            ...todo,
+            done: !todo.done,
+            doneAt: todo.done ? null : now,
+            notNow: todo.done ? todo.notNow : false,
+            notToday: todo.done ? todo.notToday : false,
+          }
+        : todo,
     );
 
     setTodos(nextTodos);
@@ -503,6 +537,11 @@ export default function App() {
       return false;
     }
 
+    if (tags.some((tag) => tag.color === color)) {
+      showNotification("That tag color is already used.");
+      return false;
+    }
+
     const nextTags = [
       ...tags,
       {
@@ -542,6 +581,11 @@ export default function App() {
   }
 
   function updateTagColor(id: string, color: string) {
+    if (tags.some((tag) => tag.id !== id && tag.color === color)) {
+      showNotification("That tag color is already used.");
+      return;
+    }
+
     const nextTags = tags.map((tag) =>
       tag.id === id ? { ...tag, color } : tag,
     );
@@ -564,6 +608,33 @@ export default function App() {
   function assignTodoTag(id: string, tagId: string | null) {
     const nextTodos = todos.map((todo) =>
       todo.id === id ? { ...todo, tagId } : todo,
+    );
+
+    setTodos(nextTodos);
+    saveTodos(nextTodos);
+  }
+
+  function markTodoNotNow(id: string) {
+    const nextTodos = todos.map((todo) =>
+      todo.id === id ? { ...todo, notNow: true, notToday: false } : todo,
+    );
+
+    setTodos(nextTodos);
+    saveTodos(nextTodos);
+  }
+
+  function restoreTodoFromNotNow(id: string) {
+    const nextTodos = todos.map((todo) =>
+      todo.id === id ? { ...todo, notNow: false, notToday: false } : todo,
+    );
+
+    setTodos(nextTodos);
+    saveTodos(nextTodos);
+  }
+
+  function markTodoNotToday(id: string) {
+    const nextTodos = todos.map((todo) =>
+      todo.id === id ? { ...todo, notToday: true } : todo,
     );
 
     setTodos(nextTodos);
@@ -688,27 +759,39 @@ export default function App() {
       />
 
       <div className="workspace">
-        <TagPanel
-          colors={TAG_COLORS}
-          links={links}
-          tags={tags}
-          onCreateLink={createLink}
-          onCreateTag={createTag}
-          onDeleteLink={deleteLink}
-          onDeleteTag={deleteTag}
-          onRenameTag={renameTag}
-          onUpdateLink={updateLink}
-          onUpdateTagColor={updateTagColor}
-        />
+        <div className="left-column">
+          <TagPanel
+            colors={TAG_COLORS}
+            links={links}
+            tags={tags}
+            onCreateLink={createLink}
+            onCreateTag={createTag}
+            onDeleteLink={deleteLink}
+            onDeleteTag={deleteTag}
+            onRenameTag={renameTag}
+            onUpdateLink={updateLink}
+            onUpdateTagColor={updateTagColor}
+          />
+
+          <NotNowList
+            todos={notNowTodos}
+            onDropTodo={markTodoNotNow}
+            onRestoreTodo={restoreTodoFromNotNow}
+          />
+        </div>
 
         <TodoCloud
           activeTodos={activeTodos}
           isLoadingTodos={isLoadingTodos}
+          notTodayTodos={notTodayTodos}
           tags={tags}
           onAssignTodoTag={assignTodoTag}
           onEditTodoText={editTodoText}
+          onMarkTodoNotToday={markTodoNotToday}
           onResetTodoCount={resetTodoCount}
+          onRestoreTodo={restoreTodoFromNotNow}
           onToggleEndOfDayRepeat={toggleEndOfDayRepeat}
+          onMarkTodoNotNow={markTodoNotNow}
           onToggleTodo={toggleTodo}
         />
 

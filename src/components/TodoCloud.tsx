@@ -1,5 +1,6 @@
 import {
   type CSSProperties,
+  type DragEvent,
   type FormEvent,
   type KeyboardEvent,
   useEffect,
@@ -8,14 +9,22 @@ import {
 } from 'react';
 import type { Todo, TodoTag } from '../types/todo';
 import { formatDateKey, getTagSize, isStaleTodo } from '../utils/todos';
+import { CountBadge } from './Shared/CountBadge';
+import { NotTodayButton } from './Shared/NotTodayButton';
+import { NotNowButton } from './Shared/NotNowButton';
+import { TagPicker } from './Shared/TagPicker';
 
 type TodoCloudProps = {
   activeTodos: Todo[];
   isLoadingTodos: boolean;
+  notTodayTodos: Todo[];
   tags: TodoTag[];
   onAssignTodoTag: (id: string, tagId: string | null) => void;
   onEditTodoText: (id: string, nextText: string) => boolean;
+  onMarkTodoNotToday: (id: string) => void;
+  onMarkTodoNotNow: (id: string) => void;
   onResetTodoCount: (id: string) => void;
+  onRestoreTodo: (id: string) => void;
   onToggleEndOfDayRepeat: (id: string) => void;
   onToggleTodo: (id: string) => void;
 };
@@ -23,10 +32,14 @@ type TodoCloudProps = {
 export function TodoCloud({
   activeTodos,
   isLoadingTodos,
+  notTodayTodos,
   tags,
   onAssignTodoTag,
   onEditTodoText,
+  onMarkTodoNotToday,
+  onMarkTodoNotNow,
   onResetTodoCount,
+  onRestoreTodo,
   onToggleEndOfDayRepeat,
   onToggleTodo,
 }: TodoCloudProps) {
@@ -76,10 +89,48 @@ export function TodoCloud({
     }
   }
 
+  function handleTodoDragStart(event: DragEvent<HTMLElement>, todoId: string) {
+    event.dataTransfer.effectAllowed = 'move';
+    event.dataTransfer.setData('text/plain', todoId);
+  }
+
+  function handleCloudDragOver(event: DragEvent<HTMLElement>) {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+  }
+
+  function handleCloudDrop(event: DragEvent<HTMLElement>) {
+    event.preventDefault();
+
+    const todoId = event.dataTransfer.getData('text/plain');
+    if (todoId) {
+      onRestoreTodo(todoId);
+    }
+  }
+
   return (
     <section className="main-panel">
-      <div className="cloud" aria-label="Todo list">
+      <div
+        className="cloud"
+        aria-label="Todo list"
+        onDragOver={handleCloudDragOver}
+        onDrop={handleCloudDrop}
+      >
         {isLoadingTodos ? <p className="status">Loading todos...</p> : null}
+        {!isLoadingTodos && notTodayTodos.length > 0 ? (
+          <div className="not-today-row" aria-label="Not today todos">
+            <span>Not today</span>
+            <ol>
+              {notTodayTodos.map((todo) => (
+                <li key={todo.id}>
+                  <button type="button" onClick={() => onRestoreTodo(todo.id)}>
+                    {todo.text}
+                  </button>
+                </li>
+              ))}
+            </ol>
+          </div>
+        ) : null}
         {!isLoadingTodos && activeTodos.length === 0 ? (
           <p className="status">No todos yet. Add the first one.</p>
         ) : null}
@@ -91,6 +142,7 @@ export function TodoCloud({
           return (
             <span
               className={`tag tag-${getTagSize(todo.count)}${isEditing ? ' editing' : ''}${isStale ? ' stale' : ''}`}
+              draggable={!isEditing}
               key={todo.id}
               style={
                 {
@@ -99,6 +151,7 @@ export function TodoCloud({
                 } as CSSProperties
               }
               title={`Added ${todo.count} ${todo.count === 1 ? 'time' : 'times'}`}
+              onDragStart={(event) => handleTodoDragStart(event, todo.id)}
             >
               {isEditing ? (
                 <form
@@ -116,13 +169,20 @@ export function TodoCloud({
                 </form>
               ) : (
                 <>
-                  <button
-                    className="tag-text"
-                    type="button"
-                    onClick={() => onToggleTodo(todo.id)}
-                  >
-                    {todo.text}
-                  </button>
+                  <span className="item-text-control">
+                    <button
+                      className="tag-text"
+                      type="button"
+                      onClick={() => onToggleTodo(todo.id)}
+                    >
+                      {todo.text}
+                    </button>
+                    <CountBadge
+                      count={todo.count}
+                      label={`${todo.text} count is ${todo.count}`}
+                      onReset={() => onResetTodoCount(todo.id)}
+                    />
+                  </span>
                   {isStale ? (
                     <span
                       className="stale-badge"
@@ -132,39 +192,19 @@ export function TodoCloud({
                     </span>
                   ) : null}
                   <span className="tag-actions">
-                    <span className="count-anchor">
-                      <span
-                        aria-label={`${todo.text} count is ${todo.count}`}
-                        className="tag-count"
-                        tabIndex={0}
-                      >
-                        {todo.count}
-                      </span>
-                      <span className="count-popover" role="status">
-                        <span className="count-popover-title">Count</span>
-                        <button
-                          type="button"
-                          onClick={() => onResetTodoCount(todo.id)}
-                        >
-                          Reset to 0
-                        </button>
-                      </span>
-                    </span>
-                    <select
-                      aria-label={`Select tag for ${todo.text}`}
-                      className="tag-picker"
-                      value={todo.tagId ?? ''}
-                      onChange={(event) =>
-                        onAssignTodoTag(todo.id, event.target.value || null)
-                      }
-                    >
-                      <option value="">No tag</option>
-                      {tags.map((tag) => (
-                        <option key={tag.id} value={tag.id}>
-                          {tag.name}
-                        </option>
-                      ))}
-                    </select>
+                    <TagPicker
+                      selectedTagId={todo.tagId}
+                      tags={tags}
+                      onAssignTag={(tagId) => onAssignTodoTag(todo.id, tagId)}
+                    />
+                    <NotTodayButton
+                      todoText={todo.text}
+                      onClick={() => onMarkTodoNotToday(todo.id)}
+                    />
+                    <NotNowButton
+                      todoText={todo.text}
+                      onClick={() => onMarkTodoNotNow(todo.id)}
+                    />
                     <button
                       aria-label={`Add ${todo.text} again at midnight`}
                       aria-pressed={todo.repeatAtEndOfDay}

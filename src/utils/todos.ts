@@ -63,6 +63,7 @@ export function parseTodos(items: unknown): Todo[] {
           id: todo.id,
           text: todo.text,
           done: todo.done,
+          doneAt: typeof todo.doneAt === 'string' ? todo.doneAt : null,
           count: typeof todo.count === 'number' && todo.count >= 0 ? todo.count : 1,
           lastAddedDate:
             typeof todo.lastAddedDate === 'string' ? todo.lastAddedDate : null,
@@ -72,6 +73,8 @@ export function parseTodos(items: unknown): Todo[] {
               ? todo.lastAutoAddedDate
               : null,
           tagId: typeof todo.tagId === 'string' ? todo.tagId : null,
+          notNow: todo.notNow === true,
+          notToday: todo.notToday === true,
         },
       ];
     }
@@ -181,6 +184,7 @@ function mergeDuplicateTodos(todos: Todo[]) {
     todosByText.set(normalizedText, {
       ...existingTodo,
       done: existingTodo.done && todo.done,
+      doneAt: getLatestDate(existingTodo.doneAt, todo.doneAt),
       count: existingTodo.count + todo.count,
       lastAddedDate: getLatestDate(
         existingTodo.lastAddedDate,
@@ -193,6 +197,8 @@ function mergeDuplicateTodos(todos: Todo[]) {
         todo.lastAutoAddedDate,
       ),
       tagId: existingTodo.tagId ?? todo.tagId,
+      notNow: existingTodo.notNow && todo.notNow,
+      notToday: existingTodo.notToday && todo.notToday,
     });
   }
 

@@ -1,6 +1,6 @@
-import type { CSSProperties } from "react";
 import type { Todo, TodoTag } from "../types/todo";
 import { formatDateKey } from "../utils/todos";
+import { TagPicker } from "./Shared/TagPicker";
 
 type DoneListProps = {
   todos: Todo[];
@@ -21,6 +21,10 @@ export function DoneList({
   onResetTodoCount,
   onToggleEndOfDayRepeat,
 }: DoneListProps) {
+  function assignTodoTag(todoId: string, tagId: string | null) {
+    onAssignTodoTag(todoId, tagId);
+  }
+
   return (
     <aside className="suggestions" aria-label="Done todos">
       <p className="eyebrow">done</p>
@@ -29,54 +33,41 @@ export function DoneList({
       ) : (
         <ol className="suggestion-list">
           {todos.map((todo) => {
-            const selectedTag = tags.find((tag) => tag.id === todo.tagId);
-
             return (
-              <li
-                key={todo.id}
-                style={{ "--tag-color": selectedTag?.color } as CSSProperties}
-              >
-                <button
-                  className="suggestion-add"
-                  type="button"
-                  onClick={() => onAddTodoText(todo.text)}
-                >
-                  <span>{todo.text}</span>
-                </button>
-                <span className="count-anchor">
-                  <span
-                    aria-label={`${todo.text} count is ${todo.count}`}
-                    className="tag-count"
-                    tabIndex={0}
-                    title={`Added ${todo.count} ${todo.count === 1 ? "time" : "times"}`}
+              <li key={todo.id}>
+                <span className="item-text-control">
+                  <TagPicker
+                    selectedTagId={todo.tagId}
+                    tags={tags}
+                    onAssignTag={(tagId) => assignTodoTag(todo.id, tagId)}
+                  />
+                  <button
+                    className="suggestion-add"
+                    type="button"
+                    onClick={() => onAddTodoText(todo.text)}
                   >
-                    {todo.count}
-                  </span>
-                  <span className="count-popover" role="status">
-                    <span className="count-popover-title">Count</span>
-                    <button
-                      type="button"
-                      onClick={() => onResetTodoCount(todo.id)}
+                    <span>{todo.text}</span>
+                  </button>
+                  <span className="count-anchor">
+                    <span
+                      aria-label={`${todo.text} count is ${todo.count}`}
+                      className="count"
+                      tabIndex={0}
+                      title={`Added ${todo.count} ${todo.count === 1 ? "time" : "times"}`}
                     >
-                      Reset to 0
-                    </button>
+                      {todo.count}
+                    </span>
+                    <span className="count-popover" role="status">
+                      <span className="count-popover-title">Count</span>
+                      <button
+                        type="button"
+                        onClick={() => onResetTodoCount(todo.id)}
+                      >
+                        Reset to 0
+                      </button>
+                    </span>
                   </span>
                 </span>
-                <select
-                  aria-label={`Select tag for ${todo.text}`}
-                  className="suggestion-tag-picker"
-                  value={todo.tagId ?? ""}
-                  onChange={(event) =>
-                    onAssignTodoTag(todo.id, event.target.value || null)
-                  }
-                >
-                  <option value="">No tag</option>
-                  {tags.map((tag) => (
-                    <option key={tag.id} value={tag.id}>
-                      {tag.name}
-                    </option>
-                  ))}
-                </select>
                 <button
                   aria-label={`Add ${todo.text} again at midnight`}
                   aria-pressed={todo.repeatAtEndOfDay}
