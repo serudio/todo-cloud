@@ -1,5 +1,5 @@
 import { supabase } from "../../supabase";
-import type { Todo, TodoListRow } from "../../types/todo";
+import type { TodoListItems, TodoListRow } from "../../types/todo";
 
 function getSupabaseClient() {
   if (!supabase) {
@@ -12,7 +12,7 @@ function getSupabaseClient() {
 export async function getFirstTodoList(userId: string) {
   return getSupabaseClient()
     .from("todo_lists")
-    .select("id, name, items")
+    .select("id, name, items, tags, links")
     .eq("user_id", userId)
     .order("created_at", { ascending: true })
     .limit(1)
@@ -22,15 +22,18 @@ export async function getFirstTodoList(userId: string) {
 export async function createTodoList(userId: string) {
   return getSupabaseClient()
     .from("todo_lists")
-    .insert({ user_id: userId, items: [] })
-    .select("id, name, items")
+    .insert({ user_id: userId, items: [], tags: [], links: [] })
+    .select("id, name, items, tags, links")
     .single<TodoListRow>();
 }
 
-export async function updateTodoListItems(todoListId: string, items: Todo[]) {
+export async function updateTodoListItems(
+  todoListId: string,
+  items: TodoListItems,
+) {
   return getSupabaseClient()
     .from("todo_lists")
-    .update({ items })
+    .update({ items: items.todos, tags: items.tags, links: items.links })
     .eq("id", todoListId);
 }
 

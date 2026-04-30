@@ -1,21 +1,156 @@
-import { type FormEvent, useEffect, useState } from "react";
+import { type FormEvent, useEffect, useRef, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { AuthCard } from "./components/AuthCard";
 import { DoneList } from "./components/DoneList";
 import { LoadingPage } from "./components/LoadingPage";
 import { NotificationToast } from "./components/NotificationToast";
 import { SetupRequired } from "./components/SetupRequired";
+import { TagPanel } from "./components/TagPanel.tsx";
 import { TodoCloud } from "./components/TodoCloud";
 import { TopBar } from "./components/TopBar";
 import { isSupabaseConfigured, supabase } from "./supabase";
 import type { Notification } from "./types/notification";
-import type { Todo } from "./types/todo";
+import type { CustomLink, Todo, TodoListItems, TodoTag } from "./types/todo";
 import {
   createTodoList,
   getFirstTodoList,
   updateTodoListItems,
 } from "./utils/db/todoLists";
-import { normalizeTodoText, parseTodos } from "./utils/todos";
+import {
+  normalizeTodoText,
+  parseTodoListColumns,
+  parseTodoListItems,
+} from "./utils/todos";
+
+const TAG_COLORS = [
+  "#ffe0a3",
+  "#d8ead2",
+  "#ffd6dc",
+  "#cde7ff",
+  "#eadcff",
+  "#ffe2c6",
+  "#d7f5ef",
+  "#f4e6a1",
+  "#d9defa",
+  "#e2e2e2",
+];
+const TODO_LIST_BACKUP_KEY_PREFIX = "todo-cloud:list-backup:";
+
+function getLocalDateKey(date = new Date()) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
+function getNextMidnightDelay() {
+  const now = new Date();
+  const nextMidnight = new Date(now);
+  nextMidnight.setHours(24, 0, 0, 0);
+
+  return nextMidnight.getTime() - now.getTime();
+}
+
+function getTodosWithEndOfDayRepeats(currentTodos: Todo[]) {
+  const today = getLocalDateKey();
+  let hasChanges = false;
+
+  const nextTodos = currentTodos.map((todo) => {
+    if (!todo.repeatAtEndOfDay) return todo;
+
+    if (!todo.lastAutoAddedDate) {
+      hasChanges = true;
+      return { ...todo, lastAutoAddedDate: today };
+    }
+
+    if (todo.lastAutoAddedDate >= today) return todo;
+
+    hasChanges = true;
+    return {
+      ...todo,
+      done: false,
+      count: todo.count + 1,
+      lastAddedDate: today,
+      lastAutoAddedDate: today,
+    };
+  });
+
+  return hasChanges ? nextTodos : null;
+}
+
+function getRandomInsertIndex(length: number) {
+  return Math.floor(Math.random() * (length + 1));
+}
+
+function insertTodoAtRandomPosition(todos: Todo[], todo: Todo) {
+  const nextTodos = [...todos];
+  nextTodos.splice(getRandomInsertIndex(nextTodos.length), 0, todo);
+
+  return nextTodos;
+}
+
+function moveTodoToRandomPosition(todos: Todo[], id: string) {
+  const todo = todos.find((currentTodo) => currentTodo.id === id);
+  if (!todo) return todos;
+
+  return insertTodoAtRandomPosition(
+    todos.filter((currentTodo) => currentTodo.id !== id),
+    todo,
+  );
+}
+
+function isEmptyTodoList(
+  todos: Todo[],
+  tags: TodoTag[],
+  links: CustomLink[],
+) {
+  return todos.length === 0 && tags.length === 0 && links.length === 0;
+}
+
+function isEmptyTodoListItems(items: TodoListItems) {
+  return isEmptyTodoList(items.todos, items.tags, items.links);
+}
+
+function getTodoListBackupKey(userId: string) {
+  return `${TODO_LIST_BACKUP_KEY_PREFIX}${userId}`;
+}
+
+function readBackedUpTodoList(userId: string) {
+  const backedUpItems = window.localStorage.getItem(getTodoListBackupKey(userId));
+  if (!backedUpItems) return null;
+
+  try {
+    const parsedItems = parseTodoListItems(JSON.parse(backedUpItems));
+
+    return isEmptyTodoListItems(parsedItems) ? null : parsedItems;
+  } catch {
+    return null;
+  }
+}
+
+function backupTodoList(userId: string, items: TodoListItems) {
+  if (isEmptyTodoListItems(items)) return;
+
+  window.localStorage.setItem(getTodoListBackupKey(userId), JSON.stringify(items));
+}
+
+function canSaveEmptyOverExistingItems(
+  items: unknown,
+  tags: unknown,
+  links: unknown,
+) {
+  const parsedItems = parseTodoListColumns(items, tags, links);
+
+  return isEmptyTodoListItems(parsedItems);
+}
+
+function normalizeCustomLinkUrl(url: string) {
+  const trimmedUrl = url.trim();
+  if (!trimmedUrl) return "";
+
+  return /^https?:\/\//i.test(trimmedUrl) ? trimmedUrl : `https://${trimmedUrl}`;
+}
 
 export default function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -25,6 +160,9 @@ export default function App() {
   const [saveError, setSaveError] = useState<string | null>(null);
   const [todoListId, setTodoListId] = useState<string | null>(null);
   const [todos, setTodos] = useState<Todo[]>([]);
+  const [tags, setTags] = useState<TodoTag[]>([]);
+  const [links, setLinks] = useState<CustomLink[]>([]);
+  const todosRef = useRef<Todo[]>([]);
   const [text, setText] = useState("");
   const [notification, setNotification] = useState<Notification | null>(null);
 
@@ -56,6 +194,8 @@ export default function App() {
   useEffect(() => {
     if (!session || !supabase) {
       setTodos([]);
+      setTags([]);
+      setLinks([]);
       setTodoListId(null);
       setIsLoadingTodos(false);
       return;
@@ -75,6 +215,40 @@ export default function App() {
       window.clearTimeout(timeoutId);
     };
   }, [notification?.id]);
+
+  useEffect(() => {
+    todosRef.current = todos;
+  }, [todos]);
+
+  useEffect(() => {
+    if (!session || !todoListId || isLoadingTodos) return;
+
+    function applyEndOfDayRepeats() {
+      const nextTodos = getTodosWithEndOfDayRepeats(todosRef.current);
+      if (!nextTodos) return;
+
+      todosRef.current = nextTodos;
+      setTodos(nextTodos);
+      saveTodos(nextTodos);
+    }
+
+    applyEndOfDayRepeats();
+
+    let timeoutId: number;
+
+    function scheduleNextMidnight() {
+      timeoutId = window.setTimeout(() => {
+        applyEndOfDayRepeats();
+        scheduleNextMidnight();
+      }, getNextMidnightDelay() + 1000);
+    }
+
+    scheduleNextMidnight();
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [session, todoListId, isLoadingTodos, tags]);
 
   function showNotification(message: string) {
     setNotification({
@@ -100,17 +274,26 @@ export default function App() {
     }
 
     if (data) {
-      const parsedTodos = parseTodos(data.items);
+      const parsedItems = parseTodoListColumns(
+        data.items,
+        data.tags,
+        data.links,
+      );
+      const backedUpItems = isEmptyTodoListItems(parsedItems)
+        ? readBackedUpTodoList(userId)
+        : null;
+      const nextItems = backedUpItems ?? parsedItems;
 
       setTodoListId(data.id);
-      setTodos(parsedTodos);
+      setTodos(nextItems.todos);
+      setTags(nextItems.tags);
+      setLinks(nextItems.links);
       setIsLoadingTodos(false);
+      backupTodoList(userId, nextItems);
 
-      if (
-        !Array.isArray(data.items) ||
-        parsedTodos.length !== data.items.length
-      ) {
-        await updateTodoListItems(data.id, parsedTodos);
+      if (backedUpItems) {
+        showNotification("Restored your todo list from the local backup.");
+        await updateTodoListItems(data.id, backedUpItems);
       }
 
       return;
@@ -122,22 +305,73 @@ export default function App() {
     if (createError || !createdTodoList) {
       setSaveError(createError?.message ?? "Todo list could not be created.");
       setTodos([]);
+      setTags([]);
+      setLinks([]);
       setTodoListId(null);
       setIsLoadingTodos(false);
       return;
     }
 
+    const createdItems = parseTodoListColumns(
+      createdTodoList.items,
+      createdTodoList.tags,
+      createdTodoList.links,
+    );
+
     setTodoListId(createdTodoList.id);
-    setTodos(parseTodos(createdTodoList.items));
+    setTodos(createdItems.todos);
+    setTags(createdItems.tags);
+    setLinks(createdItems.links);
     setIsLoadingTodos(false);
   }
 
   async function saveTodos(nextTodos: Todo[]) {
+    saveTodoList(nextTodos, tags, links);
+  }
+
+  async function saveTodoList(
+    nextTodos: Todo[],
+    nextTags: TodoTag[],
+    nextLinks: CustomLink[],
+  ) {
     if (!supabase || !todoListId) return;
 
     setSaveError(null);
 
-    const { error } = await updateTodoListItems(todoListId, nextTodos);
+    if (isEmptyTodoList(nextTodos, nextTags, nextLinks)) {
+      const { data, error } = await supabase
+        .from("todo_lists")
+        .select("items, tags, links")
+        .eq("id", todoListId)
+        .maybeSingle<{ items: unknown; tags: unknown; links: unknown }>();
+
+      if (error) {
+        setSaveError(error.message);
+        return;
+      }
+
+      if (
+        data &&
+        !canSaveEmptyOverExistingItems(data.items, data.tags, data.links)
+      ) {
+        const message =
+          "Refused to save an empty list over existing todo data. Refresh before making more changes.";
+        setSaveError(message);
+        showNotification(message);
+        return;
+      }
+    }
+
+    const nextItems = {
+      todos: nextTodos,
+      tags: nextTags,
+      links: nextLinks,
+    };
+    const { error } = await updateTodoListItems(todoListId, nextItems);
+
+    if (!error && session) {
+      backupTodoList(session.user.id, nextItems);
+    }
 
     if (error) {
       setSaveError(error.message);
@@ -174,6 +408,7 @@ export default function App() {
     const trimmedText = todoText.trim().replace(/\s+/g, " ");
     if (!trimmedText || isLoadingTodos) return;
 
+    const today = getLocalDateKey();
     const normalizedText = normalizeTodoText(trimmedText);
     const existingTodo = todos.find(
       (todo) => normalizeTodoText(todo.text) === normalizedText,
@@ -186,20 +421,29 @@ export default function App() {
     }
 
     const nextTodos = existingTodo
-      ? todos.map((todo) =>
-          todo.id === existingTodo.id
-            ? { ...todo, count: todo.count + 1, done: false }
-            : todo,
+      ? moveTodoToRandomPosition(
+          todos.map((todo) =>
+            todo.id === existingTodo.id
+              ? {
+                  ...todo,
+                  count: todo.count + 1,
+                  done: false,
+                  lastAddedDate: today,
+                }
+              : todo,
+          ),
+          existingTodo.id,
         )
-      : [
-          ...todos,
-          {
-            id: crypto.randomUUID(),
-            text: trimmedText,
-            done: false,
-            count: 1,
-          },
-        ];
+      : insertTodoAtRandomPosition(todos, {
+          id: crypto.randomUUID(),
+          text: trimmedText,
+          done: false,
+          count: 1,
+          lastAddedDate: today,
+          repeatAtEndOfDay: false,
+          lastAutoAddedDate: null,
+          tagId: null,
+        });
 
     setTodos(nextTodos);
     setText("");
@@ -219,6 +463,172 @@ export default function App() {
 
     setTodos(nextTodos);
     saveTodos(nextTodos);
+  }
+
+  function toggleEndOfDayRepeat(id: string) {
+    const today = getLocalDateKey();
+    const nextTodos = todos.map((todo) =>
+      todo.id === id
+        ? {
+            ...todo,
+            repeatAtEndOfDay: !todo.repeatAtEndOfDay,
+            lastAutoAddedDate: todo.repeatAtEndOfDay ? null : today,
+          }
+        : todo,
+    );
+
+    setTodos(nextTodos);
+    saveTodos(nextTodos);
+  }
+
+  function resetTodoCount(id: string) {
+    const nextTodos = todos.map((todo) =>
+      todo.id === id ? { ...todo, count: 0 } : todo,
+    );
+
+    setTodos(nextTodos);
+    saveTodos(nextTodos);
+  }
+
+  function createTag(name: string, color: string) {
+    const trimmedName = name.trim().replace(/\s+/g, " ");
+    if (!trimmedName) return false;
+
+    const existingTag = tags.find(
+      (tag) => tag.name.toLocaleLowerCase() === trimmedName.toLocaleLowerCase(),
+    );
+
+    if (existingTag) {
+      showNotification(`"${existingTag.name}" tag already exists.`);
+      return false;
+    }
+
+    const nextTags = [
+      ...tags,
+      {
+        id: crypto.randomUUID(),
+        name: trimmedName,
+        color,
+      },
+    ];
+
+    setTags(nextTags);
+    saveTodoList(todos, nextTags, links);
+    return true;
+  }
+
+  function renameTag(id: string, name: string) {
+    const trimmedName = name.trim().replace(/\s+/g, " ");
+    if (!trimmedName) return false;
+
+    const existingTag = tags.find(
+      (tag) =>
+        tag.id !== id &&
+        tag.name.toLocaleLowerCase() === trimmedName.toLocaleLowerCase(),
+    );
+
+    if (existingTag) {
+      showNotification(`"${existingTag.name}" tag already exists.`);
+      return false;
+    }
+
+    const nextTags = tags.map((tag) =>
+      tag.id === id ? { ...tag, name: trimmedName } : tag,
+    );
+
+    setTags(nextTags);
+    saveTodoList(todos, nextTags, links);
+    return true;
+  }
+
+  function updateTagColor(id: string, color: string) {
+    const nextTags = tags.map((tag) =>
+      tag.id === id ? { ...tag, color } : tag,
+    );
+
+    setTags(nextTags);
+    saveTodoList(todos, nextTags, links);
+  }
+
+  function deleteTag(id: string) {
+    const nextTags = tags.filter((tag) => tag.id !== id);
+    const nextTodos = todos.map((todo) =>
+      todo.tagId === id ? { ...todo, tagId: null } : todo,
+    );
+
+    setTags(nextTags);
+    setTodos(nextTodos);
+    saveTodoList(nextTodos, nextTags, links);
+  }
+
+  function assignTodoTag(id: string, tagId: string | null) {
+    const nextTodos = todos.map((todo) =>
+      todo.id === id ? { ...todo, tagId } : todo,
+    );
+
+    setTodos(nextTodos);
+    saveTodos(nextTodos);
+  }
+
+  function createLink(name: string, url: string) {
+    const trimmedName = name.trim().replace(/\s+/g, " ");
+    const normalizedUrl = normalizeCustomLinkUrl(url);
+    if (!trimmedName || !normalizedUrl) return false;
+
+    const existingLink = links.find(
+      (link) =>
+        link.name.toLocaleLowerCase() === trimmedName.toLocaleLowerCase(),
+    );
+
+    if (existingLink) {
+      showNotification(`"${existingLink.name}" link already exists.`);
+      return false;
+    }
+
+    const nextLinks = [
+      ...links,
+      {
+        id: crypto.randomUUID(),
+        name: trimmedName,
+        url: normalizedUrl,
+      },
+    ];
+
+    setLinks(nextLinks);
+    saveTodoList(todos, tags, nextLinks);
+    return true;
+  }
+
+  function updateLink(id: string, name: string, url: string) {
+    const trimmedName = name.trim().replace(/\s+/g, " ");
+    const normalizedUrl = normalizeCustomLinkUrl(url);
+    if (!trimmedName || !normalizedUrl) return false;
+
+    const existingLink = links.find(
+      (link) =>
+        link.id !== id &&
+        link.name.toLocaleLowerCase() === trimmedName.toLocaleLowerCase(),
+    );
+
+    if (existingLink) {
+      showNotification(`"${existingLink.name}" link already exists.`);
+      return false;
+    }
+
+    const nextLinks = links.map((link) =>
+      link.id === id ? { ...link, name: trimmedName, url: normalizedUrl } : link,
+    );
+
+    setLinks(nextLinks);
+    saveTodoList(todos, tags, nextLinks);
+    return true;
+  }
+
+  function deleteLink(id: string) {
+    const nextLinks = links.filter((link) => link.id !== id);
+
+    setLinks(nextLinks);
+    saveTodoList(todos, tags, nextLinks);
   }
 
   function editTodoText(id: string, nextText: string) {
@@ -269,24 +679,47 @@ export default function App() {
       <TopBar
         email={session.user.email}
         isLoadingTodos={isLoadingTodos}
+        suggestedTodos={suggestedTodos}
         text={text}
         onAddTodo={addTodo}
+        onAddTodoText={addTodoText}
         onSignOut={signOut}
         onTextChange={setText}
       />
 
       <div className="workspace">
+        <TagPanel
+          colors={TAG_COLORS}
+          links={links}
+          tags={tags}
+          onCreateLink={createLink}
+          onCreateTag={createTag}
+          onDeleteLink={deleteLink}
+          onDeleteTag={deleteTag}
+          onRenameTag={renameTag}
+          onUpdateLink={updateLink}
+          onUpdateTagColor={updateTagColor}
+        />
+
         <TodoCloud
           activeTodos={activeTodos}
           isLoadingTodos={isLoadingTodos}
+          tags={tags}
+          onAssignTodoTag={assignTodoTag}
           onEditTodoText={editTodoText}
+          onResetTodoCount={resetTodoCount}
+          onToggleEndOfDayRepeat={toggleEndOfDayRepeat}
           onToggleTodo={toggleTodo}
         />
 
         <DoneList
           todos={suggestedTodos}
+          tags={tags}
           onAddTodoText={addTodoText}
+          onAssignTodoTag={assignTodoTag}
           onDeleteTodo={deleteTodo}
+          onResetTodoCount={resetTodoCount}
+          onToggleEndOfDayRepeat={toggleEndOfDayRepeat}
         />
       </div>
       {saveError ? <p className="error">{saveError}</p> : null}
