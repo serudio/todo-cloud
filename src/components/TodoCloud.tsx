@@ -13,6 +13,7 @@ import { CountBadge } from './Shared/CountBadge';
 import { NotTodayButton } from './Shared/NotTodayButton';
 import { NotNowButton } from './Shared/NotNowButton';
 import { TagPicker } from './Shared/TagPicker';
+import './TodoCloud.css';
 
 type TodoCloudProps = {
   activeTodos: Todo[];
@@ -112,14 +113,12 @@ export function TodoCloud({
     <section className="main-panel">
       <div
         className="cloud"
-        aria-label="Todo list"
         onDragOver={handleCloudDragOver}
         onDrop={handleCloudDrop}
       >
         {isLoadingTodos ? <p className="status">Loading todos...</p> : null}
         {!isLoadingTodos && notTodayTodos.length > 0 ? (
-          <div className="not-today-row" aria-label="Not today todos">
-            <span>Not today</span>
+          <div className="not-today-row">
             <ol>
               {notTodayTodos.map((todo) => (
                 <li key={todo.id}>
@@ -160,7 +159,6 @@ export function TodoCloud({
                 >
                   <input
                     ref={editingInputRef}
-                    aria-label={`Edit ${todo.text}`}
                     value={editingText}
                     onBlur={() => finishEditing(todo)}
                     onChange={(event) => setEditingText(event.target.value)}
@@ -179,7 +177,6 @@ export function TodoCloud({
                     </button>
                     <CountBadge
                       count={todo.count}
-                      label={`${todo.text} count is ${todo.count}`}
                       onReset={() => onResetTodoCount(todo.id)}
                     />
                   </span>
@@ -197,16 +194,9 @@ export function TodoCloud({
                       tags={tags}
                       onAssignTag={(tagId) => onAssignTodoTag(todo.id, tagId)}
                     />
-                    <NotTodayButton
-                      todoText={todo.text}
-                      onClick={() => onMarkTodoNotToday(todo.id)}
-                    />
-                    <NotNowButton
-                      todoText={todo.text}
-                      onClick={() => onMarkTodoNotNow(todo.id)}
-                    />
+                    <NotTodayButton onClick={() => onMarkTodoNotToday(todo.id)} />
+                    <NotNowButton onClick={() => onMarkTodoNotNow(todo.id)} />
                     <button
-                      aria-label={`Add ${todo.text} again at midnight`}
                       aria-pressed={todo.repeatAtEndOfDay}
                       className="tag-repeat"
                       title="Add again at midnight"
@@ -218,20 +208,15 @@ export function TodoCloud({
                       </svg>
                     </button>
                     <span className="details-anchor">
-                      <span
-                        aria-label={`Show details for ${todo.text}`}
-                        className="tag-details"
-                        tabIndex={0}
-                      >
+                      <span className="tag-details">
                         i
                       </span>
-                      <span className="todo-details-popover" role="status">
+                      <span className="todo-details-popover">
                         <span className="todo-details-title">Last added</span>
                         <span>{formatDateKey(todo.lastAddedDate)}</span>
                       </span>
                     </span>
                     <button
-                      aria-label={`Edit ${todo.text}`}
                       className="tag-edit"
                       type="button"
                       onClick={() => startEditing(todo)}

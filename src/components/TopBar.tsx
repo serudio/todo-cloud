@@ -7,6 +7,7 @@ import {
 } from "react";
 import type { Todo } from "../types/todo";
 import { normalizeTodoText } from "../utils/todos";
+import "./TopBar.css";
 
 type TopBarProps = {
   email: string | undefined;
@@ -97,7 +98,6 @@ export function TopBar({
         <div className="topbar-actions">
           <span>{email}</span>
           <button
-            aria-label="Sign out"
             className="sign-out-button"
             title="Sign out"
             type="button"
@@ -120,10 +120,8 @@ export function TopBar({
             aria-autocomplete="list"
             aria-controls="task-suggestions"
             aria-expanded={showSuggestions}
-            aria-label="New todo"
             disabled={isLoadingTodos}
             placeholder="Add a task"
-            role="combobox"
             value={text}
             onBlur={() => setIsSuggestionsOpen(false)}
             onChange={(event) => {
@@ -135,18 +133,15 @@ export function TopBar({
           />
           {showSuggestions ? (
             <ol
-              aria-label="Task suggestions"
               className="task-suggestions"
               id="task-suggestions"
-              role="listbox"
             >
               {matchingTodos.map((todo, index) => (
-                <li key={todo.id} role="presentation">
+                <li key={todo.id}>
                   <button
                     aria-selected={index === activeSuggestionIndex}
                     className="task-suggestion"
                     id={`task-suggestion-${todo.id}`}
-                    role="option"
                     type="button"
                     onMouseDown={(event) => {
                       event.preventDefault();

@@ -1,3 +1,9 @@
+@import "./styles/global.css";
+@import "./styles/layout.css";
+@import "./styles/shared.css";
+@import "./styles/global.css";
+@import "./styles/layout.css";
+@import "./styles/shared.css";
 :root {
   color: #172033;
   background: #f6f1e8;
@@ -285,6 +291,7 @@ h1 {
 }
 
 .tag-panel,
+.links-panel,
 .not-now-panel {
   min-width: 0;
   border: 2px solid #172033;
@@ -581,7 +588,7 @@ h1 {
   justify-content: center;
   gap: 8px;
   color: #7d6c55;
-  font-size: 0.72rem;
+  font-size: 9px;
   font-weight: 800;
 }
 
@@ -602,12 +609,8 @@ h1 {
 
 .not-today-row button {
   border: 1px solid rgb(23 32 51 / 18%);
-  border-radius: 999px;
-  padding: 4px 7px;
-  background: rgb(23 32 51 / 6%);
-  color: #5f5548;
-  cursor: pointer;
-  font: inherit;
+  border-radius: 8px;
+  font-weight: 400;
 }
 
 .status {
@@ -1077,7 +1080,7 @@ h1 {
   fill: currentcolor;
 }
 
-.suggestions {
+.done {
   position: sticky;
   top: 24px;
   border: 2px solid #172033;
@@ -1130,7 +1133,7 @@ h1 {
   cursor: grabbing;
 }
 
-.suggestions h2 {
+.done h2 {
   margin: 0 0 18px;
   font-size: 1.4rem;
 }
@@ -1233,7 +1236,7 @@ h1 {
     position: static;
   }
 
-  .suggestions {
+  .done {
     position: static;
   }
 }

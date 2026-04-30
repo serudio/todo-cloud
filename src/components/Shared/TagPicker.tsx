@@ -1,5 +1,6 @@
 import { type CSSProperties, useEffect, useState } from "react";
 import type { TodoTag } from "../../types/todo";
+import "./TagPicker.css";
 
 type TagPickerProps = {
   selectedTagId: string | null;
@@ -67,10 +68,9 @@ export function TagPicker({
         {selectedTag ? <span /> : <TagIcon />}
       </button>
       {isOpen ? (
-        <span className="tag-picker-dropdown" role="listbox">
+        <span className="tag-picker-dropdown">
           <button
             aria-selected={!selectedTagId}
-            role="option"
             type="button"
             onClick={() => assignTag(null)}
           >
@@ -83,7 +83,6 @@ export function TagPicker({
             <button
               aria-selected={selectedTagId === tag.id}
               key={tag.id}
-              role="option"
               type="button"
               onClick={() => assignTag(tag.id)}
             >

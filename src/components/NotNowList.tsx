@@ -1,5 +1,6 @@
 import { type DragEvent } from "react";
 import type { Todo } from "../types/todo";
+import "./NotNowList.css";
 
 type NotNowListProps = {
   todos: Todo[];
@@ -34,7 +35,6 @@ export function NotNowList({
   return (
     <aside
       className="not-now-panel"
-      aria-label="Not now todos"
       onDragOver={handleDragOver}
       onDrop={handleDrop}
     >

@@ -1,6 +1,7 @@
 import type { Todo, TodoTag } from "../types/todo";
 import { formatDateKey } from "../utils/todos";
 import { TagPicker } from "./Shared/TagPicker";
+import "./DoneList.css";
 
 type DoneListProps = {
   todos: Todo[];
@@ -26,7 +27,7 @@ export function DoneList({
   }
 
   return (
-    <aside className="suggestions" aria-label="Done todos">
+    <aside className="done">
       <p className="eyebrow">done</p>
       {todos.length === 0 ? (
         <p className="status">Done items will show up here.</p>
@@ -50,14 +51,12 @@ export function DoneList({
                   </button>
                   <span className="count-anchor">
                     <span
-                      aria-label={`${todo.text} count is ${todo.count}`}
                       className="count"
-                      tabIndex={0}
                       title={`Added ${todo.count} ${todo.count === 1 ? "time" : "times"}`}
                     >
                       {todo.count}
                     </span>
-                    <span className="count-popover" role="status">
+                    <span className="count-popover">
                       <span className="count-popover-title">Count</span>
                       <button
                         type="button"
@@ -69,7 +68,6 @@ export function DoneList({
                   </span>
                 </span>
                 <button
-                  aria-label={`Add ${todo.text} again at midnight`}
                   aria-pressed={todo.repeatAtEndOfDay}
                   className="suggestion-repeat"
                   title="Add again at midnight"
@@ -81,20 +79,15 @@ export function DoneList({
                   </svg>
                 </button>
                 <span className="details-anchor">
-                  <span
-                    aria-label={`Show details for ${todo.text}`}
-                    className="suggestion-details"
-                    tabIndex={0}
-                  >
+                  <span className="suggestion-details">
                     i
                   </span>
-                  <span className="todo-details-popover" role="status">
+                  <span className="todo-details-popover">
                     <span className="todo-details-title">Last added</span>
                     <span>{formatDateKey(todo.lastAddedDate)}</span>
                   </span>
                 </span>
                 <button
-                  aria-label={`Delete ${todo.text}`}
                   className="delete"
                   type="button"
                   onClick={() => onDeleteTodo(todo.id)}

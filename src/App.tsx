@@ -1,11 +1,12 @@
 import { type FormEvent, useEffect, useRef, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
+import { LoadingPage } from "./components/AppState/LoadingPage";
+import { NotificationToast } from "./components/AppState/NotificationToast";
+import { SetupRequired } from "./components/AppState/SetupRequired";
 import { AuthCard } from "./components/AuthCard";
 import { DoneList } from "./components/DoneList";
-import { LoadingPage } from "./components/LoadingPage";
+import { LinksPanel } from "./components/LinksPanel";
 import { NotNowList } from "./components/NotNowList.tsx";
-import { NotificationToast } from "./components/NotificationToast";
-import { SetupRequired } from "./components/SetupRequired";
 import { TagPanel } from "./components/TagPanel.tsx";
 import { TodoCloud } from "./components/TodoCloud";
 import { TopBar } from "./components/TopBar";
@@ -74,6 +75,7 @@ function getTodosWithEndOfDayRepeats(currentTodos: Todo[]) {
       doneAt: null,
       notNow: false,
       notToday: false,
+      notTodayDate: null,
       count: todo.count + 1,
       lastAddedDate: today,
       lastAutoAddedDate: today,
@@ -81,6 +83,43 @@ function getTodosWithEndOfDayRepeats(currentTodos: Todo[]) {
   });
 
   return hasChanges ? nextTodos : null;
+}
+
+function getTodosWithExpiredNotTodayCleared(currentTodos: Todo[]) {
+  const today = getLocalDateKey();
+  let hasChanges = false;
+
+  const nextTodos = currentTodos.map((todo) => {
+    if (!todo.notToday || todo.notTodayDate === today) return todo;
+
+    hasChanges = true;
+    if (!todo.notTodayDate) {
+      return {
+        ...todo,
+        notTodayDate: today,
+      };
+    }
+
+    return {
+      ...todo,
+      notToday: false,
+      notTodayDate: null,
+    };
+  });
+
+  return hasChanges ? nextTodos : null;
+}
+
+function getTodosWithDailyUpdates(currentTodos: Todo[]) {
+  const todosWithoutExpiredNotToday =
+    getTodosWithExpiredNotTodayCleared(currentTodos) ?? currentTodos;
+
+  return (
+    getTodosWithEndOfDayRepeats(todosWithoutExpiredNotToday) ??
+    (todosWithoutExpiredNotToday === currentTodos
+      ? null
+      : todosWithoutExpiredNotToday)
+  );
 }
 
 function getRandomInsertIndex(length: number) {
@@ -242,8 +281,8 @@ export default function App() {
   useEffect(() => {
     if (!session || !todoListId || isLoadingTodos) return;
 
-    function applyEndOfDayRepeats() {
-      const nextTodos = getTodosWithEndOfDayRepeats(todosRef.current);
+    function applyDailyTodoUpdates() {
+      const nextTodos = getTodosWithDailyUpdates(todosRef.current);
       if (!nextTodos) return;
 
       todosRef.current = nextTodos;
@@ -251,13 +290,13 @@ export default function App() {
       saveTodos(nextTodos);
     }
 
-    applyEndOfDayRepeats();
+    applyDailyTodoUpdates();
 
     let timeoutId: number;
 
     function scheduleNextMidnight() {
       timeoutId = window.setTimeout(() => {
-        applyEndOfDayRepeats();
+        applyDailyTodoUpdates();
         scheduleNextMidnight();
       }, getNextMidnightDelay() + 1000);
     }
@@ -267,7 +306,7 @@ export default function App() {
     return () => {
       window.clearTimeout(timeoutId);
     };
-  }, [session, todoListId, isLoadingTodos, tags]);
+  }, [session, todoListId, isLoadingTodos, tags, links]);
 
   function showNotification(message: string) {
     setNotification({
@@ -448,6 +487,7 @@ export default function App() {
                   count: todo.count + 1,
                   notNow: false,
                   notToday: false,
+                  notTodayDate: null,
                   done: false,
                   doneAt: null,
                   lastAddedDate: today,
@@ -468,6 +508,7 @@ export default function App() {
           tagId: null,
           notNow: false,
           notToday: false,
+          notTodayDate: null,
         });
 
     setTodos(nextTodos);
@@ -491,6 +532,7 @@ export default function App() {
             doneAt: todo.done ? null : now,
             notNow: todo.done ? todo.notNow : false,
             notToday: todo.done ? todo.notToday : false,
+            notTodayDate: todo.done ? todo.notTodayDate : null,
           }
         : todo,
     );
@@ -616,7 +658,9 @@ export default function App() {
 
   function markTodoNotNow(id: string) {
     const nextTodos = todos.map((todo) =>
-      todo.id === id ? { ...todo, notNow: true, notToday: false } : todo,
+      todo.id === id
+        ? { ...todo, notNow: true, notToday: false, notTodayDate: null }
+        : todo,
     );
 
     setTodos(nextTodos);
@@ -625,7 +669,9 @@ export default function App() {
 
   function restoreTodoFromNotNow(id: string) {
     const nextTodos = todos.map((todo) =>
-      todo.id === id ? { ...todo, notNow: false, notToday: false } : todo,
+      todo.id === id
+        ? { ...todo, notNow: false, notToday: false, notTodayDate: null }
+        : todo,
     );
 
     setTodos(nextTodos);
@@ -633,8 +679,11 @@ export default function App() {
   }
 
   function markTodoNotToday(id: string) {
+    const today = getLocalDateKey();
     const nextTodos = todos.map((todo) =>
-      todo.id === id ? { ...todo, notToday: true } : todo,
+      todo.id === id
+        ? { ...todo, notToday: true, notTodayDate: today }
+        : todo,
     );
 
     setTodos(nextTodos);
@@ -762,15 +811,18 @@ export default function App() {
         <div className="left-column">
           <TagPanel
             colors={TAG_COLORS}
-            links={links}
             tags={tags}
-            onCreateLink={createLink}
             onCreateTag={createTag}
-            onDeleteLink={deleteLink}
             onDeleteTag={deleteTag}
             onRenameTag={renameTag}
-            onUpdateLink={updateLink}
             onUpdateTagColor={updateTagColor}
+          />
+
+          <LinksPanel
+            links={links}
+            onCreateLink={createLink}
+            onDeleteLink={deleteLink}
+            onUpdateLink={updateLink}
           />
 
           <NotNowList

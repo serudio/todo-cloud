@@ -1,0 +1,247 @@
+.cloud {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  align-content: center;
+  align-items: flex-start;
+  justify-content: center;
+  position: relative;
+  min-height: 320px;
+  gap: 18px 14px;
+  border-radius: 40px;
+  padding: 56px 26px 34px;
+  background: rgb(255 250 242 / 58%);
+}
+
+.not-today-row {
+  display: flex;
+  position: absolute;
+  top: 16px;
+  right: 22px;
+  left: 22px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #7d6c55;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.not-today-row > span {
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.not-today-row ol {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.not-today-row button {
+  border: 1px solid rgb(23 32 51 / 18%);
+  border-radius: 8px;
+  font-weight: 400;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  position: relative;
+  margin-top: calc((var(--tag-offset) - 2) * 10px);
+  transform: rotate(calc((var(--tag-offset) - 2) * 2deg));
+  border: 2px solid #172033;
+  border-radius: 999px;
+  padding: 8px 10px 8px 14px;
+  background: var(--tag-color, #ffe0a3);
+  box-shadow: 4px 4px 0 #172033;
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.tag:hover {
+  z-index: 1;
+  transform: translateY(-2px) rotate(calc((var(--tag-offset) - 2) * 2deg));
+  box-shadow: 6px 6px 0 #172033;
+}
+
+.tag:has(.tag-color-trigger[aria-expanded="true"]) {
+  z-index: 80;
+}
+
+.tag.stale {
+  border-color: #b42318;
+  box-shadow: 4px 4px 0 #b42318;
+}
+
+.tag.stale:hover {
+  box-shadow: 6px 6px 0 #b42318;
+}
+
+.tag.editing {
+  transform: rotate(calc((var(--tag-offset) - 2) * 2deg));
+}
+
+.tag-1 {
+  font-size: 0.95rem;
+  padding: 7px 9px 7px 13px;
+}
+
+.tag-2 {
+  font-size: 1.12rem;
+  padding: 9px 11px 9px 16px;
+}
+
+.tag-3 {
+  font-size: 1.34rem;
+  padding: 11px 13px 11px 18px;
+}
+
+.tag-4 {
+  font-size: 1.6rem;
+  padding: 13px 15px 13px 22px;
+}
+
+.tag-5 {
+  font-size: 1.9rem;
+  padding: 15px 17px 15px 26px;
+}
+
+.tag button {
+  display: inline-flex;
+  align-items: center;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.tag-text {
+  padding: 0;
+}
+
+.stale-badge {
+  position: absolute;
+  top: -16px;
+  right: -10px;
+  border: 2px solid #172033;
+  border-radius: 999px;
+  padding: 3px 7px;
+  background: #b42318;
+  box-shadow: 2px 2px 0 #172033;
+  color: white;
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  transform: rotate(6deg);
+}
+
+.tag-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  position: absolute;
+  bottom: -34px;
+  left: 50%;
+  z-index: 2;
+  border: 2px solid #172033;
+  border-radius: 999px;
+  padding: 4px 6px;
+  background: #fffaf2;
+  box-shadow: 3px 3px 0 #172033;
+  font-size: 0.78rem;
+  line-height: 1;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, -4px);
+  white-space: nowrap;
+  transition:
+    opacity 140ms ease,
+    transform 140ms ease;
+}
+
+.tag:hover .tag-actions,
+.tag:focus-within .tag-actions {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translate(-50%, 0);
+}
+
+.tag-edit,
+.tag-details {
+  display: inline-flex;
+  align-items: center;
+  width: 26px;
+  height: 26px;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 5px;
+  background: #172033 !important;
+  color: white !important;
+  font-size: inherit;
+  font-weight: 800;
+}
+
+.tag-details {
+  background: rgb(23 32 51 / 12%) !important;
+  color: #172033 !important;
+  font-family: Georgia, serif;
+  font-style: italic;
+  cursor: help;
+}
+
+.tag-repeat {
+  display: inline-flex;
+  align-items: center;
+  width: 26px;
+  height: 26px;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 5px;
+  background: rgb(23 32 51 / 12%);
+  color: #172033 !important;
+}
+
+.tag-repeat[aria-pressed="true"] {
+  background: #172033 !important;
+  color: white !important;
+}
+
+.tag-repeat svg,
+.tag-edit svg {
+  width: 100%;
+  height: 100%;
+  fill: currentcolor;
+}
+
+.tag-not-now,
+.tag-not-today {
+  border: 0;
+  border-radius: 999px;
+  padding: 7px 9px;
+  background: rgb(23 32 51 / 12%);
+  color: #172033;
+  cursor: pointer;
+  font-size: 0.72rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.tag-editor input {
+  width: min(320px, 48vw);
+  min-width: 140px;
+  border: 0;
+  padding: 0;
+  outline: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+}

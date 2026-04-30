@@ -10,6 +10,7 @@ export type Todo = {
   tagId: string | null;
   notNow: boolean;
   notToday: boolean;
+  notTodayDate: string | null;
 };
 
 export type TodoTag = {

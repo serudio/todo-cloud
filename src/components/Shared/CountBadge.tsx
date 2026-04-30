@@ -1,16 +1,17 @@
+import "./CountBadge.css";
+
 type CountBadgeProps = {
   count: number;
-  label: string;
   onReset: () => void;
 };
 
-export function CountBadge({ count, label, onReset }: CountBadgeProps) {
+export function CountBadge({ count, onReset }: CountBadgeProps) {
   return (
     <span className="count-anchor">
-      <span aria-label={label} className="count" tabIndex={0}>
+      <span className="count">
         {count}
       </span>
-      <span className="count-popover" role="status">
+      <span className="count-popover">
         <span className="count-popover-title">Count</span>
         <button type="button" onClick={onReset}>
           Reset to 0

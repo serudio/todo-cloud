@@ -1,3 +1,5 @@
+import "./AppState.css";
+
 export function LoadingPage() {
   return (
     <main className="app auth-page">

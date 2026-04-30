@@ -1,0 +1,33 @@
+.workspace {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr) 240px;
+  min-height: calc(100vh - 88px);
+  gap: 24px;
+  align-items: stretch;
+}
+
+.left-column {
+  position: sticky;
+  top: 72px;
+  align-self: start;
+  display: grid;
+  width: 220px;
+  min-width: 0;
+  gap: 18px;
+}
+
+.main-panel {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+@media (max-width: 820px) {
+  .workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .left-column {
+    position: static;
+  }
+}

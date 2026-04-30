@@ -75,6 +75,8 @@ export function parseTodos(items: unknown): Todo[] {
           tagId: typeof todo.tagId === 'string' ? todo.tagId : null,
           notNow: todo.notNow === true,
           notToday: todo.notToday === true,
+          notTodayDate:
+            typeof todo.notTodayDate === 'string' ? todo.notTodayDate : null,
         },
       ];
     }
@@ -199,6 +201,10 @@ function mergeDuplicateTodos(todos: Todo[]) {
       tagId: existingTodo.tagId ?? todo.tagId,
       notNow: existingTodo.notNow && todo.notNow,
       notToday: existingTodo.notToday && todo.notToday,
+      notTodayDate:
+        existingTodo.notToday && todo.notToday
+          ? getLatestDate(existingTodo.notTodayDate, todo.notTodayDate)
+          : null,
     });
   }
 

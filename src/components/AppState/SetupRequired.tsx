@@ -1,3 +1,5 @@
+import "./AppState.css";
+
 export function SetupRequired() {
   return (
     <main className="app auth-page">

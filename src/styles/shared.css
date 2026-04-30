@@ -1,0 +1,137 @@
+.tag-panel,
+.links-panel,
+.not-now-panel {
+  min-width: 0;
+  border: 2px solid #172033;
+  border-radius: 28px;
+  padding: 18px;
+  background: #fffaf2;
+  box-shadow: 6px 6px 0 #172033;
+}
+
+.section-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.section-title-row .eyebrow {
+  margin: 0;
+}
+
+.section-add-button {
+  display: inline-grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  padding: 0;
+  background: rgb(23 32 51 / 12%);
+  color: #172033;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.section-add-button[aria-expanded="true"] {
+  background: #172033;
+  color: white;
+}
+
+.tag-list-action {
+  display: inline-grid;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  padding: 5px;
+  background: rgb(23 32 51 / 12%);
+  color: #172033;
+  cursor: pointer;
+  font-weight: 800;
+  line-height: 1;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 120ms ease;
+}
+
+.tag-list-row:hover .tag-list-action,
+.tag-list-row:focus-within .tag-list-action,
+.link-list-row:hover .tag-list-action,
+.link-list-row:focus-within .tag-list-action {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.tag-list-action svg {
+  width: 100%;
+  height: 100%;
+  fill: currentcolor;
+}
+
+.item-text-control {
+  display: inline-flex;
+  position: relative;
+  min-width: 0;
+}
+
+.item-text-control > .count-anchor {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  z-index: 4;
+  transform: translateX(-50%);
+}
+
+.item-text-control > .tag-picker-menu {
+  position: absolute;
+  top: -10px;
+  right: -8px;
+  z-index: 60;
+}
+
+.details-anchor {
+  display: inline-flex;
+  position: relative;
+}
+
+.todo-details-popover {
+  display: none;
+  gap: 4px;
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  z-index: 10;
+  min-width: 150px;
+  border: 2px solid #172033;
+  border-radius: 14px;
+  padding: 10px 12px;
+  background: #fffaf2;
+  box-shadow: 4px 4px 0 #172033;
+  color: #172033;
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: left;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
+.details-anchor:hover .todo-details-popover,
+.details-anchor:focus-within .todo-details-popover {
+  display: grid;
+}
+
+.todo-details-title {
+  color: #7d6c55;
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
