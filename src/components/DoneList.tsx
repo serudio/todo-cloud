@@ -1,4 +1,4 @@
-import type { Todo } from '../types/todo';
+import type { Todo } from "../types/todo";
 
 type DoneListProps = {
   todos: Todo[];
@@ -6,11 +6,14 @@ type DoneListProps = {
   onDeleteTodo: (id: string) => void;
 };
 
-export function DoneList({ todos, onAddTodoText, onDeleteTodo }: DoneListProps) {
+export function DoneList({
+  todos,
+  onAddTodoText,
+  onDeleteTodo,
+}: DoneListProps) {
   return (
     <aside className="suggestions" aria-label="Done todos">
       <p className="eyebrow">done</p>
-      <h2>Done</h2>
       {todos.length === 0 ? (
         <p className="status">Done items will show up here.</p>
       ) : (
@@ -23,7 +26,9 @@ export function DoneList({ todos, onAddTodoText, onDeleteTodo }: DoneListProps) 
                 onClick={() => onAddTodoText(todo.text)}
               >
                 <span>{todo.text}</span>
-                <strong title={`Added ${todo.count} ${todo.count === 1 ? 'time' : 'times'}`}>
+                <strong
+                  title={`Added ${todo.count} ${todo.count === 1 ? "time" : "times"}`}
+                >
                   {todo.count}
                 </strong>
               </button>

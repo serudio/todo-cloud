@@ -26,9 +26,10 @@ input:disabled {
 }
 
 .app {
-  width: min(1080px, calc(100% - 32px));
+  width: min(1200px, calc(100% - 32px));
+  min-height: 100vh;
   margin: 0 auto;
-  padding: 72px 0;
+  padding: 72px 0 16px;
 }
 
 .auth-page {
@@ -109,11 +110,11 @@ input:disabled {
 }
 
 .topbar-center {
+  display: flex;
+  align-items: center;
   justify-self: center;
-}
-
-.topbar .editable-list-name {
-  margin: 0;
+  gap: 14px;
+  min-width: 0;
 }
 
 .topbar-actions {
@@ -151,62 +152,11 @@ h1 {
   line-height: 0.9;
 }
 
-.editable-list-name button,
-.editable-list-name input {
-  width: 100%;
-  border: 0;
-  padding: 0;
-  background: transparent;
-  color: inherit;
-  font: inherit;
-  letter-spacing: inherit;
-  line-height: inherit;
-  text-align: left;
-}
-
-.editable-list-name button {
-  display: inline-flex;
-  align-items: flex-start;
-  gap: 0.36em;
-  cursor: text;
-}
-
-.editable-list-name input {
-  display: block;
-  outline: 0;
-  text-transform: uppercase;
-}
-
-.edit-icon {
-  display: inline-flex;
-  width: 0.9em;
-  height: 0.9em;
-  flex: 0 0 auto;
-  margin-top: 0.08em;
-  color: #7d6c55;
-  opacity: 0;
-  transform: translateY(0.08em);
-  transition:
-    opacity 140ms ease,
-    transform 140ms ease;
-}
-
-.edit-icon svg {
-  width: 100%;
-  height: 100%;
-  fill: currentcolor;
-}
-
-.editable-list-name button:hover .edit-icon,
-.editable-list-name button:focus-visible .edit-icon {
-  opacity: 1;
-  transform: translateY(0);
-}
-
 .todo-form {
   display: flex;
   gap: 10px;
-  margin-bottom: 32px;
+  width: min(520px, 42vw);
+  min-width: 320px;
 }
 
 .todo-form input {
@@ -236,23 +186,26 @@ h1 {
 .workspace {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 280px;
+  min-height: calc(100vh - 88px);
   gap: 32px;
-  align-items: start;
+  align-items: stretch;
 }
 
 .main-panel {
+  display: flex;
+  flex-direction: column;
   min-width: 0;
 }
 
 .cloud {
   display: flex;
+  flex: 1;
   flex-wrap: wrap;
   align-content: center;
   align-items: flex-start;
   justify-content: center;
   min-height: 320px;
   gap: 18px 14px;
-  border: 2px dashed rgb(23 32 51 / 28%);
   border-radius: 40px;
   padding: 34px 26px;
   background: rgb(255 250 242 / 58%);
@@ -267,6 +220,7 @@ h1 {
 .tag {
   display: inline-flex;
   align-items: center;
+  position: relative;
   margin-top: calc((var(--tag-offset) - 2) * 10px);
   transform: rotate(calc((var(--tag-offset) - 2) * 2deg));
   border: 2px solid #172033;
@@ -280,8 +234,13 @@ h1 {
 }
 
 .tag:hover {
+  z-index: 1;
   transform: translateY(-2px) rotate(calc((var(--tag-offset) - 2) * 2deg));
   box-shadow: 6px 6px 0 #172033;
+}
+
+.tag.editing {
+  transform: rotate(calc((var(--tag-offset) - 2) * 2deg));
 }
 
 .tag-1 {
@@ -312,32 +271,85 @@ h1 {
 .tag button {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
   background: transparent;
   color: inherit;
 }
 
-.tag-count {
-  display: inline-grid;
-  min-width: 22px;
-  height: 22px;
-  place-items: center;
-  border-radius: 50%;
-  background: rgb(23 32 51 / 12%);
-  font-size: 0.75em;
-  font-weight: 800;
+.tag-text {
+  padding: 0;
+}
+
+.tag-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  position: absolute;
+  bottom: -34px;
+  left: 50%;
+  z-index: 2;
+  border: 2px solid #172033;
+  border-radius: 999px;
+  padding: 4px 6px;
+  background: #fffaf2;
+  box-shadow: 3px 3px 0 #172033;
+  font-size: 0.78rem;
+  line-height: 1;
   opacity: 0;
-  text-decoration: none;
-  transform: scale(0.8);
+  pointer-events: none;
+  transform: translate(-50%, -4px);
+  white-space: nowrap;
   transition:
     opacity 140ms ease,
     transform 140ms ease;
 }
 
-.tag:hover .tag-count,
-.tag:focus-within .tag-count {
+.tag:hover .tag-actions,
+.tag:focus-within .tag-actions {
   opacity: 1;
-  transform: scale(1);
+  pointer-events: auto;
+  transform: translate(-50%, 0);
+}
+
+.tag-edit {
+  width: 26px;
+  height: 26px;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 5px;
+  background: #172033 !important;
+  color: white !important;
+  font-size: inherit;
+  font-weight: 800;
+}
+
+.tag-edit svg {
+  width: 100%;
+  height: 100%;
+  fill: currentcolor;
+}
+
+.tag-editor input {
+  width: min(320px, 48vw);
+  min-width: 140px;
+  border: 0;
+  padding: 0;
+  outline: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+}
+
+.tag-count {
+  display: inline-grid;
+  min-width: 24px;
+  height: 24px;
+  place-items: center;
+  border-radius: 50%;
+  background: rgb(23 32 51 / 12%);
+  font-size: inherit;
+  font-weight: 800;
+  text-decoration: none;
 }
 
 .tag.done {

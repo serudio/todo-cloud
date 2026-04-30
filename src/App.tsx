@@ -1,10 +1,4 @@
-import {
-  type FormEvent,
-  type KeyboardEvent,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { type FormEvent, useEffect, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { AuthCard } from "./components/AuthCard";
 import { DoneList } from "./components/DoneList";
@@ -20,7 +14,6 @@ import {
   createTodoList,
   getFirstTodoList,
   updateTodoListItems,
-  updateTodoListName,
 } from "./utils/db/todoLists";
 import { normalizeTodoText, parseTodos } from "./utils/todos";
 
@@ -31,13 +24,9 @@ export default function App() {
   const [authError, setAuthError] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [todoListId, setTodoListId] = useState<string | null>(null);
-  const [todoListName, setTodoListName] = useState("My todo list");
-  const [todoListNameDraft, setTodoListNameDraft] = useState("My todo list");
-  const [isEditingTodoListName, setIsEditingTodoListName] = useState(false);
   const [todos, setTodos] = useState<Todo[]>([]);
   const [text, setText] = useState("");
   const [notification, setNotification] = useState<Notification | null>(null);
-  const todoListNameInputRef = useRef<HTMLInputElement>(null);
 
   const suggestedTodos = [...todos]
     .filter((todo) => todo.done)
@@ -68,9 +57,6 @@ export default function App() {
     if (!session || !supabase) {
       setTodos([]);
       setTodoListId(null);
-      setTodoListName("My todo list");
-      setTodoListNameDraft("My todo list");
-      setIsEditingTodoListName(false);
       setIsLoadingTodos(false);
       return;
     }
@@ -89,13 +75,6 @@ export default function App() {
       window.clearTimeout(timeoutId);
     };
   }, [notification?.id]);
-
-  useEffect(() => {
-    if (!isEditingTodoListName) return;
-
-    todoListNameInputRef.current?.focus();
-    todoListNameInputRef.current?.select();
-  }, [isEditingTodoListName]);
 
   function showNotification(message: string) {
     setNotification({
@@ -116,8 +95,6 @@ export default function App() {
       setSaveError(error.message);
       setTodos([]);
       setTodoListId(null);
-      setTodoListName("My todo list");
-      setTodoListNameDraft("My todo list");
       setIsLoadingTodos(false);
       return;
     }
@@ -126,8 +103,6 @@ export default function App() {
       const parsedTodos = parseTodos(data.items);
 
       setTodoListId(data.id);
-      setTodoListName(data.name);
-      setTodoListNameDraft(data.name);
       setTodos(parsedTodos);
       setIsLoadingTodos(false);
 
@@ -148,15 +123,11 @@ export default function App() {
       setSaveError(createError?.message ?? "Todo list could not be created.");
       setTodos([]);
       setTodoListId(null);
-      setTodoListName("My todo list");
-      setTodoListNameDraft("My todo list");
       setIsLoadingTodos(false);
       return;
     }
 
     setTodoListId(createdTodoList.id);
-    setTodoListName(createdTodoList.name);
-    setTodoListNameDraft(createdTodoList.name);
     setTodos(parseTodos(createdTodoList.items));
     setIsLoadingTodos(false);
   }
@@ -170,59 +141,6 @@ export default function App() {
 
     if (error) {
       setSaveError(error.message);
-    }
-  }
-
-  async function saveTodoListName(nextName: string) {
-    if (!supabase || !todoListId) return;
-
-    setSaveError(null);
-
-    const { error } = await updateTodoListName(todoListId, nextName);
-
-    if (error) {
-      setSaveError(error.message);
-    }
-  }
-
-  function startEditingTodoListName() {
-    setTodoListNameDraft(todoListName);
-    setIsEditingTodoListName(true);
-  }
-
-  function finishEditingTodoListName() {
-    const nextName = todoListNameDraft.trim().replace(/\s+/g, " ");
-
-    setIsEditingTodoListName(false);
-
-    if (!nextName) {
-      setTodoListNameDraft(todoListName);
-      return;
-    }
-
-    if (nextName === todoListName) {
-      setTodoListNameDraft(nextName);
-      return;
-    }
-
-    setTodoListName(nextName);
-    setTodoListNameDraft(nextName);
-    saveTodoListName(nextName);
-  }
-
-  function cancelEditingTodoListName() {
-    setTodoListNameDraft(todoListName);
-    setIsEditingTodoListName(false);
-  }
-
-  function handleTodoListNameKeyDown(event: KeyboardEvent<HTMLInputElement>) {
-    if (event.key === "Enter") {
-      event.currentTarget.blur();
-      return;
-    }
-
-    if (event.key === "Escape") {
-      cancelEditingTodoListName();
     }
   }
 
@@ -303,6 +221,29 @@ export default function App() {
     saveTodos(nextTodos);
   }
 
+  function editTodoText(id: string, nextText: string) {
+    const trimmedText = nextText.trim().replace(/\s+/g, " ");
+    if (!trimmedText || isLoadingTodos) return false;
+
+    const normalizedText = normalizeTodoText(trimmedText);
+    const existingTodo = todos.find(
+      (todo) => todo.id !== id && normalizeTodoText(todo.text) === normalizedText,
+    );
+
+    if (existingTodo) {
+      showNotification(`"${existingTodo.text}" is already there.`);
+      return false;
+    }
+
+    const nextTodos = todos.map((todo) =>
+      todo.id === id ? { ...todo, text: trimmedText } : todo,
+    );
+
+    setTodos(nextTodos);
+    saveTodos(nextTodos);
+    return true;
+  }
+
   function deleteTodo(id: string) {
     const nextTodos = todos.filter((todo) => todo.id !== id);
 
@@ -327,24 +268,18 @@ export default function App() {
 
       <TopBar
         email={session.user.email}
-        isEditingTodoListName={isEditingTodoListName}
-        todoListName={todoListName}
-        todoListNameDraft={todoListNameDraft}
-        todoListNameInputRef={todoListNameInputRef}
-        onFinishEditingTodoListName={finishEditingTodoListName}
+        isLoadingTodos={isLoadingTodos}
+        text={text}
+        onAddTodo={addTodo}
         onSignOut={signOut}
-        onStartEditingTodoListName={startEditingTodoListName}
-        onTodoListNameDraftChange={setTodoListNameDraft}
-        onTodoListNameKeyDown={handleTodoListNameKeyDown}
+        onTextChange={setText}
       />
 
       <div className="workspace">
         <TodoCloud
           activeTodos={activeTodos}
           isLoadingTodos={isLoadingTodos}
-          text={text}
-          onTextChange={setText}
-          onAddTodo={addTodo}
+          onEditTodoText={editTodoText}
           onToggleTodo={toggleTodo}
         />
 
