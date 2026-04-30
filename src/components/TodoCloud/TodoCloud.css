@@ -58,16 +58,15 @@
   border-radius: 999px;
   padding: 8px 10px 8px 14px;
   background: var(--todo-color, #ffe0a3);
-  box-shadow: 4px 4px 0 #172033;
-  transition:
+  /* transition:
     transform 160ms ease,
-    box-shadow 160ms ease;
+    box-shadow 160ms ease; */
 }
 
 .todo:hover {
+  scale: 1.02;
   z-index: 1;
-  transform: translateY(-2px) rotate(calc((var(--todo-offset) - 2) * 2deg));
-  box-shadow: 6px 6px 0 #172033;
+  /* transform: translateY(-2px) rotate(calc((var(--todo-offset) - 2) * 2deg)); */
 }
 
 .todo:has(.tag-color-trigger[aria-expanded="true"]) {
@@ -152,13 +151,11 @@
   bottom: -34px;
   left: 50%;
   z-index: 2;
-  border: 2px solid #172033;
+  border: 1px solid #172033;
   border-radius: 999px;
-  padding: 4px 6px;
+  padding: 4px;
   background: #fffaf2;
-  box-shadow: 3px 3px 0 #172033;
-  font-size: 0.78rem;
-  line-height: 1;
+  font-size: 0.7rem;
   opacity: 0;
   pointer-events: none;
   transform: translate(-50%, -4px);
