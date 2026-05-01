@@ -4,7 +4,7 @@ import { CountBadge } from "./CountBadge";
 
 type Props = {
   todo: Todo;
-  onReset: (id: string) => void;
+  onReset?: (id: string) => void;
 };
 export const TodoDetails: React.FC<Props> = ({ todo, onReset }) => {
   return (
@@ -13,7 +13,9 @@ export const TodoDetails: React.FC<Props> = ({ todo, onReset }) => {
       <span className="todo-details-popover">
         <span className="todo-details-title">Last added</span>
         <span>{formatDateKey(todo.lastAddedDate)}</span>
-        <CountBadge count={todo.count} onReset={() => onReset(todo.id)} />
+        {onReset && (
+          <CountBadge count={todo.count} onReset={() => onReset(todo.id)} />
+        )}
       </span>
     </span>
   );

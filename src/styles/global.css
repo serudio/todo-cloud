@@ -10,6 +10,25 @@
     "Segoe UI",
     sans-serif;
 }
+/* DARK MODE */
+:root {
+  background-color: rgb(15, 18, 20);
+}
+
+#root {
+  background: radial-gradient(
+    farthest-corner circle at 0% 0%,
+    hsla(210, 100%, 23%, 0.2) 0%,
+    hsl(210, 14%, 7%) 100%
+  );
+}
+.panel {
+  background: rgb(15, 18, 20);
+}
+.cloud {
+  background: rgb(15, 18, 20);
+}
+/* END DARK MODE */
 
 * {
   box-sizing: border-box;

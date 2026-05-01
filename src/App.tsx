@@ -25,15 +25,15 @@ import {
 } from "./utils/todos";
 
 const TAG_COLORS = [
-  "#ffe0a3",
-  "#d8ead2",
-  "#ffd6dc",
-  "#cde7ff",
-  "#eadcff",
-  "#ffe2c6",
+  "#8f3d36",
+  "#0F5C2E",
+  "#ed4b82",
+  "#8c9eff",
+  "#8561c5",
+  "#ef5350",
   "#d7f5ef",
-  "#f4e6a1",
-  "#d9defa",
+  "#eeff41",
+  "#3f50b5",
   "#e2e2e2",
 ];
 const TODO_LIST_BACKUP_KEY_PREFIX = "todo-cloud:list-backup:";
@@ -143,11 +143,7 @@ function moveTodoToRandomPosition(todos: Todo[], id: string) {
   );
 }
 
-function isEmptyTodoList(
-  todos: Todo[],
-  tags: TodoTag[],
-  links: CustomLink[],
-) {
+function isEmptyTodoList(todos: Todo[], tags: TodoTag[], links: CustomLink[]) {
   return todos.length === 0 && tags.length === 0 && links.length === 0;
 }
 
@@ -160,7 +156,9 @@ function getTodoListBackupKey(userId: string) {
 }
 
 function readBackedUpTodoList(userId: string) {
-  const backedUpItems = window.localStorage.getItem(getTodoListBackupKey(userId));
+  const backedUpItems = window.localStorage.getItem(
+    getTodoListBackupKey(userId),
+  );
   if (!backedUpItems) return null;
 
   try {
@@ -175,7 +173,10 @@ function readBackedUpTodoList(userId: string) {
 function backupTodoList(userId: string, items: TodoListItems) {
   if (isEmptyTodoListItems(items)) return;
 
-  window.localStorage.setItem(getTodoListBackupKey(userId), JSON.stringify(items));
+  window.localStorage.setItem(
+    getTodoListBackupKey(userId),
+    JSON.stringify(items),
+  );
 }
 
 function canSaveEmptyOverExistingItems(
@@ -192,7 +193,9 @@ function normalizeCustomLinkUrl(url: string) {
   const trimmedUrl = url.trim();
   if (!trimmedUrl) return "";
 
-  return /^https?:\/\//i.test(trimmedUrl) ? trimmedUrl : `https://${trimmedUrl}`;
+  return /^https?:\/\//i.test(trimmedUrl)
+    ? trimmedUrl
+    : `https://${trimmedUrl}`;
 }
 
 export default function App() {
@@ -681,9 +684,7 @@ export default function App() {
   function markTodoNotToday(id: string) {
     const today = getLocalDateKey();
     const nextTodos = todos.map((todo) =>
-      todo.id === id
-        ? { ...todo, notToday: true, notTodayDate: today }
-        : todo,
+      todo.id === id ? { ...todo, notToday: true, notTodayDate: today } : todo,
     );
 
     setTodos(nextTodos);
@@ -736,7 +737,9 @@ export default function App() {
     }
 
     const nextLinks = links.map((link) =>
-      link.id === id ? { ...link, name: trimmedName, url: normalizedUrl } : link,
+      link.id === id
+        ? { ...link, name: trimmedName, url: normalizedUrl }
+        : link,
     );
 
     setLinks(nextLinks);
@@ -757,7 +760,8 @@ export default function App() {
 
     const normalizedText = normalizeTodoText(trimmedText);
     const existingTodo = todos.find(
-      (todo) => todo.id !== id && normalizeTodoText(todo.text) === normalizedText,
+      (todo) =>
+        todo.id !== id && normalizeTodoText(todo.text) === normalizedText,
     );
 
     if (existingTodo) {
