@@ -1,5 +1,4 @@
 import {
-  type CSSProperties,
   type DragEvent,
   type FormEvent,
   type KeyboardEvent,
@@ -8,15 +7,9 @@ import {
   useState,
 } from "react";
 import type { Todo, TodoTag } from "../../types/todo";
-import { formatDateKey, getTodoSize, isStaleTodo } from "../../utils/todos";
-import { CountBadge } from "../Shared/CountBadge";
-import { NotTodayButton } from "../Shared/NotTodayButton";
-// import { NotNowButton } from "../Shared/NotNowButton";
-import { TagPicker } from "../Shared/TagPicker";
 import "./TodoCloud.css";
 import { NotTodayList } from "./NotTodayList";
-import { AutoRepeatButton } from "../Shared/AutoRepeatButton";
-import { TodoEditButton } from "../Shared/TodoEditButton";
+import { TodoItem } from "./TodoItem";
 
 type TodoCloudProps = {
   activeTodos: Todo[];
@@ -126,89 +119,28 @@ export function TodoCloud({
         {!isLoadingTodos && activeTodos.length === 0 && (
           <p className="status">No todos yet. Add the first one.</p>
         )}
-        {activeTodos.map((todo, index) => {
-          const isEditing = editId === todo.id;
-          const isStale = isStaleTodo(todo.lastAddedDate);
-          const selectedTag = tags.find((tag) => tag.id === todo.tagId);
-
-          return (
-            <span
-              className={`todo todo-${getTodoSize(todo.count)}${isEditing ? " editing" : ""}${isStale ? " stale" : ""}`}
-              draggable={!isEditing}
-              key={todo.id}
-              style={
-                {
-                  "--todo-color": selectedTag?.color,
-                  "--todo-offset": `${index % 5}`,
-                } as CSSProperties
-              }
-              title={`Added ${todo.count} ${todo.count === 1 ? "time" : "times"}`}
-              onDragStart={(event) => handleTodoDragStart(event, todo.id)}
-            >
-              {isEditing ? (
-                <form
-                  className="todo-editor"
-                  onSubmit={(event) => handleEditSubmit(event, todo)}
-                >
-                  <input
-                    ref={editInputRef}
-                    value={editText}
-                    onBlur={() => finishEditing(todo)}
-                    onChange={(event) => setEditText(event.target.value)}
-                    onKeyDown={handleEditKeyDown}
-                  />
-                </form>
-              ) : (
-                <>
-                  <span className="item-text-control">
-                    <button
-                      className="todo-text"
-                      type="button"
-                      onClick={() => onToggleTodo(todo.id)}
-                    >
-                      {todo.text}
-                    </button>
-                    <CountBadge
-                      count={todo.count}
-                      onReset={() => onResetTodoCount(todo.id)}
-                    />
-                  </span>
-                  {isStale ? (
-                    <span
-                      className="stale-badge"
-                      title="Added at least a month ago"
-                    >
-                      STALE
-                    </span>
-                  ) : null}
-                  <span className="todo-actions">
-                    <TagPicker
-                      selectedTagId={todo.tagId}
-                      tags={tags}
-                      onAssignTag={(tagId) => onAssignTodoTag(todo.id, tagId)}
-                    />
-                    <NotTodayButton
-                      onClick={() => onMarkTodoNotToday(todo.id)}
-                    />
-                    {/* <NotNowButton onClick={() => onMarkTodoNotNow(todo.id)} /> */}
-                    <AutoRepeatButton
-                      onClick={() => onToggleEndOfDayRepeat(todo.id)}
-                    />
-
-                    <span className="details-anchor">
-                      <span className="todo-details">i</span>
-                      <span className="todo-details-popover">
-                        <span className="todo-details-title">Last added</span>
-                        <span>{formatDateKey(todo.lastAddedDate)}</span>
-                      </span>
-                    </span>
-                    <TodoEditButton onClick={() => handleEdit(todo)} />
-                  </span>
-                </>
-              )}
-            </span>
-          );
-        })}
+        {activeTodos.map((todo, index) => (
+          <TodoItem
+            key={todo.id}
+            todo={todo}
+            editId={editId}
+            index={index}
+            onToggleTodo={onToggleTodo}
+            onAssignTodoTag={onAssignTodoTag}
+            onMarkTodoNotToday={onMarkTodoNotToday}
+            onToggleEndOfDayRepeat={onToggleEndOfDayRepeat}
+            onResetTodoCount={onResetTodoCount}
+            handleEdit={handleEdit}
+            editInputRef={editInputRef}
+            editText={editText}
+            setEditText={setEditText}
+            finishEditing={finishEditing}
+            handleEditSubmit={handleEditSubmit}
+            handleEditKeyDown={handleEditKeyDown}
+            handleTodoDragStart={handleTodoDragStart}
+            tags={tags}
+          />
+        ))}
       </div>
     </section>
   );

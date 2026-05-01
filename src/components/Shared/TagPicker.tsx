@@ -30,10 +30,7 @@ export function TagPicker({
     function handleDocumentPointerDown(event: PointerEvent) {
       const target = event.target;
 
-      if (
-        target instanceof Element &&
-        target.closest(".tag-picker-menu")
-      ) {
+      if (target instanceof Element && target.closest(".tag-picker-menu")) {
         return;
       }
 
@@ -88,11 +85,7 @@ export function TagPicker({
             >
               <span
                 className="tag-picker-color"
-                style={
-                  {
-                    "--tag-option-color": tag.color,
-                  } as CSSProperties
-                }
+                style={{ "--tag-option-color": tag.color } as CSSProperties}
               />
               <span>{tag.name}</span>
             </button>

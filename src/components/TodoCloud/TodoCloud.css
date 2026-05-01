@@ -54,17 +54,14 @@
   position: relative;
   margin-top: calc((var(--todo-offset) - 2) * 10px);
   transform: rotate(calc((var(--todo-offset) - 2) * 2deg));
-  border: 2px solid #172033;
+  /* border: 2px solid #172033; */
   border-radius: 999px;
-  padding: 8px 10px 8px 14px;
-  background: var(--todo-color, #ffe0a3);
-  /* transition:
-    transform 160ms ease,
-    box-shadow 160ms ease; */
+  padding: 8px 15px 8px 8px;
+  background-color: var(--todo-color, #ffe0a3);
 }
 
 .todo:hover {
-  scale: 1.02;
+  scale: 1.03;
   z-index: 1;
   /* transform: translateY(-2px) rotate(calc((var(--todo-offset) - 2) * 2deg)); */
 }
@@ -88,12 +85,12 @@
 
 .todo-1 {
   font-size: 0.95rem;
-  padding: 7px 9px 7px 13px;
+  padding: 7px 12px 7px 7px;
 }
 
 .todo-2 {
   font-size: 1.12rem;
-  padding: 9px 11px 9px 16px;
+  padding: 9px 15px 9px 9px;
 }
 
 .todo-3 {
@@ -111,18 +108,24 @@
   padding: 15px 17px 15px 26px;
 }
 
-.todo button {
+.todo .todo-text {
   display: inline-flex;
   align-items: center;
   border: 0;
   background: transparent;
   color: inherit;
   cursor: pointer;
-  padding: 4px;
+  padding: 0;
 }
 
-.todo-text {
-  padding: 0;
+.todo .todo-actions button {
+  display: inline-flex;
+  align-items: center;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  padding: 4px;
+  background: transparent;
 }
 
 .stale-badge {
@@ -140,6 +143,15 @@
   letter-spacing: 0.08em;
   line-height: 1;
   transform: rotate(6deg);
+}
+
+.todo-inline-hover-actions {
+  display: none;
+  position: absolute;
+  top: 50%;
+  right: 0;
+  transform: translate(10%, -50%);
+  z-index: 10;
 }
 
 .todo-actions {
@@ -171,8 +183,23 @@
   pointer-events: auto;
   transform: translate(-50%, 0);
 }
-
-.todo-edit,
+.todo:hover .todo-inline-hover-actions {
+  display: block;
+}
+.todo-edit {
+  display: inline-flex;
+  align-items: center;
+  width: 20px;
+  height: 20px;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 5px;
+  background: #172033 !important;
+  color: white !important;
+  font-size: inherit;
+  font-weight: 800;
+  opacity: 0.8;
+}
 .todo-details {
   display: inline-flex;
   align-items: center;

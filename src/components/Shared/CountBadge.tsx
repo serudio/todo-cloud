@@ -8,9 +8,7 @@ type CountBadgeProps = {
 export function CountBadge({ count, onReset }: CountBadgeProps) {
   return (
     <span className="count-anchor">
-      <span className="count">
-        {count}
-      </span>
+      <span className="count">count: {count}</span>
       <span className="count-popover">
         <span className="count-popover-title">Count</span>
         <button type="button" onClick={onReset}>
