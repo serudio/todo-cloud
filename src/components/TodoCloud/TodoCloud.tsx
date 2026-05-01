@@ -41,7 +41,7 @@ export function TodoCloud({
   onAssignTodoTag,
   onEditTodoText,
   onMarkTodoNotToday,
-  onMarkTodoNotNow,
+  // onMarkTodoNotNow,
   onResetTodoCount,
   onRestoreTodo,
   onToggleEndOfDayRepeat,
