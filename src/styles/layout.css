@@ -24,7 +24,7 @@
 }
 
 .workspace > .done {
-  flex: 0 0 220px;
+  flex: 0 0 300px;
 }
 
 @media (max-width: 820px) {

@@ -11,9 +11,12 @@ import type { Todo, TodoTag } from "../../types/todo";
 import { formatDateKey, getTodoSize, isStaleTodo } from "../../utils/todos";
 import { CountBadge } from "../Shared/CountBadge";
 import { NotTodayButton } from "../Shared/NotTodayButton";
-import { NotNowButton } from "../Shared/NotNowButton";
+// import { NotNowButton } from "../Shared/NotNowButton";
 import { TagPicker } from "../Shared/TagPicker";
 import "./TodoCloud.css";
+import { NotTodayList } from "./NotTodayList";
+import { AutoRepeatButton } from "../Shared/AutoRepeatButton";
+import { TodoEditButton } from "../Shared/TodoEditButton";
 
 type TodoCloudProps = {
   activeTodos: Todo[];
@@ -44,29 +47,29 @@ export function TodoCloud({
   onToggleEndOfDayRepeat,
   onToggleTodo,
 }: TodoCloudProps) {
-  const [editingTodoId, setEditingTodoId] = useState<string | null>(null);
-  const [editingText, setEditingText] = useState("");
-  const editingInputRef = useRef<HTMLInputElement>(null);
+  const [editId, setEditId] = useState<string | null>(null);
+  const [editText, setEditText] = useState("");
+  const editInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (!editingTodoId) return;
+    if (!editId) return;
 
-    editingInputRef.current?.focus();
-    editingInputRef.current?.select();
-  }, [editingTodoId]);
+    editInputRef.current?.focus();
+    editInputRef.current?.select();
+  }, [editId]);
 
-  function startEditing(todo: Todo) {
-    setEditingTodoId(todo.id);
-    setEditingText(todo.text);
-  }
+  const handleEdit = (todo: Todo) => {
+    setEditId(todo.id);
+    setEditText(todo.text);
+  };
 
   function cancelEditing() {
-    setEditingTodoId(null);
-    setEditingText("");
+    setEditId(null);
+    setEditText("");
   }
 
   function finishEditing(todo: Todo) {
-    const trimmedText = editingText.trim().replace(/\s+/g, " ");
+    const trimmedText = editText.trim().replace(/\s+/g, " ");
 
     if (!trimmedText || trimmedText === todo.text) {
       cancelEditing();
@@ -117,24 +120,14 @@ export function TodoCloud({
         onDrop={handleCloudDrop}
       >
         {isLoadingTodos && <p className="status">Loading todos...</p>}
-        {!isLoadingTodos && notTodayTodos.length > 0 ? (
-          <div className="not-today-row">
-            <ol>
-              {notTodayTodos.map((todo) => (
-                <li key={todo.id}>
-                  <button type="button" onClick={() => onRestoreTodo(todo.id)}>
-                    {todo.text}
-                  </button>
-                </li>
-              ))}
-            </ol>
-          </div>
-        ) : null}
-        {!isLoadingTodos && activeTodos.length === 0 ? (
+        {!isLoadingTodos && notTodayTodos.length > 0 && (
+          <NotTodayList todos={notTodayTodos} onClick={onRestoreTodo} />
+        )}
+        {!isLoadingTodos && activeTodos.length === 0 && (
           <p className="status">No todos yet. Add the first one.</p>
-        ) : null}
+        )}
         {activeTodos.map((todo, index) => {
-          const isEditing = editingTodoId === todo.id;
+          const isEditing = editId === todo.id;
           const isStale = isStaleTodo(todo.lastAddedDate);
           const selectedTag = tags.find((tag) => tag.id === todo.tagId);
 
@@ -158,10 +151,10 @@ export function TodoCloud({
                   onSubmit={(event) => handleEditSubmit(event, todo)}
                 >
                   <input
-                    ref={editingInputRef}
-                    value={editingText}
+                    ref={editInputRef}
+                    value={editText}
                     onBlur={() => finishEditing(todo)}
-                    onChange={(event) => setEditingText(event.target.value)}
+                    onChange={(event) => setEditText(event.target.value)}
                     onKeyDown={handleEditKeyDown}
                   />
                 </form>
@@ -197,22 +190,11 @@ export function TodoCloud({
                     <NotTodayButton
                       onClick={() => onMarkTodoNotToday(todo.id)}
                     />
-                    <NotNowButton onClick={() => onMarkTodoNotNow(todo.id)} />
-                    <button
-                      aria-pressed={todo.repeatAtEndOfDay}
-                      className="todo-repeat"
-                      title="Add again at midnight"
-                      type="button"
+                    {/* <NotNowButton onClick={() => onMarkTodoNotNow(todo.id)} /> */}
+                    <AutoRepeatButton
                       onClick={() => onToggleEndOfDayRepeat(todo.id)}
-                    >
-                      <svg
-                        viewBox="0 0 20 20"
-                        focusable="false"
-                        aria-hidden="true"
-                      >
-                        <path d="M15.8 5.4A6.7 6.7 0 0 0 4.4 4.1l1.2 1.2a5 5 0 0 1 8.9 2.9H12l3.6 3.6 3.6-3.6h-2.9a6.7 6.7 0 0 0-.5-2.8ZM4.2 14.6a6.7 6.7 0 0 0 11.4 1.3l-1.2-1.2a5 5 0 0 1-8.9-2.9H8L4.4 8.2.8 11.8h2.9c0 1 .2 1.9.5 2.8Z" />
-                      </svg>
-                    </button>
+                    />
+
                     <span className="details-anchor">
                       <span className="todo-details">i</span>
                       <span className="todo-details-popover">
@@ -220,19 +202,7 @@ export function TodoCloud({
                         <span>{formatDateKey(todo.lastAddedDate)}</span>
                       </span>
                     </span>
-                    <button
-                      className="todo-edit"
-                      type="button"
-                      onClick={() => startEditing(todo)}
-                    >
-                      <svg
-                        viewBox="0 0 20 20"
-                        focusable="false"
-                        aria-hidden="true"
-                      >
-                        <path d="M4 13.5V16h2.5L14 8.5 11.5 6 4 13.5Zm11-6 1-1a1.4 1.4 0 0 0 0-2l-.5-.5a1.4 1.4 0 0 0-2 0l-1 1L15 7.5Z" />
-                      </svg>
-                    </button>
+                    <TodoEditButton onClick={() => handleEdit(todo)} />
                   </span>
                 </>
               )}
