@@ -1,4 +1,4 @@
-import { Box } from "@mui/joy";
+import { Box, Chip } from "@mui/joy";
 import type { Todo } from "../../types/todo";
 
 type Props = {
@@ -8,18 +8,19 @@ type Props = {
 
 export const NotTodayList: React.FC<Props> = ({ todos, onClick }) => {
   return (
-    <Box>
-      <div className="not-today-row">
-        <ol>
-          {todos.map((todo) => (
-            <li key={todo.id}>
-              <button type="button" onClick={() => onClick(todo.id)}>
-                {todo.text}
-              </button>
-            </li>
-          ))}
-        </ol>
-      </div>
+    <Box
+      sx={{
+        disaply: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 2,
+      }}
+    >
+      {todos.map((todo) => (
+        <Chip key={todo.id} label={todo.text} onClick={() => onClick(todo.id)}>
+          {todo.text}
+        </Chip>
+      ))}
     </Box>
   );
 };

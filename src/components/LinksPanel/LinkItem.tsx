@@ -76,7 +76,7 @@ export const LinkItem: React.FC<Props> = ({ link, onDelete, onSubmit }) => {
           </JoyLink>
           <Box display="inline-flex">
             <IconButton
-              size="small"
+              size="sm"
               onClick={handelEditClick}
               sx={{ width: 22, height: 22, minWidth: 0, minHeight: 0 }}
             >
@@ -84,7 +84,7 @@ export const LinkItem: React.FC<Props> = ({ link, onDelete, onSubmit }) => {
             </IconButton>
 
             <IconButton
-              size="small"
+              size="sm"
               onClick={() => onDelete(link.id)}
               sx={{ width: 22, height: 22, minWidth: 0, minHeight: 0 }}
             >
