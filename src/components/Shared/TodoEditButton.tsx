@@ -1,4 +1,4 @@
-import { IconButton } from "@mui/joy";
+import { Button } from "@mui/joy";
 import EditIcon from "@mui/icons-material/Edit";
 
 type Props = {
@@ -7,19 +7,26 @@ type Props = {
 
 export const TodoEditButton: React.FC<Props> = ({ onClick }) => {
   return (
-    <IconButton
-      variant="plain"
+    <Button
+      variant="soft"
       color="neutral"
       size="sm"
       onClick={onClick}
       sx={{
         position: "absolute",
-        top: "50%",
-        right: -10,
-        transform: "translateY(-50%)",
+        padding: 0,
+
+        right: -1,
+
+        minHeight: "100%",
+        borderTopRightRadius: 999,
+        borderBottomRightRadius: 999,
+        opacity: 0.8,
+        "&:hover": { opacity: 1 },
       }}
     >
+      edit
       <EditIcon fontSize="small" />
-    </IconButton>
+    </Button>
   );
 };

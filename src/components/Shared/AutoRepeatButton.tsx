@@ -12,6 +12,8 @@ export const AutoRepeatButton: React.FC<Props> = ({ value, onClick }) => {
       title="Repeat at midnight"
       onClick={onClick}
       variant={value ? "plain" : "solid"}
+      sx={{ padding: 0, width: 22, height: 22, minHeight: 22, minWidth: 22 }}
+      size="sm"
     >
       <CachedIcon />
     </IconButton>

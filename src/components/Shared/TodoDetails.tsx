@@ -1,6 +1,8 @@
 import type { Todo } from "../../types/todo";
 import { formatDateKey } from "../../utils/todos";
 import { CountBadge } from "./CountBadge";
+import { Tooltip, Box, Typography, IconButton } from "@mui/joy";
+import InfoIcon from "@mui/icons-material/Info";
 
 type Props = {
   todo: Todo;
@@ -8,15 +10,22 @@ type Props = {
 };
 export const TodoDetails: React.FC<Props> = ({ todo, onReset }) => {
   return (
-    <span className="details-anchor">
-      <span className="todo-details">i</span>
-      <span className="todo-details-popover">
-        <span className="todo-details-title">Last added</span>
-        <span>{formatDateKey(todo.lastAddedDate)}</span>
-        {onReset && (
+    <Tooltip
+      title={
+        <Box>
+          <Typography level="body-sm">
+            Last added: {formatDateKey(todo.lastAddedDate)}
+          </Typography>
+
           <CountBadge count={todo.count} onReset={() => onReset(todo.id)} />
-        )}
-      </span>
-    </span>
+        </Box>
+      }
+    >
+      <IconButton
+        sx={{ padding: 0, width: 22, height: 22, minHeight: 22, minWidth: 22 }}
+      >
+        <InfoIcon />
+      </IconButton>
+    </Tooltip>
   );
 };

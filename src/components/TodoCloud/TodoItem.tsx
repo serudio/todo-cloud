@@ -6,8 +6,7 @@ import { NotTodayButton } from "../Shared/NotTodayButton";
 import { TagPicker } from "../Shared/TagPicker";
 import { TodoDetails } from "../Shared/TodoDetails";
 import { TodoEditButton } from "../Shared/TodoEditButton";
-import { Box, Card, IconButton } from "@mui/joy";
-import CheckIcon from "@mui/icons-material/Check";
+import { Box, Card, Button } from "@mui/joy";
 
 type Props = {
   todo: Todo;
@@ -71,13 +70,29 @@ export const TodoItem: React.FC<Props> = ({
     return `${y}px ${x}px`;
   };
 
+  function handleDragStart(event: React.DragEvent<HTMLElement>) {
+    const target = event.target;
+
+    if (
+      target instanceof HTMLElement &&
+      target.closest("button, input, textarea, select, a")
+    ) {
+      event.preventDefault();
+      return;
+    }
+
+    handleTodoDragStart(event, todo.id);
+  }
+
   return (
     <Box
+      draggable={!isEdit}
       display="inline-flex"
       alignItems="center"
       position="relative"
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
+      onDragStart={handleDragStart}
       sx={{
         transform: `rotate(calc((${index % 5} - 2) * 2deg))`,
         color: "#000",
@@ -87,31 +102,32 @@ export const TodoItem: React.FC<Props> = ({
         paddingRight: 2,
         fontSize,
         padding: getPadding(),
+        cursor: !isEdit ? "grab" : "text",
+        minWidth: 100,
+        justifyContent: "center",
       }}
     >
-      <IconButton
-        onClick={() => onToggleTodo(id)}
+      <Button
         sx={{
           position: "absolute",
-          top: "50%",
-          left: 10,
-          transform: "translateY(-50%)",
+          left: -1,
+          padding: 0,
+          opacity: 0.8,
+          borderTopLeftRadius: 999,
+          borderBottomLeftRadius: 999,
+          minHeight: "100%",
+          // visibility: hovered && !isEdit ? "visible" : "hidden",
+          "&:hover": { opacity: 1 },
+        }}
+        size="sm"
+        variant="soft"
+        color="neutral"
+        onClick={() => onToggleTodo(id)}
+      >
+        done
+      </Button>
 
-          visibility: hovered && !isEdit ? "visible" : "hidden",
-        }}
-      >
-        <CheckIcon />
-      </IconButton>
-      <Box
-        draggable={!isEdit}
-        onDragStart={(event) => handleTodoDragStart(event, todo.id)}
-        sx={{
-          display: !isEdit ? "block" : "none",
-        }}
-        // onClick={() => onToggleTodo(id)}
-      >
-        {text}
-      </Box>
+      <Box sx={{ display: !isEdit ? "block" : "none" }}>{text}</Box>
       {isEdit && (
         <form
           className="todo-editor"
@@ -141,9 +157,11 @@ export const TodoItem: React.FC<Props> = ({
             flexDirection: "row",
             position: "absolute",
             bottom: -20,
-            left: 0,
-            zIndex: 10,
+            left: "50%",
+            transform: "translateX(-50%)",
+            zIndex: 20,
             padding: 0,
+            opacity: 0.8,
           }}
         >
           <TagPicker

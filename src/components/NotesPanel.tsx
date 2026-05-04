@@ -1,7 +1,5 @@
-import { Panel } from "./Shared/Panel";
-import { PanelHeader } from "./Shared/PanelHeader";
-import { useMobileCollapsedState } from "./Shared/useMobileCollapsedState";
-import "./NotesPanel.css";
+import { SectionCard } from "./Shared/SectionCard";
+import { Textarea } from "@mui/joy";
 
 type NotesPanelProps = {
   notes: string;
@@ -9,21 +7,14 @@ type NotesPanelProps = {
 };
 
 export function NotesPanel({ notes, onNotesChange }: NotesPanelProps) {
-  const [isCollapsed, setIsCollapsed] = useMobileCollapsedState();
-
   return (
-    <Panel>
-      <PanelHeader onClick={() => setIsCollapsed((current) => !current)}>
-        notes
-      </PanelHeader>
-      {!isCollapsed ? (
-        <textarea
-          className="notes-textarea"
-          placeholder="Write notes..."
-          value={notes}
-          onChange={(event) => onNotesChange(event.target.value)}
-        />
-      ) : null}
-    </Panel>
+    <SectionCard title="Notes">
+      <Textarea
+        size="sm"
+        minRows={2}
+        value={notes}
+        onChange={(event) => onNotesChange(event.target.value)}
+      />
+    </SectionCard>
   );
 }

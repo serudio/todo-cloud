@@ -1,9 +1,7 @@
 import type { DragEvent } from "react";
 import type { Todo } from "../types/todo";
-import { Panel } from "./Shared/Panel";
-import { PanelHeader } from "./Shared/PanelHeader";
-import { useMobileCollapsedState } from "./Shared/useMobileCollapsedState";
-import "./NotNowList.css";
+import { SectionCard } from "./Shared/SectionCard";
+import { Chip } from "@mui/joy";
 
 type NotNowListProps = {
   todos: Todo[];
@@ -16,8 +14,6 @@ export function NotNowList({
   onDropTodo,
   onRestoreTodo,
 }: NotNowListProps) {
-  const [isCollapsed, setIsCollapsed] = useMobileCollapsedState();
-
   function handleDragOver(event: DragEvent<HTMLElement>) {
     event.preventDefault();
     event.dataTransfer.dropEffect = "move";
@@ -38,33 +34,24 @@ export function NotNowList({
   }
 
   return (
-    <Panel onDragOver={handleDragOver} onDrop={handleDrop}>
-      <PanelHeader onClick={() => setIsCollapsed((current) => !current)}>
-        not now
-      </PanelHeader>
-      {!isCollapsed && (
-        <>
-          {todos.length === 0 ? (
-            <p className="status">Drag cloud tasks here to hide them for now.</p>
-          ) : (
-            <ol className="not-now-list">
-              {todos.map((todo) => (
-                <li key={todo.id}>
-                  <button
-                    draggable
-                    type="button"
-                    title="Click or drag back to the cloud"
-                    onClick={() => onRestoreTodo(todo.id)}
-                    onDragStart={(event) => handleDragStart(event, todo.id)}
-                  >
-                    {todo.text}
-                  </button>
-                </li>
-              ))}
-            </ol>
-          )}
-        </>
+    <SectionCard
+      title="Not Now"
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+    >
+      {!todos.length && (
+        <p className="status">Drag cloud tasks here to hide them for now.</p>
       )}
-    </Panel>
+      {todos.map((todo) => (
+        <Chip
+          draggable
+          onClick={() => onRestoreTodo(todo.id)}
+          onDragStart={(event) => handleDragStart(event, todo.id)}
+          size="sm"
+        >
+          {todo.text}
+        </Chip>
+      ))}
+    </SectionCard>
   );
 }
