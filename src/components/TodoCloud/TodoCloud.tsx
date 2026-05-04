@@ -107,7 +107,7 @@ export function TodoCloud({
   }
 
   return (
-    <Card sx={{ flex: 1 }}>
+    <Card sx={{ flex: 1, position: "relative" }}>
       {!isLoadingTodos && notTodayTodos.length > 0 && (
         <NotTodayList todos={notTodayTodos} onClick={onRestoreTodo} />
       )}
