@@ -902,7 +902,7 @@ export default function App() {
 
       <Box
         sx={{
-          pt: 2,
+          paddingTop: 2,
           minHeight: "100vh",
           width: "min(1300px, calc(100% - 32px))",
           display: "flex",
@@ -910,7 +910,15 @@ export default function App() {
           margin: "0 auto",
         }}
       >
-        <Box sx={{ gap: 2, display: "flex", flexDirection: "column" }}>
+        <Box
+          sx={{
+            gap: 2,
+            display: "flex",
+            flexDirection: "column",
+            width: 230,
+            minWidth: 230,
+          }}
+        >
           <TagsCard
             tags={tags}
             onCreateTag={createTag}
@@ -955,7 +963,15 @@ export default function App() {
             onToggleTodo={toggleTodo}
           />
         </Box>
-        <Box>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 2,
+            width: 250,
+            minWidth: 250,
+          }}
+        >
           <DoneList
             todos={suggestedTodos}
             tags={tags}
