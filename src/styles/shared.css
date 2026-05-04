@@ -5,40 +5,6 @@
   gap: 8px;
 }
 
-.tag-list-action {
-  display: inline-grid;
-  width: 20px;
-  height: 20px;
-  flex: 0 0 auto;
-  place-items: center;
-  border: 0;
-  border-radius: 50%;
-  padding: 5px;
-  background: rgb(23 32 51 / 12%);
-  color: #172033;
-  /* color: #4db6ac; */
-  cursor: pointer;
-  font-weight: 800;
-  line-height: 1;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 120ms ease;
-}
-
-.tag-list-row:hover .tag-list-action,
-.tag-list-row:focus-within .tag-list-action,
-.link-list-row:hover .tag-list-action,
-.link-list-row:focus-within .tag-list-action {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.tag-list-action svg {
-  width: 100%;
-  height: 100%;
-  fill: currentcolor;
-}
-
 .item-text-control {
   display: inline-flex;
   position: relative;

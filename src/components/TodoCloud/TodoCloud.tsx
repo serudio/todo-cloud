@@ -10,6 +10,7 @@ import type { Todo, TodoTag } from "../../types/todo";
 import "./TodoCloud.css";
 import { NotTodayList } from "./NotTodayList";
 import { TodoItem } from "./TodoItem";
+import { Card } from "@mui/joy";
 
 type TodoCloudProps = {
   activeTodos: Todo[];
@@ -106,7 +107,7 @@ export function TodoCloud({
   }
 
   return (
-    <section className="main-panel">
+    <Card sx={{ flex: 1 }}>
       <div
         className="cloud"
         onDragOver={handleCloudDragOver}
@@ -142,6 +143,6 @@ export function TodoCloud({
           />
         ))}
       </div>
-    </section>
+    </Card>
   );
 }

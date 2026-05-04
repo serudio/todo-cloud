@@ -17,6 +17,46 @@
   color: #5f5548;
 }
 
+.error-card {
+  display: grid;
+  gap: 14px;
+  border-color: #b42318;
+}
+
+.error-card h1 {
+  color: #b42318;
+}
+
+.error-card pre {
+  overflow: auto;
+  max-height: 220px;
+  margin: 0;
+  border-radius: 16px;
+  padding: 12px;
+  background: rgb(180 35 24 / 10%);
+  color: #66160f;
+  white-space: pre-wrap;
+}
+
+.error-card button {
+  justify-self: start;
+  border: 0;
+  border-radius: 999px;
+  padding: 10px 14px;
+  background: #172033;
+  color: white;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.error-card-label {
+  margin: 0;
+  color: #b42318 !important;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .google-button {
   margin-top: 10px;
   border: 0;
