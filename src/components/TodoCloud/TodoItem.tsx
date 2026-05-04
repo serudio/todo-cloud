@@ -6,7 +6,7 @@ import { NotTodayButton } from "../Shared/NotTodayButton";
 import { TagPicker } from "../Shared/TagPicker";
 import { TodoDetails } from "../Shared/TodoDetails";
 import { TodoEditButton } from "../Shared/TodoEditButton";
-import { Box } from "@mui/joy";
+import { Box, Card } from "@mui/joy";
 
 type Props = {
   todo: Todo;
@@ -91,21 +91,33 @@ export const TodoItem: React.FC<Props> = ({
           fontSize,
           padding: padding(),
         }}
+        onClick={() => onToggleTodo(id)}
       >
         {text}
       </Box>
       {hovered && (
-        <Box
+        <Card
+          size="sm"
           sx={{
+            display: "flex",
+            flexDirection: "row",
             position: "absolute",
-            top: "calc(100% + 4px)",
-            left: "50%",
-            transform: "translateX(-50%)",
+            bottom: -20,
+            left: 0,
             zIndex: 10,
+            padding: 0,
           }}
         >
-          <AutoRepeatButton onClick={() => onToggleEndOfDayRepeat(todo.id)} />
-        </Box>
+          <TagPicker
+            selectedTagId={todo.tagId}
+            tags={tags}
+            onAssignTag={(tagId) => onAssignTodoTag(id, tagId)}
+          />
+          <AutoRepeatButton
+            value={todo.repeatAtEndOfDay}
+            onClick={() => onToggleEndOfDayRepeat(todo.id)}
+          />
+        </Card>
       )}
       <span
         className={`todo todo-${size}${isEdit ? " editing" : ""}${isStale ? " stale" : ""}`}
@@ -148,6 +160,7 @@ export const TodoItem: React.FC<Props> = ({
               <NotTodayButton onClick={() => onMarkTodoNotToday(todo.id)} />
               {/* <NotNowButton onClick={() => onMarkTodoNotNow(todo.id)} /> */}
               <AutoRepeatButton
+                value={todo.repeatAtEndOfDay}
                 onClick={() => onToggleEndOfDayRepeat(todo.id)}
               />
 
