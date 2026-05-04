@@ -6,6 +6,7 @@ export function parseTodoListItems(items: unknown): TodoListItems {
       todos: parseTodos(items),
       tags: [],
       links: [],
+      notes: '',
     };
   }
 
@@ -14,6 +15,7 @@ export function parseTodoListItems(items: unknown): TodoListItems {
       todos: [],
       tags: [],
       links: [],
+      notes: '',
     };
   }
 
@@ -30,6 +32,7 @@ export function parseTodoListItems(items: unknown): TodoListItems {
     todos: parseTodos(todosSource),
     tags: parseTags(listItems.tags),
     links: parseCustomLinks(listItems.links),
+    notes: parseNotes(listItems.notes),
   };
 }
 
@@ -37,11 +40,13 @@ export function parseTodoListColumns(
   items: unknown,
   tags: unknown,
   links: unknown,
+  notes: unknown,
 ): TodoListItems {
   return {
     todos: parseTodos(items),
     tags: parseTags(tags),
     links: parseCustomLinks(links),
+    notes: parseNotes(notes),
   };
 }
 
@@ -137,6 +142,10 @@ function parseCustomLinks(items: unknown): CustomLink[] {
 
     return [];
   });
+}
+
+function parseNotes(notes: unknown) {
+  return typeof notes === 'string' ? notes : '';
 }
 
 export function normalizeTodoText(text: string) {

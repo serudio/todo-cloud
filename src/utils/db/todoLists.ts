@@ -12,7 +12,7 @@ function getSupabaseClient() {
 export async function getFirstTodoList(userId: string) {
   return getSupabaseClient()
     .from("todo_lists")
-    .select("id, name, items, tags, links")
+    .select("id, name, items, tags, links, notes")
     .eq("user_id", userId)
     .order("created_at", { ascending: true })
     .limit(1)
@@ -22,8 +22,8 @@ export async function getFirstTodoList(userId: string) {
 export async function createTodoList(userId: string) {
   return getSupabaseClient()
     .from("todo_lists")
-    .insert({ user_id: userId, items: [], tags: [], links: [] })
-    .select("id, name, items, tags, links")
+    .insert({ user_id: userId, items: [], tags: [], links: [], notes: "" })
+    .select("id, name, items, tags, links, notes")
     .single<TodoListRow>();
 }
 
@@ -33,7 +33,12 @@ export async function updateTodoListItems(
 ) {
   return getSupabaseClient()
     .from("todo_lists")
-    .update({ items: items.todos, tags: items.tags, links: items.links })
+    .update({
+      items: items.todos,
+      tags: items.tags,
+      links: items.links,
+      notes: items.notes,
+    })
     .eq("id", todoListId);
 }
 

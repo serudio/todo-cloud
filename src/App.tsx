@@ -6,6 +6,7 @@ import { SetupRequired } from "./components/AppState/SetupRequired";
 import { AuthCard } from "./components/AuthCard";
 import { DoneList } from "./components/DoneList";
 import { LinksPanel } from "./components/LinksPanel/LinksPanel";
+import { NotesPanel } from "./components/NotesPanel";
 import { NotNowList } from "./components/NotNowList.tsx";
 import { TagPanel } from "./components/TagPanel.tsx";
 import { TodoCloud } from "./components/TodoCloud/TodoCloud";
@@ -143,12 +144,22 @@ function moveTodoToRandomPosition(todos: Todo[], id: string) {
   );
 }
 
-function isEmptyTodoList(todos: Todo[], tags: TodoTag[], links: CustomLink[]) {
-  return todos.length === 0 && tags.length === 0 && links.length === 0;
+function isEmptyTodoList(
+  todos: Todo[],
+  tags: TodoTag[],
+  links: CustomLink[],
+  notes: string,
+) {
+  return (
+    todos.length === 0 &&
+    tags.length === 0 &&
+    links.length === 0 &&
+    notes.trim() === ""
+  );
 }
 
 function isEmptyTodoListItems(items: TodoListItems) {
-  return isEmptyTodoList(items.todos, items.tags, items.links);
+  return isEmptyTodoList(items.todos, items.tags, items.links, items.notes);
 }
 
 function getTodoListBackupKey(userId: string) {
@@ -183,8 +194,9 @@ function canSaveEmptyOverExistingItems(
   items: unknown,
   tags: unknown,
   links: unknown,
+  notes: unknown,
 ) {
-  const parsedItems = parseTodoListColumns(items, tags, links);
+  const parsedItems = parseTodoListColumns(items, tags, links, notes);
 
   return isEmptyTodoListItems(parsedItems);
 }
@@ -208,6 +220,7 @@ export default function App() {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [tags, setTags] = useState<TodoTag[]>([]);
   const [links, setLinks] = useState<CustomLink[]>([]);
+  const [notes, setNotes] = useState("");
   const todosRef = useRef<Todo[]>([]);
   const [text, setText] = useState("");
   const [notification, setNotification] = useState<Notification | null>(null);
@@ -257,6 +270,7 @@ export default function App() {
       setTodos([]);
       setTags([]);
       setLinks([]);
+      setNotes("");
       setTodoListId(null);
       setIsLoadingTodos(false);
       return;
@@ -309,7 +323,7 @@ export default function App() {
     return () => {
       window.clearTimeout(timeoutId);
     };
-  }, [session, todoListId, isLoadingTodos, tags, links]);
+  }, [session, todoListId, isLoadingTodos, tags, links, notes]);
 
   function showNotification(message: string) {
     setNotification({
@@ -329,6 +343,9 @@ export default function App() {
     if (error) {
       setSaveError(error.message);
       setTodos([]);
+      setTags([]);
+      setLinks([]);
+      setNotes("");
       setTodoListId(null);
       setIsLoadingTodos(false);
       return;
@@ -339,6 +356,7 @@ export default function App() {
         data.items,
         data.tags,
         data.links,
+        data.notes,
       );
       const backedUpItems = isEmptyTodoListItems(parsedItems)
         ? readBackedUpTodoList(userId)
@@ -349,6 +367,7 @@ export default function App() {
       setTodos(nextItems.todos);
       setTags(nextItems.tags);
       setLinks(nextItems.links);
+      setNotes(nextItems.notes);
       setIsLoadingTodos(false);
       backupTodoList(userId, nextItems);
 
@@ -368,6 +387,7 @@ export default function App() {
       setTodos([]);
       setTags([]);
       setLinks([]);
+      setNotes("");
       setTodoListId(null);
       setIsLoadingTodos(false);
       return;
@@ -377,12 +397,14 @@ export default function App() {
       createdTodoList.items,
       createdTodoList.tags,
       createdTodoList.links,
+      createdTodoList.notes,
     );
 
     setTodoListId(createdTodoList.id);
     setTodos(createdItems.todos);
     setTags(createdItems.tags);
     setLinks(createdItems.links);
+    setNotes(createdItems.notes);
     setIsLoadingTodos(false);
   }
 
@@ -394,17 +416,23 @@ export default function App() {
     nextTodos: Todo[],
     nextTags: TodoTag[],
     nextLinks: CustomLink[],
+    nextNotes = notes,
   ) {
     if (!supabase || !todoListId) return;
 
     setSaveError(null);
 
-    if (isEmptyTodoList(nextTodos, nextTags, nextLinks)) {
+    if (isEmptyTodoList(nextTodos, nextTags, nextLinks, nextNotes)) {
       const { data, error } = await supabase
         .from("todo_lists")
-        .select("items, tags, links")
+        .select("items, tags, links, notes")
         .eq("id", todoListId)
-        .maybeSingle<{ items: unknown; tags: unknown; links: unknown }>();
+        .maybeSingle<{
+          items: unknown;
+          tags: unknown;
+          links: unknown;
+          notes: unknown;
+        }>();
 
       if (error) {
         setSaveError(error.message);
@@ -413,7 +441,12 @@ export default function App() {
 
       if (
         data &&
-        !canSaveEmptyOverExistingItems(data.items, data.tags, data.links)
+        !canSaveEmptyOverExistingItems(
+          data.items,
+          data.tags,
+          data.links,
+          data.notes,
+        )
       ) {
         const message =
           "Refused to save an empty list over existing todo data. Refresh before making more changes.";
@@ -427,6 +460,7 @@ export default function App() {
       todos: nextTodos,
       tags: nextTags,
       links: nextLinks,
+      notes: nextNotes,
     };
     const { error } = await updateTodoListItems(todoListId, nextItems);
 
@@ -754,6 +788,11 @@ export default function App() {
     saveTodoList(todos, tags, nextLinks);
   }
 
+  function updateNotes(nextNotes: string) {
+    setNotes(nextNotes);
+    saveTodoList(todos, tags, links, nextNotes);
+  }
+
   function editTodoText(id: string, nextText: string) {
     const trimmedText = nextText.trim().replace(/\s+/g, " ");
     if (!trimmedText || isLoadingTodos) return false;
@@ -834,6 +873,8 @@ export default function App() {
             onDropTodo={markTodoNotNow}
             onRestoreTodo={restoreTodoFromNotNow}
           />
+
+          <NotesPanel notes={notes} onNotesChange={updateNotes} />
         </div>
 
         <TodoCloud

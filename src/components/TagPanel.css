@@ -38,6 +38,9 @@
 .tag-color-dot {
   background: var(--tag-option-color);
 }
+.tag-name {
+  color: var(--tag-option-color);
+}
 
 .tag-color-option {
   width: 100%;
@@ -58,16 +61,16 @@
 }
 
 .tag-list {
-  display: grid;
-  gap: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
   margin: 0;
+  margin-left: 6px;
   padding: 0;
   list-style: none;
 }
 
 .tag-list li {
-  display: grid;
-  gap: 8px;
   min-width: 0;
   font-weight: 700;
 }
@@ -77,6 +80,7 @@
   min-width: 0;
   align-items: center;
   gap: 8px;
+  font-size: 12px;
 }
 
 .tag-list-row > span:last-of-type {

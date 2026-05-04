@@ -171,7 +171,9 @@ export function TagPanel({
                       <button
                         aria-expanded={isColorPickerOpen}
                         className="tag-color-dot tag-color-dot-button"
-                        style={{ "--tag-option-color": tag.color } as CSSProperties}
+                        style={
+                          { "--tag-option-color": tag.color } as CSSProperties
+                        }
                         type="button"
                         onClick={() => toggleTagColorPicker(tag.id)}
                       />
@@ -184,19 +186,34 @@ export function TagPanel({
                             ref={editingInputRef}
                             value={editingName}
                             onBlur={() => finishEditingTag(tag)}
-                            onChange={(event) => setEditingName(event.target.value)}
+                            onChange={(event) =>
+                              setEditingName(event.target.value)
+                            }
                             onKeyDown={handleEditKeyDown}
                           />
                         </form>
                       ) : (
                         <>
-                          <span>{tag.name}</span>
+                          <span
+                            className="tag-name"
+                            style={
+                              {
+                                "--tag-option-color": tag.color,
+                              } as CSSProperties
+                            }
+                          >
+                            {tag.name}
+                          </span>
                           <button
                             className="tag-list-action"
                             type="button"
                             onClick={() => startEditingTag(tag)}
                           >
-                            <svg viewBox="0 0 20 20" focusable="false" aria-hidden="true">
+                            <svg
+                              viewBox="0 0 20 20"
+                              focusable="false"
+                              aria-hidden="true"
+                            >
                               <path d="M4 13.5V16h2.5L14 8.5 11.5 6 4 13.5Zm11-6 1-1a1.4 1.4 0 0 0 0-2l-.5-.5a1.4 1.4 0 0 0-2 0l-1 1L15 7.5Z" />
                             </svg>
                           </button>
@@ -215,7 +232,8 @@ export function TagPanel({
                         {colors.map((color) => {
                           const isColorUsedByAnotherTag = tags.some(
                             (currentTag) =>
-                              currentTag.id !== tag.id && currentTag.color === color,
+                              currentTag.id !== tag.id &&
+                              currentTag.color === color,
                           );
 
                           return (
@@ -224,7 +242,9 @@ export function TagPanel({
                               className="tag-color-option"
                               disabled={isColorUsedByAnotherTag}
                               key={color}
-                              style={{ "--tag-option-color": color } as CSSProperties}
+                              style={
+                                { "--tag-option-color": color } as CSSProperties
+                              }
                               type="button"
                               onClick={() => selectTagColor(tag.id, color)}
                             />

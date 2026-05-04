@@ -29,6 +29,7 @@ export type TodoListItems = {
   todos: Todo[];
   tags: TodoTag[];
   links: CustomLink[];
+  notes: string;
 };
 
 export type TodoListRow = {
@@ -37,4 +38,5 @@ export type TodoListRow = {
   items: unknown;
   tags: unknown;
   links: unknown;
+  notes: unknown;
 };
