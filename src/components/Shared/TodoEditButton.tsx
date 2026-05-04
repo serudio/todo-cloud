@@ -1,13 +1,25 @@
+import { IconButton } from "@mui/joy";
+import EditIcon from "@mui/icons-material/Edit";
+
 type Props = {
   onClick: () => void;
 };
 
 export const TodoEditButton: React.FC<Props> = ({ onClick }) => {
   return (
-    <button className="todo-edit" type="button" onClick={onClick}>
-      <svg viewBox="0 0 20 20" focusable="false" aria-hidden="true">
-        <path d="M4 13.5V16h2.5L14 8.5 11.5 6 4 13.5Zm11-6 1-1a1.4 1.4 0 0 0 0-2l-.5-.5a1.4 1.4 0 0 0-2 0l-1 1L15 7.5Z" />
-      </svg>
-    </button>
+    <IconButton
+      variant="plain"
+      color="neutral"
+      size="sm"
+      onClick={onClick}
+      sx={{
+        position: "absolute",
+        top: "50%",
+        right: -10,
+        transform: "translateY(-50%)",
+      }}
+    >
+      <EditIcon fontSize="small" />
+    </IconButton>
   );
 };

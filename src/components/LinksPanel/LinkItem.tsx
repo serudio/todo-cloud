@@ -69,7 +69,7 @@ export const LinkItem: React.FC<Props> = ({ link, onDelete, onSubmit }) => {
             rel="noreferrer"
             sx={{
               color: "rgb(208, 173, 240)",
-              fontWeight: "500",
+              fontWeight: 500,
             }}
           >
             {link.name}

@@ -6,7 +6,8 @@ import { NotTodayButton } from "../Shared/NotTodayButton";
 import { TagPicker } from "../Shared/TagPicker";
 import { TodoDetails } from "../Shared/TodoDetails";
 import { TodoEditButton } from "../Shared/TodoEditButton";
-import { Box, Card } from "@mui/joy";
+import { Box, Card, IconButton } from "@mui/joy";
+import CheckIcon from "@mui/icons-material/Check";
 
 type Props = {
   todo: Todo;
@@ -64,9 +65,9 @@ export const TodoItem: React.FC<Props> = ({
 
   const size = getTodoSize(todo.count);
   const fontSize = 10 * (1 + 0.2 * size);
-  const padding = () => {
+  const getPadding = () => {
     const x = 5 + 2 * size;
-    const y = 12 + 2 * size;
+    const y = 9 + 2 * size;
     return `${y}px ${x}px`;
   };
 
@@ -77,24 +78,61 @@ export const TodoItem: React.FC<Props> = ({
       position="relative"
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
+      sx={{
+        transform: `rotate(calc((${index % 5} - 2) * 2deg))`,
+        color: "#000",
+        background: color,
+        borderRadius: 999,
+        paddingLeft: 2,
+        paddingRight: 2,
+        fontSize,
+        padding: getPadding(),
+      }}
     >
+      <IconButton
+        onClick={() => onToggleTodo(id)}
+        sx={{
+          position: "absolute",
+          top: "50%",
+          left: 10,
+          transform: "translateY(-50%)",
+
+          visibility: hovered && !isEdit ? "visible" : "hidden",
+        }}
+      >
+        <CheckIcon />
+      </IconButton>
       <Box
         draggable={!isEdit}
         onDragStart={(event) => handleTodoDragStart(event, todo.id)}
         sx={{
-          color: "#000",
-          background: color,
-          borderRadius: 999,
-          paddingLeft: 2,
-          paddingRight: 2,
-          transform: `rotate(calc((${index % 5} - 2) * 2deg))`,
-          fontSize,
-          padding: padding(),
+          display: !isEdit ? "block" : "none",
         }}
-        onClick={() => onToggleTodo(id)}
+        // onClick={() => onToggleTodo(id)}
       >
         {text}
       </Box>
+      {isEdit && (
+        <form
+          className="todo-editor"
+          onSubmit={(event) => handleEditSubmit(event, todo)}
+        >
+          <input
+            ref={editInputRef}
+            value={editText}
+            onBlur={() => finishEditing(todo)}
+            onChange={(event) => setEditText(event.target.value)}
+            onKeyDown={handleEditKeyDown}
+          />
+        </form>
+      )}
+      {hovered && <TodoEditButton onClick={(e) => handleEdit(todo)} />}
+
+      {isStale && (
+        <span className="stale-badge" title="Added at least a month ago">
+          STALE
+        </span>
+      )}
       {hovered && (
         <Card
           size="sm"
@@ -113,66 +151,15 @@ export const TodoItem: React.FC<Props> = ({
             tags={tags}
             onAssignTag={(tagId) => onAssignTodoTag(id, tagId)}
           />
+          {/* <NotNowButton onClick={() => onMarkTodoNotNow(todo.id)} /> */}
+          <NotTodayButton onClick={() => onMarkTodoNotToday(todo.id)} />
           <AutoRepeatButton
             value={todo.repeatAtEndOfDay}
             onClick={() => onToggleEndOfDayRepeat(todo.id)}
           />
+          <TodoDetails todo={todo} onReset={onResetTodoCount} />
         </Card>
       )}
-      <span
-        className={`todo todo-${size}${isEdit ? " editing" : ""}${isStale ? " stale" : ""}`}
-      >
-        {isEdit ? (
-          <form
-            className="todo-editor"
-            onSubmit={(event) => handleEditSubmit(event, todo)}
-          >
-            <input
-              ref={editInputRef}
-              value={editText}
-              onBlur={() => finishEditing(todo)}
-              onChange={(event) => setEditText(event.target.value)}
-              onKeyDown={handleEditKeyDown}
-            />
-          </form>
-        ) : (
-          <>
-            <span className="item-text-control">
-              <button
-                className="todo-text"
-                type="button"
-                onClick={() => onToggleTodo(todo.id)}
-              >
-                {todo.text}
-              </button>
-            </span>
-            {isStale ? (
-              <span className="stale-badge" title="Added at least a month ago">
-                STALE
-              </span>
-            ) : null}
-            <span className="todo-actions">
-              <TagPicker
-                selectedTagId={todo.tagId}
-                tags={tags}
-                onAssignTag={(tagId) => onAssignTodoTag(todo.id, tagId)}
-              />
-              <NotTodayButton onClick={() => onMarkTodoNotToday(todo.id)} />
-              {/* <NotNowButton onClick={() => onMarkTodoNotNow(todo.id)} /> */}
-              <AutoRepeatButton
-                value={todo.repeatAtEndOfDay}
-                onClick={() => onToggleEndOfDayRepeat(todo.id)}
-              />
-
-              <TodoDetails todo={todo} onReset={onResetTodoCount} />
-              {/* <TodoEditButton onClick={() => handleEdit(todo)} /> */}
-            </span>
-          </>
-        )}
-        <div className="todo-inline-hover-actions">
-          <TodoEditButton onClick={() => handleEdit(todo)} />
-        </div>
-      </span>
     </Box>
   );
 };

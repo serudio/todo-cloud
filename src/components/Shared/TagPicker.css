@@ -54,7 +54,7 @@
   display: grid;
   gap: 4px;
   position: absolute;
-  top: calc(100% + 8px);
+  top: calc(100%);
   left: 50%;
   z-index: 120;
   min-width: 128px;

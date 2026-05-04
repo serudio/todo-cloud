@@ -93,16 +93,6 @@
   padding: 15px 17px 15px 26px;
 }
 
-.todo .todo-text {
-  display: inline-flex;
-  align-items: center;
-  border: 0;
-  background: transparent;
-  color: #212121;
-  cursor: pointer;
-  padding: 0;
-}
-
 .todo .todo-actions button {
   display: inline-flex;
   align-items: center;
@@ -170,20 +160,6 @@
 }
 .todo:hover .todo-inline-hover-actions {
   display: block;
-}
-.todo-edit {
-  display: inline-flex;
-  align-items: center;
-  width: 20px;
-  height: 20px;
-  justify-content: center;
-  border-radius: 999px;
-  padding: 5px;
-  background: #172033 !important;
-  color: white !important;
-  font-size: inherit;
-  font-weight: 800;
-  opacity: 0.8;
 }
 .todo-details {
   display: inline-flex;
