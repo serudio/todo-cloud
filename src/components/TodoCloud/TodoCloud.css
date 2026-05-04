@@ -1,18 +1,3 @@
-.cloud {
-  display: flex;
-  flex: 1;
-  flex-wrap: wrap;
-  align-content: center;
-  align-items: flex-start;
-  justify-content: center;
-  position: relative;
-  min-height: 320px;
-  gap: 18px 14px;
-  border-radius: 40px;
-  padding: 56px 26px 34px;
-  background: rgb(255 250 242 / 58%);
-}
-
 .not-today-row {
   display: flex;
   position: absolute;

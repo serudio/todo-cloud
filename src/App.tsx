@@ -887,9 +887,7 @@ export default function App() {
     return <AuthCard authError={authError} onSignIn={signInWithGoogle} />;
 
   return (
-    <Box
-      sx={{ bgcolor: "background.body", color: "text.primary", px: 2, py: 2 }}
-    >
+    <Box sx={{ bgcolor: "background.body", color: "text.primary" }}>
       {/* //todo */}
       <NotificationToast notification={notification} />
 
@@ -904,6 +902,7 @@ export default function App() {
 
       <Box
         sx={{
+          pt: 2,
           minHeight: "100vh",
           width: "min(1300px, calc(100% - 32px))",
           display: "flex",

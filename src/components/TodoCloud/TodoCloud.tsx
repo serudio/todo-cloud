@@ -10,7 +10,7 @@ import type { Todo, TodoTag } from "../../types/todo";
 import "./TodoCloud.css";
 import { NotTodayList } from "./NotTodayList";
 import { TodoItem } from "./TodoItem";
-import { Card } from "@mui/joy";
+import { Box, Card } from "@mui/joy";
 
 type TodoCloudProps = {
   activeTodos: Todo[];
@@ -108,15 +108,26 @@ export function TodoCloud({
 
   return (
     <Card sx={{ flex: 1 }}>
-      <div
-        className="cloud"
+      {!isLoadingTodos && notTodayTodos.length > 0 && (
+        <NotTodayList todos={notTodayTodos} onClick={onRestoreTodo} />
+      )}
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "flex-start",
+          alignContent: "center",
+          justifyContent: "center",
+          flexWrap: "wrap",
+          position: "relative",
+          minHeight: 300,
+          gap: "18px 14px",
+          flex: 1,
+        }}
         onDragOver={handleCloudDragOver}
         onDrop={handleCloudDrop}
       >
         {isLoadingTodos && <p className="status">Loading todos...</p>}
-        {!isLoadingTodos && notTodayTodos.length > 0 && (
-          <NotTodayList todos={notTodayTodos} onClick={onRestoreTodo} />
-        )}
+
         {!isLoadingTodos && activeTodos.length === 0 && (
           <p className="status">No todos yet. Add the first one.</p>
         )}
@@ -142,7 +153,7 @@ export function TodoCloud({
             tags={tags}
           />
         ))}
-      </div>
+      </Box>
     </Card>
   );
 }
