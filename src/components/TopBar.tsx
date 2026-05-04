@@ -16,6 +16,7 @@ type TopBarProps = {
   text: string;
   onAddTodo: (event: FormEvent<HTMLFormElement>) => void;
   onAddTodoText: (text: string) => void;
+  onRefresh: () => void;
   onSignOut: () => void;
   onTextChange: (text: string) => void;
 };
@@ -27,6 +28,7 @@ export function TopBar({
   text,
   onAddTodo,
   onAddTodoText,
+  onRefresh,
   onSignOut,
   onTextChange,
 }: TopBarProps) {
@@ -97,6 +99,17 @@ export function TopBar({
         <h1>Turn tasks into a tag cloud.</h1>
         <div className="topbar-actions">
           <span>{email}</span>
+          <button
+            className="refresh-button"
+            disabled={isLoadingTodos}
+            title="Refresh"
+            type="button"
+            onClick={onRefresh}
+          >
+            <svg viewBox="0 0 20 20" focusable="false" aria-hidden="true">
+              <path d="M15.4 5.3A6.6 6.6 0 0 0 4.1 7.7l1.6.6a4.9 4.9 0 0 1 8.2-1.7l-1.8 1.8H17V3.5l-1.6 1.8Zm-10.8 9.4a6.6 6.6 0 0 0 11.3-2.4l-1.6-.6a4.9 4.9 0 0 1-8.2 1.7l1.8-1.8H3v4.9l1.6-1.8Z" />
+            </svg>
+          </button>
           <button
             className="sign-out-button"
             title="Sign out"

@@ -222,6 +222,7 @@ export default function App() {
   const [links, setLinks] = useState<CustomLink[]>([]);
   const [notes, setNotes] = useState("");
   const todosRef = useRef<Todo[]>([]);
+  const sessionUserIdRef = useRef<string | null>(null);
   const [text, setText] = useState("");
   const [notification, setNotification] = useState<Notification | null>(null);
 
@@ -252,11 +253,16 @@ export default function App() {
     }
 
     supabase.auth.getSession().then(({ data }) => {
+      sessionUserIdRef.current = data.session?.user.id ?? null;
       setSession(data.session);
       setIsLoadingSession(false);
     });
 
     const { data } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      const nextUserId = nextSession?.user.id ?? null;
+      if (sessionUserIdRef.current === nextUserId) return;
+
+      sessionUserIdRef.current = nextUserId;
       setSession(nextSession);
     });
 
@@ -277,7 +283,7 @@ export default function App() {
     }
 
     loadTodoList(session.user.id);
-  }, [session]);
+  }, [session?.user.id]);
 
   useEffect(() => {
     if (!notification) return;
@@ -793,6 +799,12 @@ export default function App() {
     saveTodoList(todos, tags, links, nextNotes);
   }
 
+  function refreshTodoList() {
+    if (!session) return;
+
+    loadTodoList(session.user.id);
+  }
+
   function editTodoText(id: string, nextText: string) {
     const trimmedText = nextText.trim().replace(/\s+/g, " ");
     if (!trimmedText || isLoadingTodos) return false;
@@ -846,6 +858,7 @@ export default function App() {
         text={text}
         onAddTodo={addTodo}
         onAddTodoText={addTodoText}
+        onRefresh={refreshTodoList}
         onSignOut={signOut}
         onTextChange={setText}
       />
