@@ -126,7 +126,7 @@ export const TodoItem: React.FC<Props> = ({
           />
         </form>
       )}
-      {hovered && <TodoEditButton onClick={(e) => handleEdit(todo)} />}
+      {hovered && <TodoEditButton onClick={() => handleEdit(todo)} />}
 
       {isStale && (
         <span className="stale-badge" title="Added at least a month ago">

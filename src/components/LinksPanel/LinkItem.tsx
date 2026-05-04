@@ -64,7 +64,7 @@ export const LinkItem: React.FC<Props> = ({ link, onDelete, onSubmit }) => {
       {!edit && (
         <>
           <JoyLink
-            to={link.url}
+            href={link.url}
             target="_blank"
             rel="noreferrer"
             sx={{
@@ -76,19 +76,19 @@ export const LinkItem: React.FC<Props> = ({ link, onDelete, onSubmit }) => {
           </JoyLink>
           <Box display="inline-flex">
             <IconButton
-              size="sm"
+              size="small"
               onClick={handelEditClick}
               sx={{ width: 22, height: 22, minWidth: 0, minHeight: 0 }}
             >
-              <EditIcon fontSize="sm" />
+              <EditIcon fontSize="small" />
             </IconButton>
 
             <IconButton
-              size="sm"
+              size="small"
               onClick={() => onDelete(link.id)}
               sx={{ width: 22, height: 22, minWidth: 0, minHeight: 0 }}
             >
-              <ClearIcon fontSize="sm" />
+              <ClearIcon fontSize="small" />
             </IconButton>
           </Box>
         </>
