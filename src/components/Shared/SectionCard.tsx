@@ -14,7 +14,7 @@ export const SectionCard: React.FC<Props> = ({ title, onActionButtonClick, child
   const handleClick = () => setIsCollapsed((prev) => !prev);
 
   return (
-    <Card {...cardProps} sx={{ p: 1, ...sx }}>
+    <Card {...cardProps} sx={{ p: 1, overflow: "visible", ...sx }}>
       <SectionHeader title={title} onClick={handleClick} onActionButtonClick={onActionButtonClick} />
       {!isCollapsed && children}
     </Card>

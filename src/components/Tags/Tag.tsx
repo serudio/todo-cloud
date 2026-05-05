@@ -1,4 +1,4 @@
-import { Box, Input, IconButton } from "@mui/material";
+import { Box, IconButton, Card, InputBase } from "@mui/material";
 import type { TodoTag } from "../../types/todo";
 import { type KeyboardEvent, useEffect, useRef, useState } from "react";
 import { ColorPicker } from "./ColorPicker";
@@ -78,62 +78,45 @@ export const Tag: React.FC<Props> = ({ tag, updateTag, onDelete, usedColors }) =
   };
 
   return (
-    <Box ref={tagRef} sx={{ display: "inline-flex", position: "relative" }}>
-      <Box sx={{ color }}>
-        <Box sx={{ display: "flex" }}>
-          {edit ? (
-            <Input
-              inputRef={editInputRef}
-              value={editName}
-              onChange={(e) => setEditName(e.target.value)}
-              onKeyDown={handleEditKeyDown}
-              sx={{
-                background: "transparent",
-                border: 0,
-                fontSize: "inherit",
-                width: "auto",
-                minHeight: 0,
-              }}
-            />
-          ) : (
-            <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
-              <Box
-                sx={{
-                  width: 15,
-                  height: 15,
-                  background: color,
-                  borderRadius: "50%",
-                  cursor: "pointer",
-                }}
-                onClick={handleColorClick}
-              />
-              <Box onDoubleClick={handleEditClick}>{name}</Box>
-              <IconButton onClick={() => onDelete(tag.id)}>
-                <ClearIcon />
-              </IconButton>
-            </Box>
-          )}
+    <Box
+      ref={tagRef}
+      sx={{
+        display: "inline-flex",
+        position: "relative",
+        color,
+        border: "1px solid black",
+        borderRadius: 999,
+        padding: "0 8px",
+        fontSize: "0.85rem",
+      }}
+    >
+      {edit && (
+        <InputBase
+          size="small"
+          inputRef={editInputRef}
+          value={editName}
+          onChange={(e) => setEditName(e.target.value)}
+          onKeyDown={handleEditKeyDown}
+          sx={{ color, lineHeight: 1, "& input": { padding: 0 } }}
+        />
+      )}
+      {!edit && (
+        <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
+          <Box
+            sx={{ width: 15, height: 15, background: color, borderRadius: "50%", cursor: "pointer" }}
+            onClick={handleColorClick}
+          />
+          <Box onDoubleClick={handleEditClick}>{name}</Box>
+          <IconButton onClick={() => onDelete(tag.id)} size="small" sx={{ padding: 0 }}>
+            <ClearIcon fontSize="small" />
+          </IconButton>
         </Box>
-      </Box>
-      {showColors ? (
-        <Box
-          sx={{
-            position: "absolute",
-            top: "calc(100% + 8px)",
-            left: 0,
-            zIndex: TAG_Z,
-            width: 180,
-            border: "1px solid",
-            borderColor: "divider",
-            borderRadius: "md",
-            p: 1,
-            bgcolor: "background.surface",
-            boxShadow: "lg",
-          }}
-        >
+      )}
+      {showColors && (
+        <Card sx={{ position: "absolute", top: "100%", zIndex: TAG_Z, p: 1 }}>
           <ColorPicker selectedColor={color} usedColors={usedColors} onClick={handleColorSelect} />
-        </Box>
-      ) : null}
+        </Card>
+      )}
     </Box>
   );
 };

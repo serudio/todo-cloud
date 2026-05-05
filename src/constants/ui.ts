@@ -8,6 +8,6 @@ export const ADD_TODO_Z = 1000;
 
 export const MODAL_Z = 10000;
 
-export const TAG_Z = 100;
+export const TAG_Z = 1000;
 
 export const DEFAULT_TAG_COLOR = "#e2e2e2";
