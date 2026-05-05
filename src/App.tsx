@@ -804,7 +804,7 @@ export default function App() {
           }}
         >
           <TagsCard tags={tags} onCreateTag={createTag} onDeleteTag={deleteTag} onRenameTag={renameTag} onUpdateTagColor={updateTagColor} />
-          <LinksPanel links={links} onCreateLink={createLink} onDeleteLink={deleteLink} onUpdateLink={updateLink} />
+          <LinksCard links={links} onCreateLink={createLink} onDeleteLink={deleteLink} onUpdateLink={updateLink} />
 
           <NotNowList todos={notNowTodos} onDropTodo={markTodoNotNow} onRestoreTodo={restoreTodoFromNotNow} />
           <NotesPanel notes={notes} onNotesChange={updateNotes} />
