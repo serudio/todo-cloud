@@ -5,7 +5,7 @@ import { NotificationToast } from "./components/AppState/NotificationToast";
 import { SetupRequired } from "./components/AppState/SetupRequired";
 import { AuthCard } from "./components/AuthCard";
 import { DoneCard } from "./components/DoneCard/DoneCard";
-import { LinksCard } from "./components/Links/LinksCard";
+import { LinksCard } from "./components/LinksCard/LinksCard";
 import { NotesPanel } from "./components/NotesPanel";
 import { NotNowList } from "./components/NotNowList.tsx";
 import { TagsCard } from "./components/Tags/TagsCard";

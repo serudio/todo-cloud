@@ -1,9 +1,6 @@
-import type { Todo, TodoTag } from "../types/todo";
-import { TagPicker } from "../Shared/TagPicker";
-import { useMobileCollapsedState } from "../Shared/useMobileCollapsedState";
-import { TodoDetails } from "../Shared/TodoDetails";
+import type { Todo, TodoTag } from "../../types/todo";
 import { SectionCard } from "../Shared/SectionCard";
-import { Box, Chip, Badge } from "@mui/joy";
+import { Box } from "@mui/joy";
 import { DoneItem } from "./DoneItem";
 
 type DoneListProps = {
@@ -25,8 +22,6 @@ export const DoneCard: React.FC<DoneListProps> = ({
   onResetTodoCount,
   onToggleEndOfDayRepeat,
 }) => {
-  const [isCollapsed, setIsCollapsed] = useMobileCollapsedState();
-
   function assignTodoTag(todoId: string, tagId: string | null) {
     onAssignTodoTag(todoId, tagId);
   }
@@ -36,7 +31,15 @@ export const DoneCard: React.FC<DoneListProps> = ({
       {todos.length === 0 && <p className="status">Done items will show up here.</p>}
       <Box display="flex" flexDirection="column" gap={1}>
         {todos.map((todo) => (
-          <DoneItem item={todo} tags={tags} onAddTodoText={onAddTodoText} assignTodoTag={assignTodoTag} />
+          <DoneItem
+            item={todo}
+            tags={tags}
+            onAddTodoText={onAddTodoText}
+            assignTodoTag={assignTodoTag}
+            onToggleEndOfDayRepeat={onToggleEndOfDayRepeat}
+            onDeleteTodo={onDeleteTodo}
+            onResetTodoCount={onResetTodoCount}
+          />
         ))}
       </Box>
     </SectionCard>

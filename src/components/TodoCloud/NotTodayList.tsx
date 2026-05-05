@@ -13,23 +13,18 @@ export const NotTodayList: React.FC<Props> = ({ todos, onClick }) => {
       sx={{
         display: "flex",
         alignItems: "center",
-        justifyContent: "center",
+        justifyContent: "flex-start",
         gap: "4px 8px",
         position: "absolute",
         top: 8,
-        left: 0,
+        left: 8,
         width: "100%",
         flexWrap: "wrap",
         zIndex: NOT_TODAY_Z,
       }}
     >
       {todos.map((todo) => (
-        <Chip
-          key={todo.id}
-          onClick={() => onClick(todo.id)}
-          size="sm"
-          variant="outlined"
-        >
+        <Chip key={todo.id} onClick={() => onClick(todo.id)} size="sm" variant="outlined">
           {todo.text}
         </Chip>
       ))}
