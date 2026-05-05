@@ -12,9 +12,6 @@ type Props = {
   updateTodo: (todo: Todo) => void;
   index: number;
   onEditTodoText: (id: string, nextText: string) => boolean;
-  onMarkTodoNotToday: (id: string) => void;
-  onSetTodoDueDate: (id: string, dueDate: number | null) => void;
-
   handleTodoDragStart: (event: React.DragEvent<HTMLElement>, todoId: string) => void;
   tags: TodoTag[];
 };
@@ -27,16 +24,7 @@ function getTomorrowDateInputValue() {
   return getDateInputValue(tomorrow.getTime());
 }
 
-export const TodoItem: React.FC<Props> = ({
-  todo,
-  updateTodo,
-  index,
-  onEditTodoText,
-  onMarkTodoNotToday,
-  onSetTodoDueDate,
-  handleTodoDragStart,
-  tags,
-}) => {
+export const TodoItem: React.FC<Props> = ({ todo, updateTodo, index, onEditTodoText, handleTodoDragStart, tags }) => {
   const { text } = todo;
 
   const isStale = isStaleTodo(todo.lastAddedDate);
@@ -200,9 +188,7 @@ export const TodoItem: React.FC<Props> = ({
           tags={tags}
           updateTodo={updateTodo}
           isDayBeforeDueDate={isDayBeforeDueDate}
-          onMarkTodoNotToday={onMarkTodoNotToday}
           onSetActionsFocused={setActionsFocused}
-          onSetTodoDueDate={onSetTodoDueDate}
         />
       )}
     </Box>

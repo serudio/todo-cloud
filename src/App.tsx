@@ -105,13 +105,13 @@ export default function App() {
   const [session, setSession] = useState<Session | null>(null);
   const [isLoadingSession, setIsLoadingSession] = useState(true);
   const [isLoadingTodos, setIsLoadingTodos] = useState(false);
-  const [authError, setAuthError] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [todoListId, setTodoListId] = useState<string | null>(null);
   const todosRef = useRef<Todo[]>([]);
   const sessionUserIdRef = useRef<string | null>(null);
   const [text, setText] = useState("");
 
+  // todo: combine useAppInit and useTodoListPersistence into a single hook
   const {
     todos,
     setTodos,
@@ -128,22 +128,23 @@ export default function App() {
   } = useAppInit();
 
   const notTodayTodos = todos.filter((todo) => !todo.done && !todo.notNow && todo.notToday);
-  const { loadTodoList, saveTodoList, saveTodos, saveTags, saveLinks, saveNotes } = useTodoListPersistence({
-    session,
-    todoListId,
-    todos,
-    tags,
-    links,
-    notes,
-    setTodos,
-    setTags,
-    setLinks,
-    setNotes,
-    setTodoListId,
-    setIsLoadingTodos,
-    setSaveError,
-    showNotification,
-  });
+  const { loadTodoList, saveTodoList, saveTodos, saveTags, saveLinks, saveNotes, resetTodoList } =
+    useTodoListPersistence({
+      session,
+      todoListId,
+      todos,
+      tags,
+      links,
+      notes,
+      setTodos,
+      setTags,
+      setLinks,
+      setNotes,
+      setTodoListId,
+      setIsLoadingTodos,
+      setSaveError,
+      showNotification,
+    });
 
   // Permanently removes a todo from the list.
   function deleteTodo(id: string) {
@@ -181,12 +182,7 @@ export default function App() {
   // Loads or clears todo-list data when the authenticated user changes.
   useEffect(() => {
     if (!session || !supabase) {
-      setTodos([]);
-      setTags([]);
-      setLinks([]);
-      setNotes("");
-      setTodoListId(null);
-      setIsLoadingTodos(false);
+      resetTodoList();
       return;
     }
 
@@ -243,22 +239,6 @@ export default function App() {
       window.clearTimeout(timeoutId);
     };
   }, [session, todoListId, isLoadingTodos, tags, links, notes]);
-
-  // Starts the Google OAuth flow through Supabase.
-  async function signInWithGoogle() {
-    if (!supabase) return;
-
-    setAuthError(null);
-
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: new URL(import.meta.env.BASE_URL, window.location.origin).toString() },
-    });
-
-    if (error) {
-      setAuthError(error.message);
-    }
-  }
 
   // todo
   // Adds a task by text, reviving duplicates from done/hidden states when needed.
@@ -320,23 +300,6 @@ export default function App() {
   function addTodo(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     addTodoText(text);
-  }
-
-  // Sets or clears a task's due date. Date-only picks are stored as local-midnight timestamps.
-  function setTodoDueDate(id: string, dueDate: number | null) {
-    const nextTodos = todos.map((todo) => (todo.id === id ? { ...todo, dueDate } : todo));
-
-    setTodos(nextTodos);
-    saveTodos(nextTodos);
-  }
-
-  // Hides a todo from the cloud until the next local day.
-  function markTodoNotToday(id: string) {
-    const today = getLocalDateKey();
-    const nextTodos = todos.map((todo) => (todo.id === id ? { ...todo, notToday: true, notTodayDate: today } : todo));
-
-    setTodos(nextTodos);
-    saveTodos(nextTodos);
   }
 
   // Removes a custom link from the saved list.
@@ -425,7 +388,7 @@ export default function App() {
   );
 
   if (!isSupabaseConfigured) return <SetupRequired />;
-  if (!session) return <AuthCard authError={authError} onSignIn={signInWithGoogle} />;
+  if (!session) return <AuthCard />;
   if (isLoadingSession) return <LoadingComponent loading />;
 
   return (
@@ -473,9 +436,7 @@ export default function App() {
             isLoadingTodos={isLoadingTodos}
             notTodayTodos={notTodayTodos}
             tags={tags}
-            onSetTodoDueDate={setTodoDueDate}
             onEditTodoText={editTodoText}
-            onMarkTodoNotToday={markTodoNotToday}
           />
         </Box>
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2, width: 250, minWidth: 250 }}>

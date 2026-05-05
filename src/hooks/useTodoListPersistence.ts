@@ -56,7 +56,7 @@ export function useTodoListPersistence({
 
       if (error) {
         setSaveError(error.message);
-        clearTodoListState();
+        resetTodoList();
         setIsLoadingTodos(false);
         return;
       }
@@ -83,7 +83,7 @@ export function useTodoListPersistence({
 
       if (createError || !createdTodoList) {
         setSaveError(createError?.message ?? "Todo list could not be created.");
-        clearTodoListState();
+        resetTodoList();
         setIsLoadingTodos(false);
         return;
       }
@@ -159,12 +159,13 @@ export function useTodoListPersistence({
     setNotes(items.notes);
   }
 
-  function clearTodoListState() {
+  function resetTodoList() {
     setTodos([]);
     setTags([]);
     setLinks([]);
     setNotes("");
     setTodoListId(null);
+    setIsLoadingTodos(false);
   }
 
   const saveTodos = useCallback(
@@ -195,5 +196,5 @@ export function useTodoListPersistence({
     [tags, links, saveTodoList, todos],
   );
 
-  return { loadTodoList, saveTodoList, saveTodos, saveTags, saveLinks, saveNotes };
+  return { loadTodoList, saveTodoList, saveTodos, saveTags, saveLinks, saveNotes, resetTodoList };
 }

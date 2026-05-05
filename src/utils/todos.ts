@@ -1,8 +1,10 @@
 import type { CustomLink, Todo, TodoListItems, TodoTag } from "../types/todo";
 import dayjs from "dayjs";
+import { getLocalDateKey } from "./date";
 
 export const markTodoNow = (todo: Todo) => ({ ...todo, notNow: false, notToday: false, notTodayDate: null });
 export const markTodoNotNow = (todo: Todo) => ({ ...todo, notNow: true, notToday: false, notTodayDate: null });
+export const markTodoNotToday = (todo: Todo) => ({ ...todo, notToday: true, notTodayDate: getLocalDateKey() });
 export const markTodoDone = (todo: Todo) => {
   const now = new Date().toISOString();
   const newDone = !todo.done;

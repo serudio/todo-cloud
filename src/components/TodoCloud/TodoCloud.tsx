@@ -12,25 +12,10 @@ type TodoCloudProps = {
   notTodayTodos: Todo[];
   tags: TodoTag[];
   onEditTodoText: (id: string, nextText: string) => boolean;
-  onMarkTodoNotToday: (id: string) => void;
-
-  onSetTodoDueDate: (id: string, dueDate: number | null) => void;
-
   updateTodo: (todo: Todo) => void;
 };
 
-export function TodoCloud({
-  todos,
-  isLoadingTodos,
-  notTodayTodos,
-  tags,
-  onEditTodoText,
-  onMarkTodoNotToday,
-
-  onSetTodoDueDate,
-
-  updateTodo,
-}: TodoCloudProps) {
+export function TodoCloud({ todos, isLoadingTodos, notTodayTodos, tags, onEditTodoText, updateTodo }: TodoCloudProps) {
   const activeTodos = todos.filter((todo) => !todo.done && !todo.notNow && !todo.notToday);
   function handleTodoDragStart(event: DragEvent<HTMLElement>, todoId: string) {
     event.dataTransfer.effectAllowed = "move";
@@ -80,8 +65,6 @@ export function TodoCloud({
             updateTodo={updateTodo}
             index={index}
             onEditTodoText={onEditTodoText}
-            onMarkTodoNotToday={onMarkTodoNotToday}
-            onSetTodoDueDate={onSetTodoDueDate}
             handleTodoDragStart={handleTodoDragStart}
             tags={tags}
           />

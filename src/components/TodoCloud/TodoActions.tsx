@@ -7,28 +7,17 @@ import { Card } from "@mui/material";
 import { TASK_ACTIONS_Z } from "../../constants/ui";
 import type { Todo, TodoTag } from "../../types/todo";
 import { getLocalDateKey } from "../../utils/date";
+import { markTodoNotToday } from "../../utils/todos";
 
 type Props = {
   todo: Todo;
   tags: TodoTag[];
   isDayBeforeDueDate: boolean;
   updateTodo: (todo: Todo) => void;
-  onMarkTodoNotToday: (id: string) => void;
   onSetActionsFocused: (isFocused: boolean) => void;
-  onSetTodoDueDate: (id: string, dueDate: number | null) => void;
 };
 
-export const TodoActions: React.FC<Props> = ({
-  todo,
-  tags,
-  isDayBeforeDueDate,
-  updateTodo,
-  onMarkTodoNotToday,
-  onSetActionsFocused,
-  onSetTodoDueDate,
-}) => {
-  const { id } = todo;
-
+export const TodoActions: React.FC<Props> = ({ todo, tags, isDayBeforeDueDate, updateTodo, onSetActionsFocused }) => {
   const updateTag = (tagId: string | null) => updateTodo({ ...todo, tagId });
 
   const updateAutoRepeat = () => {
@@ -41,9 +30,9 @@ export const TodoActions: React.FC<Props> = ({
     });
   };
 
-  const updateCount = () => {
-    updateTodo({ ...todo, count: 0 });
-  };
+  const updateCount = () => updateTodo({ ...todo, count: 0 });
+  const updateNotToday = () => updateTodo(markTodoNotToday(todo));
+  const updateDueDate = (dueDate: number | null) => updateTodo({ ...todo, dueDate });
 
   return (
     <Card
@@ -70,13 +59,9 @@ export const TodoActions: React.FC<Props> = ({
       }}
     >
       <TagPicker selectedTagId={todo.tagId} tags={tags} onTagSelect={updateTag} />
-      <DatePicker
-        value={todo.dueDate}
-        onChange={(dueDate) => onSetTodoDueDate(todo.id, dueDate)}
-        onOpen={() => onSetActionsFocused(true)}
-      />
+      <DatePicker value={todo.dueDate} onChange={updateDueDate} onOpen={() => onSetActionsFocused(true)} />
       {/* <NotNowButton onClick={() => onMarkTodoNotNow(todo.id)} /> */}
-      {!isDayBeforeDueDate && <NotTodayButton onClick={() => onMarkTodoNotToday(id)} />}
+      {!isDayBeforeDueDate && <NotTodayButton onClick={updateNotToday} />}
       <AutoRepeatButton checked={todo.repeatAtEndOfDay} onClick={updateAutoRepeat} />
       <TodoDetails todo={todo} onReset={updateCount} />
     </Card>
