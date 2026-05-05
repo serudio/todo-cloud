@@ -11,6 +11,7 @@ type TagPickerProps = {
 
 export const TagPicker: React.FC<TagPickerProps> = ({ selectedTagId, tags, onAssignTag }) => {
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
+  const open = Boolean(anchorEl);
 
   const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
@@ -19,9 +20,6 @@ export const TagPicker: React.FC<TagPickerProps> = ({ selectedTagId, tags, onAss
   const handleClose = () => {
     setAnchorEl(null);
   };
-
-  const open = Boolean(anchorEl);
-  const id = open ? "simple-popover" : undefined;
 
   function assignTag(tagId: string | null) {
     onAssignTag(tagId);
@@ -38,14 +36,13 @@ export const TagPicker: React.FC<TagPickerProps> = ({ selectedTagId, tags, onAss
               height: 20,
               borderRadius: "50%",
               backgroundColor: tags.find((tag) => tag.id === selectedTagId)?.color,
-              marginRight: 1,
             }}
           />
         ) : (
           <LocalOfferIcon />
         )}
       </IconButton>
-      <Popover id={id} open={open} anchorEl={anchorEl} onClose={handleClose} anchorOrigin={{ vertical: "bottom", horizontal: "left" }}>
+      <Popover open={open} anchorEl={anchorEl} onClose={handleClose} anchorOrigin={{ vertical: "bottom", horizontal: "left" }}>
         <List disablePadding component="div">
           <ListItemButton sx={{ padding: "0 16px" }} onClick={() => assignTag(null)} selected={!selectedTagId}>
             <ListItemText primary="No tag" />

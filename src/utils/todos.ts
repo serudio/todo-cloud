@@ -1,5 +1,20 @@
 import type { CustomLink, Todo, TodoListItems, TodoTag } from "../types/todo";
 
+export const getDoneTodos = (todos: Todo[]) => {
+  return [...todos]
+    .filter((todo) => todo.done)
+    .sort((a, b) => {
+      if (a.doneAt && b.doneAt) {
+        return b.doneAt.localeCompare(a.doneAt);
+      }
+
+      if (a.doneAt) return -1;
+      if (b.doneAt) return 1;
+
+      return b.count - a.count;
+    });
+};
+
 export function parseTodoListItems(items: unknown): TodoListItems {
   console.log({ items });
   if (Array.isArray(items)) {

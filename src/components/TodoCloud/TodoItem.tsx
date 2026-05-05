@@ -1,12 +1,18 @@
 import { useState } from "react";
 import type { Todo, TodoTag } from "../../types/todo";
-import { getDateInputValue, getStartOfDayTimestamp, getTodoSize, isStaleTodo } from "../../utils/todos";
+import { formatDateKey, getDateInputValue, getTodoSize, isStaleTodo } from "../../utils/todos";
 import { AutoRepeatButton } from "../Shared/AutoRepeatButton";
 import { NotTodayButton } from "../Shared/NotTodayButton";
 import { TagPicker } from "../Shared/TagPicker";
 import { TodoDetails } from "../Shared/TodoDetails";
-import { Box, Card, IconButton } from "@mui/material";
+import { Box, Card, IconButton, Popover, Tooltip } from "@mui/material";
+import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import type { Dayjs } from "dayjs";
+import dayjs from "dayjs";
 import EditIcon from "@mui/icons-material/Edit";
+import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import { TASK_ACTION_HOVER_Z, TASK_ACTIONS_Z, TASK_Z } from "../../constants/ui";
 
 type Props = {
@@ -67,8 +73,11 @@ export const TodoItem: React.FC<Props> = ({
 
   const [hovered, setHovered] = useState(false);
   const [actionsFocused, setActionsFocused] = useState(false);
+  const [calendarAnchorElement, setCalendarAnchorElement] = useState<HTMLElement | null>(null);
   const showActions = (hovered || actionsFocused) && !isEdit;
   const isDayBeforeDueDate = getDateInputValue(todo.dueDate) === getTomorrowDateInputValue();
+  const isCalendarOpen = Boolean(calendarAnchorElement);
+  const dueDateTooltip = todo.dueDate ? `Due ${formatDateKey(todo.dueDate)}` : "Set due date";
 
   const size = getTodoSize(todo.count);
 
@@ -98,9 +107,9 @@ export const TodoItem: React.FC<Props> = ({
     handleTodoDragStart(event, todo.id);
   }
 
-  function handleDueDateChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const dateKey = event.target.value;
-    onSetTodoDueDate(todo.id, dateKey ? getStartOfDayTimestamp(dateKey) : null);
+  function handleDueDateChange(date: Dayjs | null) {
+    onSetTodoDueDate(todo.id, date ? date.startOf("day").valueOf() : null);
+    setCalendarAnchorElement(null);
   }
 
   return (
@@ -212,14 +221,39 @@ export const TodoItem: React.FC<Props> = ({
           }}
         >
           <TagPicker selectedTagId={todo.tagId} tags={tags} onAssignTag={(tagId) => onAssignTodoTag(id, tagId)} />
-          <input
-            aria-label="Due date"
-            type="date"
-            value={getDateInputValue(todo.dueDate)}
-            onChange={handleDueDateChange}
-            onFocus={() => setActionsFocused(true)}
-            onPointerDown={(event) => event.stopPropagation()}
-          />
+          <Tooltip title={dueDateTooltip}>
+            <IconButton
+              aria-label="Set due date"
+              color={todo.dueDate ? "warning" : "default"}
+              onClick={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                setActionsFocused(true);
+                setCalendarAnchorElement(event.currentTarget);
+              }}
+              onPointerDown={(event) => event.stopPropagation()}
+              size="small"
+              sx={{
+                bgcolor: todo.dueDate ? "warning.light" : undefined,
+                "&:hover": {
+                  bgcolor: todo.dueDate ? "warning.main" : undefined,
+                },
+              }}
+            >
+              <CalendarMonthIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+          <Popover
+            open={isCalendarOpen}
+            anchorEl={calendarAnchorElement}
+            onClose={() => setCalendarAnchorElement(null)}
+            anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+            transformOrigin={{ vertical: "top", horizontal: "center" }}
+          >
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <DateCalendar value={todo.dueDate ? dayjs(todo.dueDate) : null} onChange={handleDueDateChange} />
+            </LocalizationProvider>
+          </Popover>
           {/* <NotNowButton onClick={() => onMarkTodoNotNow(todo.id)} /> */}
           {!isDayBeforeDueDate && <NotTodayButton onClick={() => onMarkTodoNotToday(todo.id)} />}
           <AutoRepeatButton checked={todo.repeatAtEndOfDay} onClick={() => onToggleEndOfDayRepeat(todo.id)} />

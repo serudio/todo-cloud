@@ -32,7 +32,12 @@ export const DoneItem: React.FC<Props> = ({
       <TagPicker selectedTagId={tagId} tags={tags} onAssignTag={(tagId) => assignTodoTag(id, tagId)} />
 
       <Tooltip title={text}>
-        <Chip label={text} onClick={() => onAddTodoText(text)} sx={{ color, flex: 1, maxWidth: "none", minWidth: 0 }} variant="filled" />
+        <Chip
+          label={text}
+          onClick={() => onAddTodoText(text)}
+          sx={{ color, flex: 1, maxWidth: "none", minWidth: 0, justifyContent: "flex-start", ".MuiChip-label": { padding: "0 4px" } }}
+          variant="filled"
+        />
       </Tooltip>
       <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
         <AutoRepeatButton checked={item.repeatAtEndOfDay} onClick={() => onToggleEndOfDayRepeat(id)} />

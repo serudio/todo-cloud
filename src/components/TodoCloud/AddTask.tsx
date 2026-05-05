@@ -1,11 +1,5 @@
 import type { Todo } from "../../types/todo";
-import {
-  type FormEvent,
-  type KeyboardEvent,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { type FormEvent, type KeyboardEvent, useEffect, useMemo, useState } from "react";
 import { normalizeTodoText } from "../../utils/todos";
 import { Box, Input } from "@mui/joy";
 import { ADD_TODO_Z } from "../../constants/ui";
@@ -34,9 +28,7 @@ export const AddTask: React.FC<Props> = ({
     const normalizedText = normalizeTodoText(text);
     if (!normalizedText) return [];
 
-    return suggestedTodos
-      .filter((todo) => normalizeTodoText(todo.text).includes(normalizedText))
-      .slice(0, 6);
+    return suggestedTodos.filter((todo) => normalizeTodoText(todo.text).includes(normalizedText)).slice(0, 6);
   }, [suggestedTodos, text]);
   const showSuggestions = isSuggestionsOpen && matchingTodos.length > 0;
 
@@ -62,19 +54,14 @@ export const AddTask: React.FC<Props> = ({
     if (event.key === "ArrowDown") {
       event.preventDefault();
       setIsSuggestionsOpen(true);
-      setActiveSuggestionIndex(
-        (currentIndex) => (currentIndex + 1) % matchingTodos.length,
-      );
+      setActiveSuggestionIndex((currentIndex) => (currentIndex + 1) % matchingTodos.length);
       return;
     }
 
     if (event.key === "ArrowUp") {
       event.preventDefault();
       setIsSuggestionsOpen(true);
-      setActiveSuggestionIndex(
-        (currentIndex) =>
-          (currentIndex - 1 + matchingTodos.length) % matchingTodos.length,
-      );
+      setActiveSuggestionIndex((currentIndex) => (currentIndex - 1 + matchingTodos.length) % matchingTodos.length);
       return;
     }
 
