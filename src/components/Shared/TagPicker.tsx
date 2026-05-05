@@ -1,6 +1,7 @@
-import { type CSSProperties, useEffect, useState } from "react";
+import { useState, type MouseEvent } from "react";
 import type { TodoTag } from "../../types/todo";
-import "./TagPicker.css";
+import LocalOfferIcon from "@mui/icons-material/LocalOffer";
+import { IconButton, Popover, List, ListItemButton, ListItemText, Box } from "@mui/material";
 
 type TagPickerProps = {
   selectedTagId: string | null;
@@ -8,90 +9,55 @@ type TagPickerProps = {
   onAssignTag: (tagId: string | null) => void;
 };
 
-function TagIcon() {
-  return (
-    <svg viewBox="0 0 20 20" focusable="false" aria-hidden="true">
-      <path d="M3 4.5A1.5 1.5 0 0 1 4.5 3h5.2c.4 0 .8.2 1.1.4l5.8 5.8a1.5 1.5 0 0 1 0 2.1l-5.3 5.3a1.5 1.5 0 0 1-2.1 0l-5.8-5.8A1.5 1.5 0 0 1 3 9.7V4.5Zm3.2 2.7a1.3 1.3 0 1 0 0-2.6 1.3 1.3 0 0 0 0 2.6Z" />
-    </svg>
-  );
-}
+export const TagPicker: React.FC<TagPickerProps> = ({ selectedTagId, tags, onAssignTag }) => {
+  const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
 
-export function TagPicker({
-  selectedTagId,
-  tags,
-  onAssignTag,
-}: TagPickerProps) {
-  const [isOpen, setIsOpen] = useState(false);
-  const selectedTag = tags.find((tag) => tag.id === selectedTagId);
+  const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
 
-  useEffect(() => {
-    if (!isOpen) return;
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
 
-    function handleDocumentPointerDown(event: PointerEvent) {
-      const target = event.target;
-
-      if (target instanceof Element && target.closest(".tag-picker-menu")) {
-        return;
-      }
-
-      setIsOpen(false);
-    }
-
-    document.addEventListener("pointerdown", handleDocumentPointerDown);
-
-    return () => {
-      document.removeEventListener("pointerdown", handleDocumentPointerDown);
-    };
-  }, [isOpen]);
+  const open = Boolean(anchorEl);
+  const id = open ? "simple-popover" : undefined;
 
   function assignTag(tagId: string | null) {
     onAssignTag(tagId);
-    setIsOpen(false);
+    handleClose();
   }
 
   return (
-    <span className="tag-picker-menu">
-      <button
-        aria-expanded={isOpen}
-        className={`tag-color-trigger${!selectedTag ? " tag-color-clear" : ""}`}
-        style={
-          {
-            "--tag-option-color": selectedTag?.color,
-          } as CSSProperties
-        }
-        type="button"
-        onClick={() => setIsOpen((currentIsOpen) => !currentIsOpen)}
-      >
-        {selectedTag ? <span /> : <TagIcon />}
-      </button>
-      {isOpen ? (
-        <span className="tag-picker-dropdown">
-          <button
-            aria-selected={!selectedTagId}
-            type="button"
-            onClick={() => assignTag(null)}
-          >
-            <span className="tag-picker-color tag-color-clear">
-              <TagIcon />
-            </span>
-            <span>No tag</span>
-          </button>
+    <>
+      <IconButton onClick={handleClick} sx={{ padding: 0 }}>
+        {selectedTagId ? (
+          <Box
+            sx={{
+              width: 20,
+              height: 20,
+              borderRadius: "50%",
+              backgroundColor: tags.find((tag) => tag.id === selectedTagId)?.color,
+              marginRight: 1,
+            }}
+          />
+        ) : (
+          <LocalOfferIcon />
+        )}
+      </IconButton>
+      <Popover id={id} open={open} anchorEl={anchorEl} onClose={handleClose} anchorOrigin={{ vertical: "bottom", horizontal: "left" }}>
+        <List disablePadding component="div">
+          <ListItemButton sx={{ padding: "0 16px" }} onClick={() => assignTag(null)} selected={!selectedTagId}>
+            <ListItemText primary="No tag" />
+          </ListItemButton>
           {tags.map((tag) => (
-            <button
-              aria-selected={selectedTagId === tag.id}
-              key={tag.id}
-              type="button"
-              onClick={() => assignTag(tag.id)}
-            >
-              <span
-                className="tag-picker-color"
-                style={{ "--tag-option-color": tag.color } as CSSProperties}
-              />
-              <span>{tag.name}</span>
-            </button>
+            <ListItemButton selected={selectedTagId === tag.id} key={tag.id} onClick={() => assignTag(tag.id)} sx={{ padding: "0 16px" }}>
+              <Box sx={{ width: 20, height: 20, borderRadius: "50%", backgroundColor: tag.color, marginRight: 1 }}></Box>
+              <ListItemText primary={tag.name} />
+            </ListItemButton>
           ))}
-        </span>
-      ) : null}
-    </span>
+        </List>
+      </Popover>
+    </>
   );
-}
+};

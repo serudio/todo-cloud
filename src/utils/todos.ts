@@ -1,21 +1,22 @@
-import type { CustomLink, Todo, TodoListItems, TodoTag } from '../types/todo';
+import type { CustomLink, Todo, TodoListItems, TodoTag } from "../types/todo";
 
 export function parseTodoListItems(items: unknown): TodoListItems {
+  console.log({ items });
   if (Array.isArray(items)) {
     return {
       todos: parseTodos(items),
       tags: [],
       links: [],
-      notes: '',
+      notes: "",
     };
   }
 
-  if (!items || typeof items !== 'object') {
+  if (!items || typeof items !== "object") {
     return {
       todos: [],
       tags: [],
       links: [],
-      notes: '',
+      notes: "",
     };
   }
 
@@ -36,12 +37,7 @@ export function parseTodoListItems(items: unknown): TodoListItems {
   };
 }
 
-export function parseTodoListColumns(
-  items: unknown,
-  tags: unknown,
-  links: unknown,
-  notes: unknown,
-): TodoListItems {
+export function parseTodoListColumns(items: unknown, tags: unknown, links: unknown, notes: unknown): TodoListItems {
   return {
     todos: parseTodos(items),
     tags: parseTags(tags),
@@ -54,35 +50,26 @@ export function parseTodos(items: unknown): Todo[] {
   if (!Array.isArray(items)) return [];
 
   const todos = items.flatMap((item) => {
-    if (!item || typeof item !== 'object') return [];
+    if (!item || typeof item !== "object") return [];
 
     const todo = item as Record<string, unknown>;
 
-    if (
-      typeof todo.id === 'string' &&
-      typeof todo.text === 'string' &&
-      typeof todo.done === 'boolean'
-    ) {
+    if (typeof todo.id === "string" && typeof todo.text === "string" && typeof todo.done === "boolean") {
       return [
         {
           id: todo.id,
           text: todo.text,
           done: todo.done,
-          doneAt: typeof todo.doneAt === 'string' ? todo.doneAt : null,
-          count: typeof todo.count === 'number' && todo.count >= 0 ? todo.count : 1,
-          lastAddedDate:
-            typeof todo.lastAddedDate === 'string' ? todo.lastAddedDate : null,
+          doneAt: typeof todo.doneAt === "string" ? todo.doneAt : null,
+          count: typeof todo.count === "number" && todo.count >= 0 ? todo.count : 1,
+          lastAddedDate: typeof todo.lastAddedDate === "string" ? todo.lastAddedDate : null,
           repeatAtEndOfDay: todo.repeatAtEndOfDay === true,
-          lastAutoAddedDate:
-            typeof todo.lastAutoAddedDate === 'string'
-              ? todo.lastAutoAddedDate
-              : null,
-          tagId: typeof todo.tagId === 'string' ? todo.tagId : null,
+          lastAutoAddedDate: typeof todo.lastAutoAddedDate === "string" ? todo.lastAutoAddedDate : null,
+          tagId: typeof todo.tagId === "string" ? todo.tagId : null,
           dueDate: parseDueDate(todo.dueDate),
           notNow: todo.notNow === true,
           notToday: todo.notToday === true,
-          notTodayDate:
-            typeof todo.notTodayDate === 'string' ? todo.notTodayDate : null,
+          notTodayDate: typeof todo.notTodayDate === "string" ? todo.notTodayDate : null,
         },
       ];
     }
@@ -97,19 +84,15 @@ function parseTags(items: unknown): TodoTag[] {
   if (!Array.isArray(items)) return [];
 
   return items.flatMap((item) => {
-    if (!item || typeof item !== 'object') return [];
+    if (!item || typeof item !== "object") return [];
 
     const tag = item as Record<string, unknown>;
 
-    if (
-      typeof tag.id === 'string' &&
-      typeof tag.name === 'string' &&
-      typeof tag.color === 'string'
-    ) {
+    if (typeof tag.id === "string" && typeof tag.name === "string" && typeof tag.color === "string") {
       return [
         {
           id: tag.id,
-          name: tag.name.trim().replace(/\s+/g, ' '),
+          name: tag.name.trim().replace(/\s+/g, " "),
           color: tag.color,
         },
       ];
@@ -123,19 +106,15 @@ function parseCustomLinks(items: unknown): CustomLink[] {
   if (!Array.isArray(items)) return [];
 
   return items.flatMap((item) => {
-    if (!item || typeof item !== 'object') return [];
+    if (!item || typeof item !== "object") return [];
 
     const link = item as Record<string, unknown>;
 
-    if (
-      typeof link.id === 'string' &&
-      typeof link.name === 'string' &&
-      typeof link.url === 'string'
-    ) {
+    if (typeof link.id === "string" && typeof link.name === "string" && typeof link.url === "string") {
       return [
         {
           id: link.id,
-          name: link.name.trim().replace(/\s+/g, ' '),
+          name: link.name.trim().replace(/\s+/g, " "),
           url: link.url.trim(),
         },
       ];
@@ -146,53 +125,49 @@ function parseCustomLinks(items: unknown): CustomLink[] {
 }
 
 function parseNotes(notes: unknown) {
-  return typeof notes === 'string' ? notes : '';
+  return typeof notes === "string" ? notes : "";
 }
 
 export function normalizeTodoText(text: string) {
-  return text.trim().replace(/\s+/g, ' ').toLocaleLowerCase();
+  return text.trim().replace(/\s+/g, " ").toLocaleLowerCase();
 }
 
 export function formatDateKey(dateValue: string | number | null) {
-  if (!dateValue) return 'not saved yet';
+  if (!dateValue) return "not saved yet";
 
   const dateInputValue = getDateInputValue(dateValue);
-  if (!dateInputValue) return 'not saved yet';
+  if (!dateInputValue) return "not saved yet";
 
-  const [year, month, day] = dateInputValue.split('-').map(Number);
+  const [year, month, day] = dateInputValue.split("-").map(Number);
   const date = new Date(year, month - 1, day);
 
   return date.toLocaleDateString(undefined, {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
+    year: "numeric",
+    month: "short",
+    day: "numeric",
   });
 }
 
 export function getDateInputValue(dateValue: string | number | null) {
-  if (typeof dateValue === 'number') {
+  if (typeof dateValue === "number") {
     const date = new Date(dateValue);
-    if (Number.isNaN(date.getTime())) return '';
+    if (Number.isNaN(date.getTime())) return "";
 
-    return [
-      date.getFullYear(),
-      String(date.getMonth() + 1).padStart(2, '0'),
-      String(date.getDate()).padStart(2, '0'),
-    ].join('-');
+    return [date.getFullYear(), String(date.getMonth() + 1).padStart(2, "0"), String(date.getDate()).padStart(2, "0")].join("-");
   }
 
-  return dateValue?.match(/^\d{4}-\d{2}-\d{2}/)?.[0] ?? '';
+  return dateValue?.match(/^\d{4}-\d{2}-\d{2}/)?.[0] ?? "";
 }
 
 export function getStartOfDayTimestamp(dateKey: string) {
-  const [year, month, day] = dateKey.split('-').map(Number);
+  const [year, month, day] = dateKey.split("-").map(Number);
   return new Date(year, month - 1, day, 0, 0, 0, 0).getTime();
 }
 
 export function isStaleTodo(lastAddedDate: string | null, date = new Date()) {
   if (!lastAddedDate) return false;
 
-  const [year, month, day] = lastAddedDate.split('-').map(Number);
+  const [year, month, day] = lastAddedDate.split("-").map(Number);
   const addedDate = new Date(year, month - 1, day);
   const staleBefore = new Date(date);
   staleBefore.setMonth(staleBefore.getMonth() - 1);
@@ -211,7 +186,7 @@ function mergeDuplicateTodos(todos: Todo[]) {
     if (!existingTodo) {
       todosByText.set(normalizedText, {
         ...todo,
-        text: todo.text.trim().replace(/\s+/g, ' '),
+        text: todo.text.trim().replace(/\s+/g, " "),
       });
       continue;
     }
@@ -221,24 +196,14 @@ function mergeDuplicateTodos(todos: Todo[]) {
       done: existingTodo.done && todo.done,
       doneAt: getLatestDate(existingTodo.doneAt, todo.doneAt),
       count: existingTodo.count + todo.count,
-      lastAddedDate: getLatestDate(
-        existingTodo.lastAddedDate,
-        todo.lastAddedDate,
-      ),
-      repeatAtEndOfDay:
-        existingTodo.repeatAtEndOfDay || todo.repeatAtEndOfDay,
-      lastAutoAddedDate: getLatestDate(
-        existingTodo.lastAutoAddedDate,
-        todo.lastAutoAddedDate,
-      ),
+      lastAddedDate: getLatestDate(existingTodo.lastAddedDate, todo.lastAddedDate),
+      repeatAtEndOfDay: existingTodo.repeatAtEndOfDay || todo.repeatAtEndOfDay,
+      lastAutoAddedDate: getLatestDate(existingTodo.lastAutoAddedDate, todo.lastAutoAddedDate),
       tagId: existingTodo.tagId ?? todo.tagId,
       dueDate: existingTodo.dueDate ?? todo.dueDate,
       notNow: existingTodo.notNow && todo.notNow,
       notToday: existingTodo.notToday && todo.notToday,
-      notTodayDate:
-        existingTodo.notToday && todo.notToday
-          ? getLatestDate(existingTodo.notTodayDate, todo.notTodayDate)
-          : null,
+      notTodayDate: existingTodo.notToday && todo.notToday ? getLatestDate(existingTodo.notTodayDate, todo.notTodayDate) : null,
     });
   }
 
@@ -246,11 +211,11 @@ function mergeDuplicateTodos(todos: Todo[]) {
 }
 
 function parseDueDate(dueDate: unknown) {
-  if (typeof dueDate === 'number' && Number.isFinite(dueDate)) {
+  if (typeof dueDate === "number" && Number.isFinite(dueDate)) {
     return dueDate;
   }
 
-  if (typeof dueDate !== 'string') return null;
+  if (typeof dueDate !== "string") return null;
 
   const dateInputValue = getDateInputValue(dueDate);
   if (dateInputValue) {

@@ -1,6 +1,5 @@
 import { type FormEvent, useEffect, useRef, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
-import { LoadingPage } from "./components/AppState/LoadingPage";
 import { NotificationToast } from "./components/AppState/NotificationToast";
 import { SetupRequired } from "./components/AppState/SetupRequired";
 import { AuthCard } from "./components/AuthCard";
@@ -18,6 +17,7 @@ import { normalizeTodoText, parseTodoListColumns, parseTodoListItems } from "./u
 import { Box } from "@mui/joy";
 import { Header } from "./components/Layout";
 import { AddTask } from "./components/TodoCloud/AddTask.tsx";
+import { LoadingComponent } from "./components/Layout/LoadingComponent.tsx";
 
 const TODO_LIST_BACKUP_KEY_PREFIX = "todo-cloud:list-backup:";
 
@@ -773,10 +773,7 @@ export default function App() {
     return <SetupRequired />;
   }
 
-  if (isLoadingSession) {
-    return <LoadingPage />;
-  }
-
+  if (isLoadingSession) return <LoadingComponent loading />;
   if (!session) return <AuthCard authError={authError} onSignIn={signInWithGoogle} />;
 
   return (

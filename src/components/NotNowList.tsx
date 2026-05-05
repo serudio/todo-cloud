@@ -33,7 +33,13 @@ export function NotNowList({ todos, onDropTodo, onRestoreTodo }: NotNowListProps
     <SectionCard title="Not Now" onDragOver={handleDragOver} onDrop={handleDrop}>
       {!todos.length && <p className="status">Drag cloud tasks here to hide them for now.</p>}
       {todos.map((todo) => (
-        <Chip draggable onClick={() => onRestoreTodo(todo.id)} onDragStart={(event) => handleDragStart(event, todo.id)} size="sm">
+        <Chip
+          key={todo.id}
+          draggable
+          onClick={() => onRestoreTodo(todo.id)}
+          onDragStart={(event) => handleDragStart(event, todo.id)}
+          size="sm"
+        >
           {todo.text}
         </Chip>
       ))}

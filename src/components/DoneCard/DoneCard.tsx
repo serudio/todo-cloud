@@ -1,6 +1,6 @@
 import type { Todo, TodoTag } from "../../types/todo";
 import { SectionCard } from "../Shared/SectionCard";
-import { Box } from "@mui/joy";
+import { Box } from "@mui/material";
 import { DoneItem } from "./DoneItem";
 
 type DoneListProps = {
@@ -29,9 +29,10 @@ export const DoneCard: React.FC<DoneListProps> = ({
   return (
     <SectionCard title="Done">
       {todos.length === 0 && <p className="status">Done items will show up here.</p>}
-      <Box display="flex" flexDirection="column" gap={1}>
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
         {todos.map((todo) => (
           <DoneItem
+            key={todo.id}
             item={todo}
             tags={tags}
             onAddTodoText={onAddTodoText}

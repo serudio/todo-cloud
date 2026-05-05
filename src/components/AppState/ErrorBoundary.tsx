@@ -1,5 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
-import "./AppState.css";
+import { Backdrop, Button, Card, CardActions, CardContent, CardHeader, Typography } from "@mui/material";
 
 type ErrorBoundaryProps = {
   children: ReactNode;
@@ -9,10 +9,7 @@ type ErrorBoundaryState = {
   error: Error | null;
 };
 
-export class ErrorBoundary extends Component<
-  ErrorBoundaryProps,
-  ErrorBoundaryState
-> {
+export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   state: ErrorBoundaryState = {
     error: null,
   };
@@ -28,10 +25,7 @@ export class ErrorBoundary extends Component<
 
   componentWillUnmount() {
     window.removeEventListener("error", this.handleWindowError);
-    window.removeEventListener(
-      "unhandledrejection",
-      this.handleUnhandledRejection,
-    );
+    window.removeEventListener("unhandledrejection", this.handleUnhandledRejection);
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
@@ -43,10 +37,7 @@ export class ErrorBoundary extends Component<
   };
 
   private handleUnhandledRejection = (event: PromiseRejectionEvent) => {
-    const reason =
-      event.reason instanceof Error
-        ? event.reason
-        : new Error(String(event.reason));
+    const reason = event.reason instanceof Error ? event.reason : new Error(String(event.reason));
 
     this.setState({ error: reason });
   };
@@ -55,16 +46,20 @@ export class ErrorBoundary extends Component<
     if (!this.state.error) return this.props.children;
 
     return (
-      <main className="app auth-page">
-        <section className="auth-card error-card">
-          <p className="error-card-label">Something went wrong</p>
-          <h1>App crashed.</h1>
-          <pre>{this.state.error.message}</pre>
-          <button type="button" onClick={() => window.location.reload()}>
-            Reload
-          </button>
-        </section>
-      </main>
+      <Backdrop open>
+        <Card>
+          <CardHeader title="Something went wrong" />
+          <CardContent>
+            <Typography variant="h6">App crashed.</Typography>
+            <pre>{this.state.error.message}</pre>
+          </CardContent>
+          <CardActions>
+            <Button variant="contained" onClick={() => window.location.reload()}>
+              Reload
+            </Button>
+          </CardActions>
+        </Card>
+      </Backdrop>
     );
   }
 }

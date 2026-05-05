@@ -1,5 +1,5 @@
 import CachedIcon from "@mui/icons-material/Cached";
-import { IconButton } from "@mui/joy";
+import { IconButton } from "@mui/material";
 
 type Props = {
   checked: boolean;
@@ -7,15 +7,13 @@ type Props = {
 };
 
 export const AutoRepeatButton: React.FC<Props> = ({ checked, onClick }) => {
-  console.log({ checked });
   return (
     <IconButton
       title="Repeat at midnight"
       onClick={onClick}
-      variant={checked ? "solid" : "outlined"}
-      color="warning"
+      color={checked ? "secondary" : "primary"}
       sx={{ padding: 0, width: 22, height: 22, minHeight: 22, minWidth: 22 }}
-      size="sm"
+      size="small"
     >
       <CachedIcon />
     </IconButton>

@@ -1,6 +1,5 @@
 import { type DragEvent, type FormEvent, type KeyboardEvent, useEffect, useRef, useState } from "react";
 import type { Todo, TodoTag } from "../../types/todo";
-import "./TodoCloud.css";
 import { NotTodayList } from "./NotTodayList";
 import { TodoItem } from "./TodoItem";
 import { Box, Card } from "@mui/joy";

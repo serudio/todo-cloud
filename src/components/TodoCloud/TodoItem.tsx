@@ -5,7 +5,7 @@ import { AutoRepeatButton } from "../Shared/AutoRepeatButton";
 import { NotTodayButton } from "../Shared/NotTodayButton";
 import { TagPicker } from "../Shared/TagPicker";
 import { TodoDetails } from "../Shared/TodoDetails";
-import { Box, Card, Chip, IconButton } from "@mui/joy";
+import { Box, Card, IconButton } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import { TASK_ACTION_HOVER_Z, TASK_ACTIONS_Z, TASK_Z } from "../../constants/ui";
 
@@ -104,8 +104,7 @@ export const TodoItem: React.FC<Props> = ({
   }
 
   return (
-    <Chip
-      className={`chip-container${isDayBeforeDueDate ? " due-tomorrow" : ""}`}
+    <Box
       draggable={!isEdit}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
@@ -127,28 +126,43 @@ export const TodoItem: React.FC<Props> = ({
         justifyContent: "center",
         zIndex: showActions ? TASK_ACTION_HOVER_Z : TASK_Z,
         scale: showActions ? 1.03 : 1,
+        ...(isDayBeforeDueDate && {
+          outline: "2px solid",
+          outlineColor: "warning.main",
+          outlineOffset: 3,
+          animation: "dueTomorrowPulse 1.4s ease-in-out infinite",
+          "@keyframes dueTomorrowPulse": (theme) => ({
+            "0%, 100%": {
+              boxShadow: `0 0 0 0 ${theme.palette.warning.main}`,
+            },
+            "50%": {
+              boxShadow: `0 0 0 6px ${theme.palette.warning.light}`,
+            },
+          }),
+        }),
       }}
-      slotProps={{
-        endDecorator: { sx: { pointerEvents: "auto", zIndex: TASK_ACTIONS_Z } },
-      }}
-      endDecorator={
-        showActions && (
-          <IconButton
-            size="sm"
-            variant="plain"
-            color="neutral"
-            onPointerDown={(event) => event.stopPropagation()}
-            onClick={(event) => {
-              event.preventDefault();
-              event.stopPropagation();
-              handleEdit(todo);
-            }}
-          >
-            <EditIcon fontSize="small" />
-          </IconButton>
-        )
-      }
     >
+      {showActions && (
+        <IconButton
+          size="small"
+          onPointerDown={(event) => event.stopPropagation()}
+          onClick={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            handleEdit(todo);
+          }}
+          sx={{
+            position: "absolute",
+            right: -1,
+            minHeight: "100%",
+            borderTopRightRadius: 999,
+            borderBottomRightRadius: 999,
+            zIndex: TASK_ACTIONS_Z,
+          }}
+        >
+          <EditIcon fontSize="small" />
+        </IconButton>
+      )}
       <Box
         sx={{ display: !isEdit ? "block" : "none" }}
         onClick={(e) => {
@@ -177,7 +191,6 @@ export const TodoItem: React.FC<Props> = ({
       )}
       {showActions && (
         <Card
-          size="sm"
           onFocusCapture={() => setActionsFocused(true)}
           onBlurCapture={(event) => {
             const nextFocusedElement = event.relatedTarget;
@@ -213,6 +226,6 @@ export const TodoItem: React.FC<Props> = ({
           <TodoDetails todo={todo} onReset={onResetTodoCount} />
         </Card>
       )}
-    </Chip>
+    </Box>
   );
 };
