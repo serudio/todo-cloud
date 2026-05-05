@@ -496,6 +496,7 @@ export default function App() {
           repeatAtEndOfDay: false,
           lastAutoAddedDate: null,
           tagId: null,
+          dueDate: null,
           notNow: false,
           notToday: false,
           notTodayDate: null,
@@ -634,6 +635,14 @@ export default function App() {
   // Assigns or clears a tag on a specific todo.
   function assignTodoTag(id: string, tagId: string | null) {
     const nextTodos = todos.map((todo) => (todo.id === id ? { ...todo, tagId } : todo));
+
+    setTodos(nextTodos);
+    saveTodos(nextTodos);
+  }
+
+  // Sets or clears a task's due date. Date-only picks are stored as local-midnight timestamps.
+  function setTodoDueDate(id: string, dueDate: number | null) {
+    const nextTodos = todos.map((todo) => (todo.id === id ? { ...todo, dueDate } : todo));
 
     setTodos(nextTodos);
     saveTodos(nextTodos);
@@ -818,6 +827,7 @@ export default function App() {
             notTodayTodos={notTodayTodos}
             tags={tags}
             onAssignTodoTag={assignTodoTag}
+            onSetTodoDueDate={setTodoDueDate}
             onEditTodoText={editTodoText}
             onMarkTodoNotToday={markTodoNotToday}
             onResetTodoCount={resetTodoCount}

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { Todo, TodoTag } from "../../types/todo";
-import { getTodoSize, isStaleTodo } from "../../utils/todos";
+import { getDateInputValue, getStartOfDayTimestamp, getTodoSize, isStaleTodo } from "../../utils/todos";
 import { AutoRepeatButton } from "../Shared/AutoRepeatButton";
 import { NotTodayButton } from "../Shared/NotTodayButton";
 import { TagPicker } from "../Shared/TagPicker";
@@ -16,6 +16,7 @@ type Props = {
   onToggleTodo: (id: string) => void;
   onAssignTodoTag: (id: string, tagId: string | null) => void;
   onMarkTodoNotToday: (id: string) => void;
+  onSetTodoDueDate: (id: string, dueDate: number | null) => void;
   onToggleEndOfDayRepeat: (id: string) => void;
   onResetTodoCount: (id: string) => void;
   handleEdit: (todo: Todo) => void;
@@ -29,6 +30,14 @@ type Props = {
   tags: TodoTag[];
 };
 
+function getTomorrowDateInputValue() {
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  tomorrow.setHours(0, 0, 0, 0);
+
+  return getDateInputValue(tomorrow.getTime());
+}
+
 export const TodoItem: React.FC<Props> = ({
   todo,
   editId,
@@ -36,6 +45,7 @@ export const TodoItem: React.FC<Props> = ({
   onToggleTodo,
   onAssignTodoTag,
   onMarkTodoNotToday,
+  onSetTodoDueDate,
   onToggleEndOfDayRepeat,
   onResetTodoCount,
   handleEdit,
@@ -56,6 +66,9 @@ export const TodoItem: React.FC<Props> = ({
   const { color = "#e2e2e2" } = selectedTag || {};
 
   const [hovered, setHovered] = useState(false);
+  const [actionsFocused, setActionsFocused] = useState(false);
+  const showActions = (hovered || actionsFocused) && !isEdit;
+  const isDayBeforeDueDate = getDateInputValue(todo.dueDate) === getTomorrowDateInputValue();
 
   const size = getTodoSize(todo.count);
 
@@ -85,8 +98,14 @@ export const TodoItem: React.FC<Props> = ({
     handleTodoDragStart(event, todo.id);
   }
 
+  function handleDueDateChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const dateKey = event.target.value;
+    onSetTodoDueDate(todo.id, dateKey ? getStartOfDayTimestamp(dateKey) : null);
+  }
+
   return (
     <Chip
+      className={`chip-container${isDayBeforeDueDate ? " due-tomorrow" : ""}`}
       draggable={!isEdit}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
@@ -106,15 +125,14 @@ export const TodoItem: React.FC<Props> = ({
         cursor: !isEdit ? "grab" : "text",
         minWidth: 120,
         justifyContent: "center",
-        zIndex: hovered ? TASK_ACTION_HOVER_Z : TASK_Z,
-        scale: hovered ? 1.03 : 1,
+        zIndex: showActions ? TASK_ACTION_HOVER_Z : TASK_Z,
+        scale: showActions ? 1.03 : 1,
       }}
       slotProps={{
         endDecorator: { sx: { pointerEvents: "auto", zIndex: TASK_ACTIONS_Z } },
       }}
       endDecorator={
-        hovered &&
-        !isEdit && (
+        showActions && (
           <IconButton
             size="sm"
             variant="plain"
@@ -157,9 +175,17 @@ export const TodoItem: React.FC<Props> = ({
           STALE
         </span>
       )}
-      {hovered && (
+      {showActions && (
         <Card
           size="sm"
+          onFocusCapture={() => setActionsFocused(true)}
+          onBlurCapture={(event) => {
+            const nextFocusedElement = event.relatedTarget;
+
+            if (!(nextFocusedElement instanceof Node) || !event.currentTarget.contains(nextFocusedElement)) {
+              setActionsFocused(false);
+            }
+          }}
           sx={{
             display: "flex",
             flexDirection: "row",
@@ -173,8 +199,16 @@ export const TodoItem: React.FC<Props> = ({
           }}
         >
           <TagPicker selectedTagId={todo.tagId} tags={tags} onAssignTag={(tagId) => onAssignTodoTag(id, tagId)} />
+          <input
+            aria-label="Due date"
+            type="date"
+            value={getDateInputValue(todo.dueDate)}
+            onChange={handleDueDateChange}
+            onFocus={() => setActionsFocused(true)}
+            onPointerDown={(event) => event.stopPropagation()}
+          />
           {/* <NotNowButton onClick={() => onMarkTodoNotNow(todo.id)} /> */}
-          <NotTodayButton onClick={() => onMarkTodoNotToday(todo.id)} />
+          {!isDayBeforeDueDate && <NotTodayButton onClick={() => onMarkTodoNotToday(todo.id)} />}
           <AutoRepeatButton checked={todo.repeatAtEndOfDay} onClick={() => onToggleEndOfDayRepeat(todo.id)} />
           <TodoDetails todo={todo} onReset={onResetTodoCount} />
         </Card>

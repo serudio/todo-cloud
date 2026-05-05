@@ -1,16 +1,10 @@
-import {
-  type DragEvent,
-  type FormEvent,
-  type KeyboardEvent,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { type DragEvent, type FormEvent, type KeyboardEvent, useEffect, useRef, useState } from "react";
 import type { Todo, TodoTag } from "../../types/todo";
 import "./TodoCloud.css";
 import { NotTodayList } from "./NotTodayList";
 import { TodoItem } from "./TodoItem";
 import { Box, Card } from "@mui/joy";
+import { LoadingComponent } from "../Layout/LoadingComponent";
 
 type TodoCloudProps = {
   activeTodos: Todo[];
@@ -23,6 +17,7 @@ type TodoCloudProps = {
   onMarkTodoNotNow: (id: string) => void;
   onResetTodoCount: (id: string) => void;
   onRestoreTodo: (id: string) => void;
+  onSetTodoDueDate: (id: string, dueDate: number | null) => void;
   onToggleEndOfDayRepeat: (id: string) => void;
   onToggleTodo: (id: string) => void;
 };
@@ -38,6 +33,7 @@ export function TodoCloud({
   // onMarkTodoNotNow,
   onResetTodoCount,
   onRestoreTodo,
+  onSetTodoDueDate,
   onToggleEndOfDayRepeat,
   onToggleTodo,
 }: TodoCloudProps) {
@@ -108,9 +104,8 @@ export function TodoCloud({
 
   return (
     <Card sx={{ flex: 1, position: "relative" }}>
-      {!isLoadingTodos && notTodayTodos.length > 0 && (
-        <NotTodayList todos={notTodayTodos} onClick={onRestoreTodo} />
-      )}
+      <LoadingComponent loading={isLoadingTodos} />
+      {!isLoadingTodos && notTodayTodos.length > 0 && <NotTodayList todos={notTodayTodos} onClick={onRestoreTodo} />}
       <Box
         sx={{
           display: "flex",
@@ -126,11 +121,7 @@ export function TodoCloud({
         onDragOver={handleCloudDragOver}
         onDrop={handleCloudDrop}
       >
-        {isLoadingTodos && <p className="status">Loading todos...</p>}
-
-        {!isLoadingTodos && activeTodos.length === 0 && (
-          <p className="status">No todos yet. Add the first one.</p>
-        )}
+        {!isLoadingTodos && activeTodos.length === 0 && <p className="status">No todos yet. Add the first one.</p>}
         {activeTodos.map((todo, index) => (
           <TodoItem
             key={todo.id}
@@ -140,6 +131,7 @@ export function TodoCloud({
             onToggleTodo={onToggleTodo}
             onAssignTodoTag={onAssignTodoTag}
             onMarkTodoNotToday={onMarkTodoNotToday}
+            onSetTodoDueDate={onSetTodoDueDate}
             onToggleEndOfDayRepeat={onToggleEndOfDayRepeat}
             onResetTodoCount={onResetTodoCount}
             handleEdit={handleEdit}

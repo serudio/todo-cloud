@@ -8,6 +8,7 @@ export type Todo = {
   repeatAtEndOfDay: boolean;
   lastAutoAddedDate: string | null;
   tagId: string | null;
+  dueDate: number | null;
   notNow: boolean;
   notToday: boolean;
   notTodayDate: string | null;

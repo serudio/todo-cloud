@@ -78,6 +78,7 @@ export function parseTodos(items: unknown): Todo[] {
               ? todo.lastAutoAddedDate
               : null,
           tagId: typeof todo.tagId === 'string' ? todo.tagId : null,
+          dueDate: parseDueDate(todo.dueDate),
           notNow: todo.notNow === true,
           notToday: todo.notToday === true,
           notTodayDate:
@@ -152,10 +153,13 @@ export function normalizeTodoText(text: string) {
   return text.trim().replace(/\s+/g, ' ').toLocaleLowerCase();
 }
 
-export function formatDateKey(dateKey: string | null) {
-  if (!dateKey) return 'not saved yet';
+export function formatDateKey(dateValue: string | number | null) {
+  if (!dateValue) return 'not saved yet';
 
-  const [year, month, day] = dateKey.split('-').map(Number);
+  const dateInputValue = getDateInputValue(dateValue);
+  if (!dateInputValue) return 'not saved yet';
+
+  const [year, month, day] = dateInputValue.split('-').map(Number);
   const date = new Date(year, month - 1, day);
 
   return date.toLocaleDateString(undefined, {
@@ -163,6 +167,26 @@ export function formatDateKey(dateKey: string | null) {
     month: 'short',
     day: 'numeric',
   });
+}
+
+export function getDateInputValue(dateValue: string | number | null) {
+  if (typeof dateValue === 'number') {
+    const date = new Date(dateValue);
+    if (Number.isNaN(date.getTime())) return '';
+
+    return [
+      date.getFullYear(),
+      String(date.getMonth() + 1).padStart(2, '0'),
+      String(date.getDate()).padStart(2, '0'),
+    ].join('-');
+  }
+
+  return dateValue?.match(/^\d{4}-\d{2}-\d{2}/)?.[0] ?? '';
+}
+
+export function getStartOfDayTimestamp(dateKey: string) {
+  const [year, month, day] = dateKey.split('-').map(Number);
+  return new Date(year, month - 1, day, 0, 0, 0, 0).getTime();
 }
 
 export function isStaleTodo(lastAddedDate: string | null, date = new Date()) {
@@ -208,6 +232,7 @@ function mergeDuplicateTodos(todos: Todo[]) {
         todo.lastAutoAddedDate,
       ),
       tagId: existingTodo.tagId ?? todo.tagId,
+      dueDate: existingTodo.dueDate ?? todo.dueDate,
       notNow: existingTodo.notNow && todo.notNow,
       notToday: existingTodo.notToday && todo.notToday,
       notTodayDate:
@@ -218,6 +243,22 @@ function mergeDuplicateTodos(todos: Todo[]) {
   }
 
   return [...todosByText.values()];
+}
+
+function parseDueDate(dueDate: unknown) {
+  if (typeof dueDate === 'number' && Number.isFinite(dueDate)) {
+    return dueDate;
+  }
+
+  if (typeof dueDate !== 'string') return null;
+
+  const dateInputValue = getDateInputValue(dueDate);
+  if (dateInputValue) {
+    return getStartOfDayTimestamp(dateInputValue);
+  }
+
+  const timestamp = Date.parse(dueDate);
+  return Number.isNaN(timestamp) ? null : timestamp;
 }
 
 function getLatestDate(firstDate: string | null, secondDate: string | null) {
