@@ -11,13 +11,11 @@ type TodoCloudProps = {
   isLoadingTodos: boolean;
   notTodayTodos: Todo[];
   tags: TodoTag[];
-  onAssignTodoTag: (id: string, tagId: string | null) => void;
   onEditTodoText: (id: string, nextText: string) => boolean;
   onMarkTodoNotToday: (id: string) => void;
-  onResetTodoCount: (id: string) => void;
+
   onSetTodoDueDate: (id: string, dueDate: number | null) => void;
-  onToggleEndOfDayRepeat: (id: string) => void;
-  onToggleTodo: (id: string) => void;
+
   updateTodo: (todo: Todo) => void;
 };
 
@@ -26,13 +24,11 @@ export function TodoCloud({
   isLoadingTodos,
   notTodayTodos,
   tags,
-  onAssignTodoTag,
   onEditTodoText,
   onMarkTodoNotToday,
-  onResetTodoCount,
+
   onSetTodoDueDate,
-  onToggleEndOfDayRepeat,
-  onToggleTodo,
+
   updateTodo,
 }: TodoCloudProps) {
   const activeTodos = todos.filter((todo) => !todo.done && !todo.notNow && !todo.notToday);
@@ -81,14 +77,11 @@ export function TodoCloud({
           <TodoItem
             key={todo.id}
             todo={todo}
+            updateTodo={updateTodo}
             index={index}
-            onToggleTodo={onToggleTodo}
-            onAssignTodoTag={onAssignTodoTag}
             onEditTodoText={onEditTodoText}
             onMarkTodoNotToday={onMarkTodoNotToday}
             onSetTodoDueDate={onSetTodoDueDate}
-            onToggleEndOfDayRepeat={onToggleEndOfDayRepeat}
-            onResetTodoCount={onResetTodoCount}
             handleTodoDragStart={handleTodoDragStart}
             tags={tags}
           />

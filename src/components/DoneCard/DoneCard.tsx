@@ -6,25 +6,14 @@ import { getDoneTodos } from "../../utils/todos";
 
 type DoneListProps = {
   todos: Todo[];
-  saveTodos: (todos: Todo[]) => void;
+
+  updateTodo: (todos: Todo) => void;
   tags: TodoTag[];
   onAddTodoText: (text: string) => void;
-  onAssignTodoTag: (id: string, tagId: string | null) => void;
   onDeleteTodo: (id: string) => void;
-  onResetTodoCount: (id: string) => void;
-  onToggleEndOfDayRepeat: (id: string) => void;
 };
 
-export const DoneCard: React.FC<DoneListProps> = ({
-  todos,
-  // saveTodos,
-  tags,
-  onAddTodoText,
-  onAssignTodoTag,
-  onDeleteTodo,
-  onResetTodoCount,
-  onToggleEndOfDayRepeat,
-}) => {
+export const DoneCard: React.FC<DoneListProps> = ({ todos, updateTodo, tags, onAddTodoText, onDeleteTodo }) => {
   const doneTodos = getDoneTodos(todos);
 
   return (
@@ -38,11 +27,9 @@ export const DoneCard: React.FC<DoneListProps> = ({
               key={todo.id}
               item={todo}
               tags={tags}
+              updateTodo={updateTodo}
               onAddTodoText={onAddTodoText}
-              assignTodoTag={onAssignTodoTag}
-              onToggleEndOfDayRepeat={onToggleEndOfDayRepeat}
               onDeleteTodo={onDeleteTodo}
-              onResetTodoCount={onResetTodoCount}
             />
           );
         })}

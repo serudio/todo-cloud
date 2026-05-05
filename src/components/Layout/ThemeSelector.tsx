@@ -8,7 +8,7 @@ export const ThemeSelector: React.FC = () => {
     <ToggleButtonGroup
       exclusive
       size="small"
-      color="warning"
+      color="secondary"
       value={mode}
       onChange={(_e, value) => {
         if (!value) return;

@@ -260,13 +260,7 @@ export default function App() {
     }
   }
 
-  // Signs the current user out through Supabase auth.
-  async function signOut() {
-    if (!supabase) return;
-
-    await supabase.auth.signOut();
-  }
-
+  // todo
   // Adds a task by text, reviving duplicates from done/hidden states when needed.
   function addTodoText(todoText: string) {
     const trimmedText = todoText.trim().replace(/\s+/g, " ");
@@ -328,59 +322,6 @@ export default function App() {
     addTodoText(text);
   }
 
-  // Toggles a task between active and done while clearing temporary hiding flags.
-  function toggleTodo(id: string) {
-    const now = new Date().toISOString();
-    const nextTodos = todos.map((todo) =>
-      todo.id === id
-        ? {
-            ...todo,
-            done: !todo.done,
-            doneAt: todo.done ? null : now,
-            notNow: todo.done ? todo.notNow : false,
-            notToday: todo.done ? todo.notToday : false,
-            notTodayDate: todo.done ? todo.notTodayDate : null,
-          }
-        : todo,
-    );
-
-    setTodos(nextTodos);
-    saveTodos(nextTodos);
-  }
-
-  // Enables or disables midnight repeat for a single todo.
-  function toggleEndOfDayRepeat(id: string) {
-    const today = getLocalDateKey();
-    const nextTodos = todos.map((todo) =>
-      todo.id === id
-        ? {
-            ...todo,
-            repeatAtEndOfDay: !todo.repeatAtEndOfDay,
-            lastAutoAddedDate: todo.repeatAtEndOfDay ? null : today,
-          }
-        : todo,
-    );
-
-    setTodos(nextTodos);
-    saveTodos(nextTodos);
-  }
-
-  // Resets a todo's recurrence/count badge back to zero.
-  function resetTodoCount(id: string) {
-    const nextTodos = todos.map((todo) => (todo.id === id ? { ...todo, count: 0 } : todo));
-
-    setTodos(nextTodos);
-    saveTodos(nextTodos);
-  }
-
-  // Assigns or clears a tag on a specific todo.
-  function assignTodoTag(id: string, tagId: string | null) {
-    const nextTodos = todos.map((todo) => (todo.id === id ? { ...todo, tagId } : todo));
-
-    setTodos(nextTodos);
-    saveTodos(nextTodos);
-  }
-
   // Sets or clears a task's due date. Date-only picks are stored as local-midnight timestamps.
   function setTodoDueDate(id: string, dueDate: number | null) {
     const nextTodos = todos.map((todo) => (todo.id === id ? { ...todo, dueDate } : todo));
@@ -432,6 +373,13 @@ export default function App() {
     saveTodos(nextTodos);
     return true;
   }
+  // const updateTodos = useCallback(
+  //   async (newTodos: Todo[]) => {
+  //     setTodos(newTodos);
+  //     await saveTodos(newTodos);
+  //   },
+  //   [todos, setTodos, saveTodos],
+  // );
 
   const updateTodo = useCallback(
     async (newTodo: Todo) => {
@@ -518,37 +466,25 @@ export default function App() {
         </Box>
 
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2, flex: 1 }}>
-          <Header
-            isLoadingTodos={isLoadingTodos}
-            onRefresh={refreshTodoList}
-            email={session.user.email}
-            onSignOut={signOut}
-          />
+          <Header isLoadingTodos={isLoadingTodos} onRefresh={refreshTodoList} email={session.user.email} />
           <TodoCloud
             todos={todos}
+            updateTodo={updateTodo}
             isLoadingTodos={isLoadingTodos}
             notTodayTodos={notTodayTodos}
             tags={tags}
-            onAssignTodoTag={assignTodoTag}
             onSetTodoDueDate={setTodoDueDate}
             onEditTodoText={editTodoText}
             onMarkTodoNotToday={markTodoNotToday}
-            onResetTodoCount={resetTodoCount}
-            onToggleEndOfDayRepeat={toggleEndOfDayRepeat}
-            onToggleTodo={toggleTodo}
-            updateTodo={updateTodo}
           />
         </Box>
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2, width: 250, minWidth: 250 }}>
           <DoneCard
             todos={doneTodos}
-            saveTodos={saveTodos}
+            updateTodo={updateTodo}
             tags={tags}
             onAddTodoText={addTodoText}
-            onAssignTodoTag={assignTodoTag}
             onDeleteTodo={deleteTodo}
-            onResetTodoCount={resetTodoCount}
-            onToggleEndOfDayRepeat={toggleEndOfDayRepeat}
           />
         </Box>
       </Box>

@@ -6,10 +6,10 @@ import { IconButton, Popover, List, ListItemButton, ListItemText, Box } from "@m
 type TagPickerProps = {
   selectedTagId: string | null;
   tags: TodoTag[];
-  onAssignTag: (tagId: string | null) => void;
+  onTagSelect: (tagId: string | null) => void;
 };
 
-export const TagPicker: React.FC<TagPickerProps> = ({ selectedTagId, tags, onAssignTag }) => {
+export const TagPicker: React.FC<TagPickerProps> = ({ selectedTagId, tags, onTagSelect }) => {
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
   const open = Boolean(anchorEl);
 
@@ -21,8 +21,8 @@ export const TagPicker: React.FC<TagPickerProps> = ({ selectedTagId, tags, onAss
     setAnchorEl(null);
   };
 
-  function assignTag(tagId: string | null) {
-    onAssignTag(tagId);
+  function handleTagSelect(tagId: string | null) {
+    onTagSelect(tagId);
     handleClose();
   }
 
@@ -42,14 +42,26 @@ export const TagPicker: React.FC<TagPickerProps> = ({ selectedTagId, tags, onAss
           <LocalOfferIcon />
         )}
       </IconButton>
-      <Popover open={open} anchorEl={anchorEl} onClose={handleClose} anchorOrigin={{ vertical: "bottom", horizontal: "left" }}>
+      <Popover
+        open={open}
+        anchorEl={anchorEl}
+        onClose={handleClose}
+        anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+      >
         <List disablePadding component="div">
-          <ListItemButton sx={{ padding: "0 16px" }} onClick={() => assignTag(null)} selected={!selectedTagId}>
+          <ListItemButton sx={{ padding: "0 16px" }} onClick={() => handleTagSelect(null)} selected={!selectedTagId}>
             <ListItemText primary="No tag" />
           </ListItemButton>
           {tags.map((tag) => (
-            <ListItemButton selected={selectedTagId === tag.id} key={tag.id} onClick={() => assignTag(tag.id)} sx={{ padding: "0 16px" }}>
-              <Box sx={{ width: 20, height: 20, borderRadius: "50%", backgroundColor: tag.color, marginRight: 1 }}></Box>
+            <ListItemButton
+              selected={selectedTagId === tag.id}
+              key={tag.id}
+              onClick={() => handleTagSelect(tag.id)}
+              sx={{ padding: "0 16px" }}
+            >
+              <Box
+                sx={{ width: 20, height: 20, borderRadius: "50%", backgroundColor: tag.color, marginRight: 1 }}
+              ></Box>
               <ListItemText primary={tag.name} />
             </ListItemButton>
           ))}

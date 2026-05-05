@@ -3,6 +3,18 @@ import dayjs from "dayjs";
 
 export const markTodoNow = (todo: Todo) => ({ ...todo, notNow: false, notToday: false, notTodayDate: null });
 export const markTodoNotNow = (todo: Todo) => ({ ...todo, notNow: true, notToday: false, notTodayDate: null });
+export const markTodoDone = (todo: Todo) => {
+  const now = new Date().toISOString();
+  const newDone = !todo.done;
+  return {
+    ...todo,
+    done: !todo.done,
+    doneAt: newDone ? now : null,
+    notNow: newDone ? todo.notNow : false,
+    notToday: newDone ? todo.notToday : false,
+    notTodayDate: newDone ? todo.notTodayDate : null,
+  };
+};
 
 export const getDoneTodos = (todos: Todo[]) => {
   return [...todos]

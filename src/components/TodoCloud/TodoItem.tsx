@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { Todo, TodoTag } from "../../types/todo";
-import { getDateInputValue, getTodoSize, isStaleTodo } from "../../utils/todos";
+import { getDateInputValue, getTodoSize, isStaleTodo, markTodoDone } from "../../utils/todos";
 import { Box, IconButton } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import { DEFAULT_TAG_COLOR, TASK_ACTION_HOVER_Z, TASK_ACTIONS_Z, TASK_Z } from "../../constants/ui";
@@ -9,14 +9,12 @@ import { TodoActions } from "./TodoActions";
 
 type Props = {
   todo: Todo;
+  updateTodo: (todo: Todo) => void;
   index: number;
-  onToggleTodo: (id: string) => void;
-  onAssignTodoTag: (id: string, tagId: string | null) => void;
   onEditTodoText: (id: string, nextText: string) => boolean;
   onMarkTodoNotToday: (id: string) => void;
   onSetTodoDueDate: (id: string, dueDate: number | null) => void;
-  onToggleEndOfDayRepeat: (id: string) => void;
-  onResetTodoCount: (id: string) => void;
+
   handleTodoDragStart: (event: React.DragEvent<HTMLElement>, todoId: string) => void;
   tags: TodoTag[];
 };
@@ -31,18 +29,15 @@ function getTomorrowDateInputValue() {
 
 export const TodoItem: React.FC<Props> = ({
   todo,
+  updateTodo,
   index,
-  onToggleTodo,
-  onAssignTodoTag,
   onEditTodoText,
   onMarkTodoNotToday,
   onSetTodoDueDate,
-  onToggleEndOfDayRepeat,
-  onResetTodoCount,
   handleTodoDragStart,
   tags,
 }) => {
-  const { id, text } = todo;
+  const { text } = todo;
 
   const isStale = isStaleTodo(todo.lastAddedDate);
   const selectedTag = tags.find((tag) => tag.id === todo.tagId);
@@ -111,6 +106,14 @@ export const TodoItem: React.FC<Props> = ({
     handleTodoDragStart(event, todo.id);
   }
 
+  const handleClick = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      updateTodo(markTodoDone(todo));
+    },
+    [updateTodo],
+  );
+
   return (
     <Box
       draggable={!isEdit}
@@ -171,13 +174,7 @@ export const TodoItem: React.FC<Props> = ({
           <EditIcon fontSize="small" />
         </IconButton>
       )}
-      <Box
-        sx={{ display: !isEdit ? "block" : "none" }}
-        onClick={(e) => {
-          e.preventDefault();
-          onToggleTodo(id);
-        }}
-      >
+      <Box sx={{ display: !isEdit ? "block" : "none" }} onClick={handleClick}>
         {text}
       </Box>
       {isEdit && (
@@ -201,13 +198,11 @@ export const TodoItem: React.FC<Props> = ({
         <TodoActions
           todo={todo}
           tags={tags}
+          updateTodo={updateTodo}
           isDayBeforeDueDate={isDayBeforeDueDate}
-          onAssignTodoTag={onAssignTodoTag}
           onMarkTodoNotToday={onMarkTodoNotToday}
-          onResetTodoCount={onResetTodoCount}
           onSetActionsFocused={setActionsFocused}
           onSetTodoDueDate={onSetTodoDueDate}
-          onToggleEndOfDayRepeat={onToggleEndOfDayRepeat}
         />
       )}
     </Box>

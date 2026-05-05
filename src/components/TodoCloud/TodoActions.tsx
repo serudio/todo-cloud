@@ -6,31 +6,44 @@ import { TodoDetails } from "../Shared/TodoDetails";
 import { Card } from "@mui/material";
 import { TASK_ACTIONS_Z } from "../../constants/ui";
 import type { Todo, TodoTag } from "../../types/todo";
+import { getLocalDateKey } from "../../utils/date";
 
 type Props = {
   todo: Todo;
   tags: TodoTag[];
   isDayBeforeDueDate: boolean;
-  onAssignTodoTag: (id: string, tagId: string | null) => void;
+  updateTodo: (todo: Todo) => void;
   onMarkTodoNotToday: (id: string) => void;
-  onResetTodoCount: (id: string) => void;
   onSetActionsFocused: (isFocused: boolean) => void;
   onSetTodoDueDate: (id: string, dueDate: number | null) => void;
-  onToggleEndOfDayRepeat: (id: string) => void;
 };
 
 export const TodoActions: React.FC<Props> = ({
   todo,
   tags,
   isDayBeforeDueDate,
-  onAssignTodoTag,
+  updateTodo,
   onMarkTodoNotToday,
-  onResetTodoCount,
   onSetActionsFocused,
   onSetTodoDueDate,
-  onToggleEndOfDayRepeat,
 }) => {
   const { id } = todo;
+
+  const updateTag = (tagId: string | null) => updateTodo({ ...todo, tagId });
+
+  const updateAutoRepeat = () => {
+    const today = getLocalDateKey();
+    const newRepeatAtEndOfDay = !todo.repeatAtEndOfDay;
+    updateTodo({
+      ...todo,
+      repeatAtEndOfDay: newRepeatAtEndOfDay,
+      lastAutoAddedDate: newRepeatAtEndOfDay ? today : null,
+    });
+  };
+
+  const updateCount = () => {
+    updateTodo({ ...todo, count: 0 });
+  };
 
   return (
     <Card
@@ -47,7 +60,6 @@ export const TodoActions: React.FC<Props> = ({
         flexDirection: "row",
         alignItems: "center",
         gap: 1,
-
         position: "absolute",
         top: "90%",
         left: "50%",
@@ -57,12 +69,16 @@ export const TodoActions: React.FC<Props> = ({
         opacity: 0.9,
       }}
     >
-      <TagPicker selectedTagId={todo.tagId} tags={tags} onAssignTag={(tagId) => onAssignTodoTag(id, tagId)} />
-      <DatePicker value={todo.dueDate} onChange={(dueDate) => onSetTodoDueDate(todo.id, dueDate)} onOpen={() => onSetActionsFocused(true)} />
+      <TagPicker selectedTagId={todo.tagId} tags={tags} onTagSelect={updateTag} />
+      <DatePicker
+        value={todo.dueDate}
+        onChange={(dueDate) => onSetTodoDueDate(todo.id, dueDate)}
+        onOpen={() => onSetActionsFocused(true)}
+      />
       {/* <NotNowButton onClick={() => onMarkTodoNotNow(todo.id)} /> */}
       {!isDayBeforeDueDate && <NotTodayButton onClick={() => onMarkTodoNotToday(id)} />}
-      <AutoRepeatButton checked={todo.repeatAtEndOfDay} onClick={() => onToggleEndOfDayRepeat(todo.id)} />
-      <TodoDetails todo={todo} onReset={onResetTodoCount} />
+      <AutoRepeatButton checked={todo.repeatAtEndOfDay} onClick={updateAutoRepeat} />
+      <TodoDetails todo={todo} onReset={updateCount} />
     </Card>
   );
 };
