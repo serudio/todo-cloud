@@ -1,5 +1,6 @@
 import { Box, Chip } from "@mui/joy";
 import type { Todo } from "../../types/todo";
+import { NOT_TODAY_Z } from "../../constants/ui";
 
 type Props = {
   todos: Todo[];
@@ -19,6 +20,7 @@ export const NotTodayList: React.FC<Props> = ({ todos, onClick }) => {
         left: 0,
         width: "100%",
         flexWrap: "wrap",
+        zIndex: NOT_TODAY_Z,
       }}
     >
       {todos.map((todo) => (

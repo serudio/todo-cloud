@@ -9,7 +9,8 @@ export function NotTodayButton({ onClick }: NotTodayButtonProps) {
     <Button
       onClick={onClick}
       size="sm"
-      variant="neutral"
+      variant="soft"
+      color="neutral"
       sx={{ padding: 0, minHeight: 22 }}
     >
       <s>today</s>

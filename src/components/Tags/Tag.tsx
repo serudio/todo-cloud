@@ -2,6 +2,7 @@ import { Box, Chip, ChipDelete, Input } from "@mui/joy";
 import type { TodoTag } from "../../types/todo";
 import { type KeyboardEvent, useEffect, useRef, useState } from "react";
 import { ColorPicker } from "./ColorPicker";
+import { TAG_Z } from "../../constants/ui";
 
 type Props = {
   tag: TodoTag;
@@ -128,7 +129,7 @@ export const Tag: React.FC<Props> = ({
             position: "absolute",
             top: "calc(100% + 8px)",
             left: 0,
-            zIndex: 1000,
+            zIndex: TAG_Z,
             width: 180,
             border: "1px solid",
             borderColor: "divider",

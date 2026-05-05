@@ -17,7 +17,7 @@ export const TodoDetails: React.FC<Props> = ({ todo, onReset }) => {
             Last added: {formatDateKey(todo.lastAddedDate)}
           </Typography>
 
-          <CountBadge count={todo.count} onReset={() => onReset(todo.id)} />
+          <CountBadge count={todo.count} onReset={() => onReset?.(todo.id)} />
         </Box>
       }
     >

@@ -10,12 +10,6 @@
   background-color: var(--todo-color, #fffbeb);
 }
 
-.todo:hover {
-  scale: 1.03;
-  z-index: 1;
-  /* transform: translateY(-2px) rotate(calc((var(--todo-offset) - 2) * 2deg)); */
-}
-
 .todo:has(.tag-color-trigger[aria-expanded="true"]) {
   z-index: 80;
 }
