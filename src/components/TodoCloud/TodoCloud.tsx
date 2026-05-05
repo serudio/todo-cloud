@@ -2,7 +2,7 @@ import type { DragEvent } from "react";
 import type { Todo, TodoTag } from "../../types/todo";
 import { NotTodayList } from "./NotTodayList";
 import { TodoItem } from "./TodoItem";
-import { Box, Card } from "@mui/joy";
+import { Box, Card } from "@mui/material";
 import { LoadingComponent } from "../Layout/LoadingComponent";
 import { markTodoNow } from "../../utils/todos";
 
@@ -58,7 +58,7 @@ export function TodoCloud({
   }
 
   return (
-    <Card sx={{ flex: 1, position: "relative" }}>
+    <Card sx={{ flex: 1, position: "relative", display: "flex" }}>
       <LoadingComponent loading={isLoadingTodos} />
       {!isLoadingTodos && notTodayTodos.length > 0 && <NotTodayList todos={notTodayTodos} updateTodo={updateTodo} />}
       <Box

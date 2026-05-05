@@ -1,5 +1,5 @@
 import { SectionCard } from "./Shared/SectionCard";
-import { Textarea } from "@mui/joy";
+import { TextField } from "@mui/material";
 
 type NotesPanelProps = {
   notes: string;
@@ -9,7 +9,15 @@ type NotesPanelProps = {
 export function NotesCard({ notes, setNotes }: NotesPanelProps) {
   return (
     <SectionCard title="Notes">
-      <Textarea size="sm" minRows={2} maxRows={10} value={notes} onChange={(event) => setNotes(event.target.value)} />
+      <TextField
+        fullWidth
+        multiline
+        minRows={2}
+        maxRows={10}
+        size="small"
+        value={notes}
+        onChange={(event) => setNotes(event.target.value)}
+      />
     </SectionCard>
   );
 }

@@ -1,4 +1,4 @@
-import { Box } from "@mui/joy";
+import { Box } from "@mui/material";
 import { TAG_COLORS } from "../../constants/tags";
 
 type Props = {
@@ -7,16 +7,12 @@ type Props = {
   usedColors: Set<string>;
 };
 
-export const ColorPicker: React.FC<Props> = ({
-  selectedColor,
-  onClick,
-  usedColors,
-}) => {
+export const ColorPicker: React.FC<Props> = ({ selectedColor, onClick, usedColors }) => {
   const isColorDisabled = (color: string) => {
     return usedColors.has(color);
   };
   return (
-    <Box display="flex" flexWrap="wrap" gap={1} mt={1}>
+    <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 1 }}>
       {TAG_COLORS.map((color) => {
         const disabled = isColorDisabled(color);
         return (

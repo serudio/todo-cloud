@@ -1,6 +1,6 @@
 import { type FormEvent, useEffect, useMemo, useState } from "react";
 import type { TodoTag } from "../../types/todo";
-import { Box, Input } from "@mui/joy";
+import { Box, Input } from "@mui/material";
 import { TAG_COLORS } from "../../constants/tags";
 import { Tag } from "./Tag";
 import { ColorPicker } from "./ColorPicker";
@@ -84,7 +84,7 @@ export const TagsCard: React.FC<Props> = ({ tags, updateTags, showNotification, 
 
       {tags.length === 0 && <Box>Create tags to color your tasks.</Box>}
 
-      <Box display="flex" gap={1} flexWrap="wrap">
+      <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
         {tags.map((tag) => {
           const colorsUsedByOtherTags = new Set(
             tags.filter((currentTag) => currentTag.id !== tag.id).map((currentTag) => currentTag.color),

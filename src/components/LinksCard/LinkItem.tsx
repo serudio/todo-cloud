@@ -1,15 +1,15 @@
 import { useState, type KeyboardEvent } from "react";
 import type { CustomLink } from "../../types/todo";
-import { Box, Button, IconButton, Input, Link as JoyLink } from "@mui/joy";
+import { Box, Button, IconButton, Input, Link } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import ClearIcon from "@mui/icons-material/Clear";
 
 type Props = {
   link: CustomLink;
+  updateLink: (link: CustomLink) => void;
   onDelete: (id: string) => void;
-  onSubmit: (link: CustomLink) => void;
 };
-export const LinkItem: React.FC<Props> = ({ link, onDelete, onSubmit }) => {
+export const LinkItem: React.FC<Props> = ({ link, updateLink, onDelete }) => {
   const [edit, setEdit] = useState(false);
   const [editName, setEditName] = useState(link.name);
   const [editUrl, setEditUrl] = useState(link.url);
@@ -20,8 +20,12 @@ export const LinkItem: React.FC<Props> = ({ link, onDelete, onSubmit }) => {
     setEdit(true);
   };
 
-  const handleSubmit = () => {
-    onSubmit({ ...link, name: editName, url: editUrl });
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const trimmedName = editName.trim().replace(/\s+/g, " ");
+    const trimmedUrl = editUrl.trim();
+    updateLink({ ...link, name: trimmedName, url: trimmedUrl });
     setEdit(false);
   };
 
@@ -43,16 +47,8 @@ export const LinkItem: React.FC<Props> = ({ link, onDelete, onSubmit }) => {
     >
       {edit && (
         <form onSubmit={handleSubmit}>
-          <Input
-            value={editName}
-            onChange={(event) => setEditName(event.target.value)}
-            onKeyDown={handleEditKeyDown}
-          />
-          <Input
-            value={editUrl}
-            onChange={(event) => setEditUrl(event.target.value)}
-            onKeyDown={handleEditKeyDown}
-          />
+          <Input value={editName} onChange={(event) => setEditName(event.target.value)} onKeyDown={handleEditKeyDown} />
+          <Input value={editUrl} onChange={(event) => setEditUrl(event.target.value)} onKeyDown={handleEditKeyDown} />
           <div className="link-edit-actions">
             <Button type="submit">Save</Button>
             <Button type="button" onClick={() => setEdit(false)}>
@@ -63,7 +59,7 @@ export const LinkItem: React.FC<Props> = ({ link, onDelete, onSubmit }) => {
       )}
       {!edit && (
         <>
-          <JoyLink
+          <Link
             href={link.url}
             target="_blank"
             rel="noreferrer"
@@ -73,18 +69,14 @@ export const LinkItem: React.FC<Props> = ({ link, onDelete, onSubmit }) => {
             }}
           >
             {link.name}
-          </JoyLink>
-          <Box display="inline-flex">
-            <IconButton
-              size="sm"
-              onClick={handelEditClick}
-              sx={{ width: 22, height: 22, minWidth: 0, minHeight: 0 }}
-            >
+          </Link>
+          <Box sx={{ display: "inline-flex" }}>
+            <IconButton size="small" onClick={handelEditClick} sx={{ width: 22, height: 22, minWidth: 0, minHeight: 0 }}>
               <EditIcon fontSize="small" />
             </IconButton>
 
             <IconButton
-              size="sm"
+              size="small"
               onClick={() => onDelete(link.id)}
               sx={{ width: 22, height: 22, minWidth: 0, minHeight: 0 }}
             >

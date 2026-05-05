@@ -1,7 +1,7 @@
 import type { Todo } from "../../types/todo";
 import { type FormEvent, type KeyboardEvent, useEffect, useMemo, useState } from "react";
 import { normalizeTodoText } from "../../utils/todos";
-import { Box, Input } from "@mui/joy";
+import { Box, TextField } from "@mui/material";
 import { ADD_TODO_Z } from "../../constants/ui";
 
 type Props = {
@@ -87,8 +87,8 @@ export const AddTask: React.FC<Props> = ({
       }}
     >
       <form className="todo-form" onSubmit={handleSubmit}>
-        <Input
-          variant="solid"
+        <TextField
+          variant="outlined"
           placeholder="Add a task"
           disabled={isLoadingTodos}
           value={text}
@@ -99,6 +99,7 @@ export const AddTask: React.FC<Props> = ({
           }}
           onFocus={() => setIsSuggestionsOpen(text.trim().length > 0)}
           onKeyDown={handleInputKeyDown}
+          sx={{ width: 400 }}
         />
 
         {showSuggestions ? (

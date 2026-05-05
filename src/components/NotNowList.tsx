@@ -1,7 +1,7 @@
 import type { DragEvent } from "react";
 import type { Todo } from "../types/todo";
 import { SectionCard } from "./Shared/SectionCard";
-import { Chip } from "@mui/joy";
+import { Chip } from "@mui/material";
 import { markTodoNotNow, markTodoNow } from "../utils/todos";
 
 type NotNowListProps = {
@@ -50,10 +50,9 @@ export function NotNowList({ todos, updateTodo }: NotNowListProps) {
           draggable
           onClick={handleClick(todo.id)}
           onDragStart={(event) => handleDragStart(event, todo.id)}
-          size="sm"
-        >
-          {todo.text}
-        </Chip>
+          label={todo.text}
+          size="small"
+        />
       ))}
     </SectionCard>
   );

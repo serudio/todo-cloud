@@ -1,4 +1,4 @@
-import { Box, Chip } from "@mui/joy";
+import { Box, Chip } from "@mui/material";
 import type { Todo } from "../../types/todo";
 import { NOT_TODAY_Z } from "../../constants/ui";
 import { markTodoNow } from "../../utils/todos";
@@ -30,9 +30,7 @@ export const NotTodayList: React.FC<Props> = ({ todos, updateTodo }) => {
       }}
     >
       {todos.map((todo) => (
-        <Chip key={todo.id} onClick={handleClick(todo.id)} size="sm" variant="outlined">
-          {todo.text}
-        </Chip>
+        <Chip key={todo.id} onClick={handleClick(todo.id)} size="small" variant="outlined" label={todo.text} />
       ))}
     </Box>
   );

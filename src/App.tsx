@@ -11,7 +11,7 @@ import { TodoCloud } from "./components/TodoCloud/TodoCloud";
 import { isSupabaseConfigured, supabase } from "./supabase";
 import type { CustomLink, Todo, TodoTag } from "./types/todo";
 import { normalizeTodoText } from "./utils/todos";
-import { Box } from "@mui/joy";
+import { Box } from "@mui/material";
 import { Header } from "./components/Layout";
 import { AddTask } from "./components/TodoCloud/AddTask.tsx";
 import { LoadingComponent } from "./components/Layout/LoadingComponent.tsx";
@@ -98,14 +98,6 @@ function moveTodoToRandomPosition(todos: Todo[], id: string) {
     todos.filter((currentTodo) => currentTodo.id !== id),
     todo,
   );
-}
-
-// Normalizes a custom link URL and adds https:// when the scheme is missing.
-function normalizeCustomLinkUrl(url: string) {
-  const trimmedUrl = url.trim();
-  if (!trimmedUrl) return "";
-
-  return /^https?:\/\//i.test(trimmedUrl) ? trimmedUrl : `https://${trimmedUrl}`;
 }
 
 // Owns the authenticated todo app state and wires persistence to the UI.
@@ -406,55 +398,6 @@ export default function App() {
     saveTodos(nextTodos);
   }
 
-  // Creates a custom link after normalizing and validating name/url.
-  function createLink(name: string, url: string) {
-    const trimmedName = name.trim().replace(/\s+/g, " ");
-    const normalizedUrl = normalizeCustomLinkUrl(url);
-    if (!trimmedName || !normalizedUrl) return false;
-
-    const existingLink = links.find((link) => link.name.toLocaleLowerCase() === trimmedName.toLocaleLowerCase());
-
-    if (existingLink) {
-      showNotification(`"${existingLink.name}" link already exists.`);
-      return false;
-    }
-
-    const nextLinks = [
-      ...links,
-      {
-        id: crypto.randomUUID(),
-        name: trimmedName,
-        url: normalizedUrl,
-      },
-    ];
-
-    setLinks(nextLinks);
-    saveTodoList(todos, tags, nextLinks);
-    return true;
-  }
-
-  // Updates an existing custom link while preventing duplicate names.
-  function updateLink(id: string, name: string, url: string) {
-    const trimmedName = name.trim().replace(/\s+/g, " ");
-    const normalizedUrl = normalizeCustomLinkUrl(url);
-    if (!trimmedName || !normalizedUrl) return false;
-
-    const existingLink = links.find(
-      (link) => link.id !== id && link.name.toLocaleLowerCase() === trimmedName.toLocaleLowerCase(),
-    );
-
-    if (existingLink) {
-      showNotification(`"${existingLink.name}" link already exists.`);
-      return false;
-    }
-
-    const nextLinks = links.map((link) => (link.id === id ? { ...link, name: trimmedName, url: normalizedUrl } : link));
-
-    setLinks(nextLinks);
-    saveTodoList(todos, tags, nextLinks);
-    return true;
-  }
-
   // Removes a custom link from the saved list.
   function deleteLink(id: string) {
     const nextLinks = links.filter((link) => link.id !== id);
@@ -567,9 +510,8 @@ export default function App() {
           <LinksCard
             links={links}
             updateLinks={updateLinks}
-            onCreateLink={createLink}
             onDeleteLink={deleteLink}
-            onUpdateLink={updateLink}
+            showNotification={showNotification}
           />
           <NotNowList todos={todos} updateTodo={updateTodo} />
           <NotesCard notes={notes} setNotes={updateNotes} />

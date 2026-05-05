@@ -1,22 +1,23 @@
-import { Button, ToggleButtonGroup } from "@mui/joy";
-import { useColorScheme } from "@mui/joy/styles";
-type ThemeMode = "light" | "dark" | "system";
+import { ToggleButton, ToggleButtonGroup } from "@mui/material";
+import { type ThemeMode, useThemeMode } from "../../theme";
 
 export const ThemeSelector: React.FC = () => {
-  const { mode, setMode } = useColorScheme();
+  const { mode, setMode } = useThemeMode();
 
   return (
     <ToggleButtonGroup
-      size="sm"
+      exclusive
+      size="small"
       color="warning"
       value={mode}
       onChange={(_e, value) => {
+        if (!value) return;
         setMode(value as ThemeMode);
       }}
     >
-      <Button value="light">Light</Button>
-      <Button value="system">System</Button>
-      <Button value="dark">Dark</Button>
+      <ToggleButton value="light">Light</ToggleButton>
+      <ToggleButton value="system">System</ToggleButton>
+      <ToggleButton value="dark">Dark</ToggleButton>
     </ToggleButtonGroup>
   );
 };

@@ -1,8 +1,9 @@
-import { Box, Chip, ChipDelete, Input } from "@mui/joy";
+import { Box, Input, IconButton } from "@mui/material";
 import type { TodoTag } from "../../types/todo";
 import { type KeyboardEvent, useEffect, useRef, useState } from "react";
 import { ColorPicker } from "./ColorPicker";
 import { TAG_Z } from "../../constants/ui";
+import ClearIcon from "@mui/icons-material/Clear";
 
 type Props = {
   tag: TodoTag;
@@ -77,12 +78,12 @@ export const Tag: React.FC<Props> = ({ tag, updateTag, onDelete, usedColors }) =
   };
 
   return (
-    <Box ref={tagRef} display="inline-flex" position="relative">
-      <Chip size="sm" sx={{ color }} endDecorator={<ChipDelete onClick={() => onDelete(tag.id)} />}>
-        <Box display="flex">
+    <Box ref={tagRef} sx={{ display: "inline-flex", position: "relative" }}>
+      <Box sx={{ color }}>
+        <Box sx={{ display: "flex" }}>
           {edit ? (
             <Input
-              slotProps={{ input: { ref: editInputRef } }}
+              inputRef={editInputRef}
               value={editName}
               onChange={(e) => setEditName(e.target.value)}
               onKeyDown={handleEditKeyDown}
@@ -107,10 +108,13 @@ export const Tag: React.FC<Props> = ({ tag, updateTag, onDelete, usedColors }) =
                 onClick={handleColorClick}
               />
               <Box onDoubleClick={handleEditClick}>{name}</Box>
+              <IconButton onClick={() => onDelete(tag.id)}>
+                <ClearIcon />
+              </IconButton>
             </Box>
           )}
         </Box>
-      </Chip>
+      </Box>
       {showColors ? (
         <Box
           sx={{

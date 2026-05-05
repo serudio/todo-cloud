@@ -19,6 +19,14 @@ export const getDoneTodos = (todos: Todo[]) => {
     });
 };
 
+// Normalizes a custom link URL and adds https:// when the scheme is missing.
+export function normalizeCustomLinkUrl(url: string) {
+  const trimmedUrl = url.trim();
+  if (!trimmedUrl) return "";
+
+  return /^https?:\/\//i.test(trimmedUrl) ? trimmedUrl : `https://${trimmedUrl}`;
+}
+
 export function parseTodoListItems(items: unknown): TodoListItems {
   if (Array.isArray(items)) {
     return {

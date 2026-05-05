@@ -1,4 +1,3 @@
-import { unstable_ClassNameGenerator as JoyClassNameGenerator } from "@mui/joy/className";
 import { unstable_ClassNameGenerator as MaterialClassNameGenerator } from "@mui/material/className";
 
 const isLocalhost =
@@ -8,6 +7,5 @@ const isLocalhost =
 if (import.meta.env.DEV && isLocalhost) {
   const keepMuiClassName = (componentName: string) => componentName;
 
-  JoyClassNameGenerator.configure(keepMuiClassName);
   MaterialClassNameGenerator.configure(keepMuiClassName);
 }

@@ -1,4 +1,4 @@
-import { Box, Button, Card, Chip, IconButton } from "@mui/joy";
+import { Box, Button, Card, Chip, IconButton } from "@mui/material";
 import RefreshRoundedIcon from "@mui/icons-material/RefreshRounded";
 import LogoutIcon from "@mui/icons-material/Logout";
 import { ThemeSelector } from "./ThemeSelector";
@@ -17,26 +17,21 @@ export const Header: React.FC<Props> = ({
   email = "",
 }) => {
   return (
-    <Card
-      orientation="horizontal"
-      sx={{ alignItems: "center", justifyContent: "space-between" }}
-      size="sm"
-    >
+    <Card sx={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between", p: 1 }}>
       <Button
-        color="neutral"
         disabled={isLoadingTodos}
-        size="sm"
+        size="small"
         title="Refresh"
         type="button"
-        variant="solid"
+        variant="contained"
         onClick={onRefresh}
       >
         <RefreshRoundedIcon fontSize="small" />
       </Button>
       <ThemeSelector />
       <Box sx={{ display: "flex" }}>
-        <Chip>{email}</Chip>
-        <IconButton onClick={onSignOut}>
+        <Chip label={email} size="small" />
+        <IconButton onClick={onSignOut} size="small">
           <LogoutIcon fontSize="small" />
         </IconButton>
       </Box>

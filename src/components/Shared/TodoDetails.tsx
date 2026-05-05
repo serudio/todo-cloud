@@ -2,8 +2,7 @@ import { useState } from "react";
 import type { Todo } from "../../types/todo";
 import { formatDateKey } from "../../utils/todos";
 import { CountBadge } from "./CountBadge";
-import { Box, Typography, IconButton } from "@mui/joy";
-import { Popover } from "@mui/material";
+import { Box, IconButton, Popover, Typography } from "@mui/material";
 import InfoIcon from "@mui/icons-material/Info";
 
 type Props = {
@@ -33,10 +32,10 @@ export const TodoDetails: React.FC<Props> = ({ todo, onReset }) => {
         transformOrigin={{ vertical: "top", horizontal: "center" }}
       >
         <Box sx={{ p: 1 }}>
-          <Typography level="body-sm">
+          <Typography variant="body2">
             Last added: {formatDateKey(todo.lastAddedDate)}
           </Typography>
-          <Typography level="body-sm">
+          <Typography variant="body2">
             Due: {todo.dueDate ? formatDateKey(todo.dueDate) : "not set"}
           </Typography>
 

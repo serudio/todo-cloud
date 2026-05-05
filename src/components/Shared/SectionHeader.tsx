@@ -1,4 +1,4 @@
-import { Box, IconButton, Typography } from "@mui/joy";
+import { Box, IconButton, Typography } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 
 type Props = {
@@ -6,18 +6,14 @@ type Props = {
   onClick?: () => void;
   onActionButtonClick?: () => void;
 };
-export const SectionHeader: React.FC<Props> = ({
-  title,
-  onClick,
-  onActionButtonClick,
-}) => {
+export const SectionHeader: React.FC<Props> = ({ title, onClick, onActionButtonClick }) => {
   return (
-    <Box display="flex" alignItems="center" justifyContent="space-between">
+    <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
       <Typography
-        level="title-sm"
+        variant="subtitle2"
         onClick={onClick}
-        sx={{ textTransform: "uppercase", letterSpacing: 2 }}
         color="warning"
+        sx={{ textTransform: "uppercase", letterSpacing: 2 }}
       >
         {title}
       </Typography>
