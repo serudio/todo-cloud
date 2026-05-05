@@ -4,8 +4,8 @@ import { LoadingPage } from "./components/AppState/LoadingPage";
 import { NotificationToast } from "./components/AppState/NotificationToast";
 import { SetupRequired } from "./components/AppState/SetupRequired";
 import { AuthCard } from "./components/AuthCard";
-import { DoneList } from "./components/DoneList";
-import { LinksPanel } from "./components/LinksPanel/LinksCard";
+import { DoneCard } from "./components/DoneCard/DoneCard";
+import { LinksCard } from "./components/Links/LinksCard";
 import { NotesPanel } from "./components/NotesPanel";
 import { NotNowList } from "./components/NotNowList.tsx";
 import { TagsCard } from "./components/Tags/TagsCard";
@@ -13,16 +13,8 @@ import { TodoCloud } from "./components/TodoCloud/TodoCloud";
 import { isSupabaseConfigured, supabase } from "./supabase";
 import type { Notification } from "./types/notification";
 import type { CustomLink, Todo, TodoListItems, TodoTag } from "./types/todo";
-import {
-  createTodoList,
-  getFirstTodoList,
-  updateTodoListItems,
-} from "./utils/db/todoLists";
-import {
-  normalizeTodoText,
-  parseTodoListColumns,
-  parseTodoListItems,
-} from "./utils/todos";
+import { createTodoList, getFirstTodoList, updateTodoListItems } from "./utils/db/todoLists";
+import { normalizeTodoText, parseTodoListColumns, parseTodoListItems } from "./utils/todos";
 import { Box } from "@mui/joy";
 import { Header } from "./components/Layout";
 import { AddTask } from "./components/TodoCloud/AddTask.tsx";
@@ -107,14 +99,11 @@ function getTodosWithExpiredNotTodayCleared(currentTodos: Todo[]) {
 
 // Combines all midnight-driven todo changes into one update pass.
 function getTodosWithDailyUpdates(currentTodos: Todo[]) {
-  const todosWithoutExpiredNotToday =
-    getTodosWithExpiredNotTodayCleared(currentTodos) ?? currentTodos;
+  const todosWithoutExpiredNotToday = getTodosWithExpiredNotTodayCleared(currentTodos) ?? currentTodos;
 
   return (
     getTodosWithEndOfDayRepeats(todosWithoutExpiredNotToday) ??
-    (todosWithoutExpiredNotToday === currentTodos
-      ? null
-      : todosWithoutExpiredNotToday)
+    (todosWithoutExpiredNotToday === currentTodos ? null : todosWithoutExpiredNotToday)
   );
 }
 
@@ -143,18 +132,8 @@ function moveTodoToRandomPosition(todos: Todo[], id: string) {
 }
 
 // Checks whether there is no user data worth persisting.
-function isEmptyTodoList(
-  todos: Todo[],
-  tags: TodoTag[],
-  links: CustomLink[],
-  notes: string,
-) {
-  return (
-    todos.length === 0 &&
-    tags.length === 0 &&
-    links.length === 0 &&
-    notes.trim() === ""
-  );
+function isEmptyTodoList(todos: Todo[], tags: TodoTag[], links: CustomLink[], notes: string) {
+  return todos.length === 0 && tags.length === 0 && links.length === 0 && notes.trim() === "";
 }
 
 // Checks the full persisted todo-list shape for meaningful content.
@@ -169,9 +148,7 @@ function getTodoListBackupKey(userId: string) {
 
 // Reads and validates the local backup used to recover from empty remote data.
 function readBackedUpTodoList(userId: string) {
-  const backedUpItems = window.localStorage.getItem(
-    getTodoListBackupKey(userId),
-  );
+  const backedUpItems = window.localStorage.getItem(getTodoListBackupKey(userId));
   if (!backedUpItems) return null;
 
   try {
@@ -187,19 +164,11 @@ function readBackedUpTodoList(userId: string) {
 function backupTodoList(userId: string, items: TodoListItems) {
   if (isEmptyTodoListItems(items)) return;
 
-  window.localStorage.setItem(
-    getTodoListBackupKey(userId),
-    JSON.stringify(items),
-  );
+  window.localStorage.setItem(getTodoListBackupKey(userId), JSON.stringify(items));
 }
 
 // Allows empty saves only when the latest remote row is already empty too.
-function canSaveEmptyOverExistingItems(
-  items: unknown,
-  tags: unknown,
-  links: unknown,
-  notes: unknown,
-) {
+function canSaveEmptyOverExistingItems(items: unknown, tags: unknown, links: unknown, notes: unknown) {
   const parsedItems = parseTodoListColumns(items, tags, links, notes);
 
   return isEmptyTodoListItems(parsedItems);
@@ -210,9 +179,7 @@ function normalizeCustomLinkUrl(url: string) {
   const trimmedUrl = url.trim();
   if (!trimmedUrl) return "";
 
-  return /^https?:\/\//i.test(trimmedUrl)
-    ? trimmedUrl
-    : `https://${trimmedUrl}`;
+  return /^https?:\/\//i.test(trimmedUrl) ? trimmedUrl : `https://${trimmedUrl}`;
 }
 
 // Owns the authenticated todo app state and wires persistence to the UI.
@@ -244,13 +211,9 @@ export default function App() {
 
       return secondTodo.count - firstTodo.count;
     });
-  const activeTodos = todos.filter(
-    (todo) => !todo.done && !todo.notNow && !todo.notToday,
-  );
+  const activeTodos = todos.filter((todo) => !todo.done && !todo.notNow && !todo.notToday);
   const notNowTodos = todos.filter((todo) => !todo.done && todo.notNow);
-  const notTodayTodos = todos.filter(
-    (todo) => !todo.done && !todo.notNow && todo.notToday,
-  );
+  const notTodayTodos = todos.filter((todo) => !todo.done && !todo.notNow && todo.notToday);
 
   // Initializes Supabase auth and only reloads data when the signed-in user changes.
   useEffect(() => {
@@ -373,15 +336,8 @@ export default function App() {
     }
 
     if (data) {
-      const parsedItems = parseTodoListColumns(
-        data.items,
-        data.tags,
-        data.links,
-        data.notes,
-      );
-      const backedUpItems = isEmptyTodoListItems(parsedItems)
-        ? readBackedUpTodoList(userId)
-        : null;
+      const parsedItems = parseTodoListColumns(data.items, data.tags, data.links, data.notes);
+      const backedUpItems = isEmptyTodoListItems(parsedItems) ? readBackedUpTodoList(userId) : null;
       const nextItems = backedUpItems ?? parsedItems;
 
       setTodoListId(data.id);
@@ -400,8 +356,7 @@ export default function App() {
       return;
     }
 
-    const { data: createdTodoList, error: createError } =
-      await createTodoList(userId);
+    const { data: createdTodoList, error: createError } = await createTodoList(userId);
 
     if (createError || !createdTodoList) {
       setSaveError(createError?.message ?? "Todo list could not be created.");
@@ -414,12 +369,7 @@ export default function App() {
       return;
     }
 
-    const createdItems = parseTodoListColumns(
-      createdTodoList.items,
-      createdTodoList.tags,
-      createdTodoList.links,
-      createdTodoList.notes,
-    );
+    const createdItems = parseTodoListColumns(createdTodoList.items, createdTodoList.tags, createdTodoList.links, createdTodoList.notes);
 
     setTodoListId(createdTodoList.id);
     setTodos(createdItems.todos);
@@ -435,44 +385,26 @@ export default function App() {
   }
 
   // Persists the complete list state and refuses unsafe empty overwrites.
-  async function saveTodoList(
-    nextTodos: Todo[],
-    nextTags: TodoTag[],
-    nextLinks: CustomLink[],
-    nextNotes = notes,
-  ) {
+  async function saveTodoList(nextTodos: Todo[], nextTags: TodoTag[], nextLinks: CustomLink[], nextNotes = notes) {
     if (!supabase || !todoListId) return;
 
     setSaveError(null);
 
     if (isEmptyTodoList(nextTodos, nextTags, nextLinks, nextNotes)) {
-      const { data, error } = await supabase
-        .from("todo_lists")
-        .select("items, tags, links, notes")
-        .eq("id", todoListId)
-        .maybeSingle<{
-          items: unknown;
-          tags: unknown;
-          links: unknown;
-          notes: unknown;
-        }>();
+      const { data, error } = await supabase.from("todo_lists").select("items, tags, links, notes").eq("id", todoListId).maybeSingle<{
+        items: unknown;
+        tags: unknown;
+        links: unknown;
+        notes: unknown;
+      }>();
 
       if (error) {
         setSaveError(error.message);
         return;
       }
 
-      if (
-        data &&
-        !canSaveEmptyOverExistingItems(
-          data.items,
-          data.tags,
-          data.links,
-          data.notes,
-        )
-      ) {
-        const message =
-          "Refused to save an empty list over existing todo data. Refresh before making more changes.";
+      if (data && !canSaveEmptyOverExistingItems(data.items, data.tags, data.links, data.notes)) {
+        const message = "Refused to save an empty list over existing todo data. Refresh before making more changes.";
         setSaveError(message);
         showNotification(message);
         return;
@@ -505,10 +437,7 @@ export default function App() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: new URL(
-          import.meta.env.BASE_URL,
-          window.location.origin,
-        ).toString(),
+        redirectTo: new URL(import.meta.env.BASE_URL, window.location.origin).toString(),
       },
     });
 
@@ -531,9 +460,7 @@ export default function App() {
 
     const today = getLocalDateKey();
     const normalizedText = normalizeTodoText(trimmedText);
-    const existingTodo = todos.find(
-      (todo) => normalizeTodoText(todo.text) === normalizedText,
-    );
+    const existingTodo = todos.find((todo) => normalizeTodoText(todo.text) === normalizedText);
 
     if (existingTodo && !existingTodo.done) {
       showNotification(`"${existingTodo.text}" is already there.`);
@@ -625,9 +552,7 @@ export default function App() {
 
   // Resets a todo's recurrence/count badge back to zero.
   function resetTodoCount(id: string) {
-    const nextTodos = todos.map((todo) =>
-      todo.id === id ? { ...todo, count: 0 } : todo,
-    );
+    const nextTodos = todos.map((todo) => (todo.id === id ? { ...todo, count: 0 } : todo));
 
     setTodos(nextTodos);
     saveTodos(nextTodos);
@@ -638,9 +563,7 @@ export default function App() {
     const trimmedName = name.trim().replace(/\s+/g, " ");
     if (!trimmedName) return false;
 
-    const existingTag = tags.find(
-      (tag) => tag.name.toLocaleLowerCase() === trimmedName.toLocaleLowerCase(),
-    );
+    const existingTag = tags.find((tag) => tag.name.toLocaleLowerCase() === trimmedName.toLocaleLowerCase());
 
     if (existingTag) {
       showNotification(`"${existingTag.name}" tag already exists.`);
@@ -671,20 +594,14 @@ export default function App() {
     const trimmedName = name.trim().replace(/\s+/g, " ");
     if (!trimmedName) return false;
 
-    const existingTag = tags.find(
-      (tag) =>
-        tag.id !== id &&
-        tag.name.toLocaleLowerCase() === trimmedName.toLocaleLowerCase(),
-    );
+    const existingTag = tags.find((tag) => tag.id !== id && tag.name.toLocaleLowerCase() === trimmedName.toLocaleLowerCase());
 
     if (existingTag) {
       showNotification(`"${existingTag.name}" tag already exists.`);
       return false;
     }
 
-    const nextTags = tags.map((tag) =>
-      tag.id === id ? { ...tag, name: trimmedName } : tag,
-    );
+    const nextTags = tags.map((tag) => (tag.id === id ? { ...tag, name: trimmedName } : tag));
 
     setTags(nextTags);
     saveTodoList(todos, nextTags, links);
@@ -698,9 +615,7 @@ export default function App() {
       return;
     }
 
-    const nextTags = tags.map((tag) =>
-      tag.id === id ? { ...tag, color } : tag,
-    );
+    const nextTags = tags.map((tag) => (tag.id === id ? { ...tag, color } : tag));
 
     setTags(nextTags);
     saveTodoList(todos, nextTags, links);
@@ -709,9 +624,7 @@ export default function App() {
   // Deletes a tag and removes that tag assignment from all todos.
   function deleteTag(id: string) {
     const nextTags = tags.filter((tag) => tag.id !== id);
-    const nextTodos = todos.map((todo) =>
-      todo.tagId === id ? { ...todo, tagId: null } : todo,
-    );
+    const nextTodos = todos.map((todo) => (todo.tagId === id ? { ...todo, tagId: null } : todo));
 
     setTags(nextTags);
     setTodos(nextTodos);
@@ -720,9 +633,7 @@ export default function App() {
 
   // Assigns or clears a tag on a specific todo.
   function assignTodoTag(id: string, tagId: string | null) {
-    const nextTodos = todos.map((todo) =>
-      todo.id === id ? { ...todo, tagId } : todo,
-    );
+    const nextTodos = todos.map((todo) => (todo.id === id ? { ...todo, tagId } : todo));
 
     setTodos(nextTodos);
     saveTodos(nextTodos);
@@ -730,11 +641,7 @@ export default function App() {
 
   // Moves a todo out of the cloud into the left "not now" list.
   function markTodoNotNow(id: string) {
-    const nextTodos = todos.map((todo) =>
-      todo.id === id
-        ? { ...todo, notNow: true, notToday: false, notTodayDate: null }
-        : todo,
-    );
+    const nextTodos = todos.map((todo) => (todo.id === id ? { ...todo, notNow: true, notToday: false, notTodayDate: null } : todo));
 
     setTodos(nextTodos);
     saveTodos(nextTodos);
@@ -742,11 +649,7 @@ export default function App() {
 
   // Restores a "not now" todo back into the cloud.
   function restoreTodoFromNotNow(id: string) {
-    const nextTodos = todos.map((todo) =>
-      todo.id === id
-        ? { ...todo, notNow: false, notToday: false, notTodayDate: null }
-        : todo,
-    );
+    const nextTodos = todos.map((todo) => (todo.id === id ? { ...todo, notNow: false, notToday: false, notTodayDate: null } : todo));
 
     setTodos(nextTodos);
     saveTodos(nextTodos);
@@ -755,9 +658,7 @@ export default function App() {
   // Hides a todo from the cloud until the next local day.
   function markTodoNotToday(id: string) {
     const today = getLocalDateKey();
-    const nextTodos = todos.map((todo) =>
-      todo.id === id ? { ...todo, notToday: true, notTodayDate: today } : todo,
-    );
+    const nextTodos = todos.map((todo) => (todo.id === id ? { ...todo, notToday: true, notTodayDate: today } : todo));
 
     setTodos(nextTodos);
     saveTodos(nextTodos);
@@ -769,10 +670,7 @@ export default function App() {
     const normalizedUrl = normalizeCustomLinkUrl(url);
     if (!trimmedName || !normalizedUrl) return false;
 
-    const existingLink = links.find(
-      (link) =>
-        link.name.toLocaleLowerCase() === trimmedName.toLocaleLowerCase(),
-    );
+    const existingLink = links.find((link) => link.name.toLocaleLowerCase() === trimmedName.toLocaleLowerCase());
 
     if (existingLink) {
       showNotification(`"${existingLink.name}" link already exists.`);
@@ -799,22 +697,14 @@ export default function App() {
     const normalizedUrl = normalizeCustomLinkUrl(url);
     if (!trimmedName || !normalizedUrl) return false;
 
-    const existingLink = links.find(
-      (link) =>
-        link.id !== id &&
-        link.name.toLocaleLowerCase() === trimmedName.toLocaleLowerCase(),
-    );
+    const existingLink = links.find((link) => link.id !== id && link.name.toLocaleLowerCase() === trimmedName.toLocaleLowerCase());
 
     if (existingLink) {
       showNotification(`"${existingLink.name}" link already exists.`);
       return false;
     }
 
-    const nextLinks = links.map((link) =>
-      link.id === id
-        ? { ...link, name: trimmedName, url: normalizedUrl }
-        : link,
-    );
+    const nextLinks = links.map((link) => (link.id === id ? { ...link, name: trimmedName, url: normalizedUrl } : link));
 
     setLinks(nextLinks);
     saveTodoList(todos, tags, nextLinks);
@@ -848,19 +738,14 @@ export default function App() {
     if (!trimmedText || isLoadingTodos) return false;
 
     const normalizedText = normalizeTodoText(trimmedText);
-    const existingTodo = todos.find(
-      (todo) =>
-        todo.id !== id && normalizeTodoText(todo.text) === normalizedText,
-    );
+    const existingTodo = todos.find((todo) => todo.id !== id && normalizeTodoText(todo.text) === normalizedText);
 
     if (existingTodo) {
       showNotification(`"${existingTodo.text}" is already there.`);
       return false;
     }
 
-    const nextTodos = todos.map((todo) =>
-      todo.id === id ? { ...todo, text: trimmedText } : todo,
-    );
+    const nextTodos = todos.map((todo) => (todo.id === id ? { ...todo, text: trimmedText } : todo));
 
     setTodos(nextTodos);
     saveTodos(nextTodos);
@@ -883,8 +768,7 @@ export default function App() {
     return <LoadingPage />;
   }
 
-  if (!session)
-    return <AuthCard authError={authError} onSignIn={signInWithGoogle} />;
+  if (!session) return <AuthCard authError={authError} onSignIn={signInWithGoogle} />;
 
   return (
     <Box sx={{ bgcolor: "background.body", color: "text.primary" }}>
@@ -919,35 +803,15 @@ export default function App() {
             minWidth: 230,
           }}
         >
-          <TagsCard
-            tags={tags}
-            onCreateTag={createTag}
-            onDeleteTag={deleteTag}
-            onRenameTag={renameTag}
-            onUpdateTagColor={updateTagColor}
-          />
-          <LinksPanel
-            links={links}
-            onCreateLink={createLink}
-            onDeleteLink={deleteLink}
-            onUpdateLink={updateLink}
-          />
+          <TagsCard tags={tags} onCreateTag={createTag} onDeleteTag={deleteTag} onRenameTag={renameTag} onUpdateTagColor={updateTagColor} />
+          <LinksPanel links={links} onCreateLink={createLink} onDeleteLink={deleteLink} onUpdateLink={updateLink} />
 
-          <NotNowList
-            todos={notNowTodos}
-            onDropTodo={markTodoNotNow}
-            onRestoreTodo={restoreTodoFromNotNow}
-          />
+          <NotNowList todos={notNowTodos} onDropTodo={markTodoNotNow} onRestoreTodo={restoreTodoFromNotNow} />
           <NotesPanel notes={notes} onNotesChange={updateNotes} />
         </Box>
 
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-          <Header
-            isLoadingTodos={isLoadingTodos}
-            onRefresh={refreshTodoList}
-            email={session.user.email}
-            onSignOut={signOut}
-          />
+          <Header isLoadingTodos={isLoadingTodos} onRefresh={refreshTodoList} email={session.user.email} onSignOut={signOut} />
           <TodoCloud
             activeTodos={activeTodos}
             isLoadingTodos={isLoadingTodos}
@@ -972,7 +836,7 @@ export default function App() {
             minWidth: 250,
           }}
         >
-          <DoneList
+          <DoneCard
             todos={suggestedTodos}
             tags={tags}
             onAddTodoText={addTodoText}

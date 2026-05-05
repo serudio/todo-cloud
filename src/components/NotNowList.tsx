@@ -9,11 +9,7 @@ type NotNowListProps = {
   onRestoreTodo: (id: string) => void;
 };
 
-export function NotNowList({
-  todos,
-  onDropTodo,
-  onRestoreTodo,
-}: NotNowListProps) {
+export function NotNowList({ todos, onDropTodo, onRestoreTodo }: NotNowListProps) {
   function handleDragOver(event: DragEvent<HTMLElement>) {
     event.preventDefault();
     event.dataTransfer.dropEffect = "move";
@@ -34,21 +30,10 @@ export function NotNowList({
   }
 
   return (
-    <SectionCard
-      title="Not Now"
-      onDragOver={handleDragOver}
-      onDrop={handleDrop}
-    >
-      {!todos.length && (
-        <p className="status">Drag cloud tasks here to hide them for now.</p>
-      )}
+    <SectionCard title="Not Now" onDragOver={handleDragOver} onDrop={handleDrop}>
+      {!todos.length && <p className="status">Drag cloud tasks here to hide them for now.</p>}
       {todos.map((todo) => (
-        <Chip
-          draggable
-          onClick={() => onRestoreTodo(todo.id)}
-          onDragStart={(event) => handleDragStart(event, todo.id)}
-          size="sm"
-        >
+        <Chip draggable onClick={() => onRestoreTodo(todo.id)} onDragStart={(event) => handleDragStart(event, todo.id)} size="sm">
           {todo.text}
         </Chip>
       ))}

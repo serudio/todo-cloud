@@ -12,12 +12,7 @@ type LinksPanelProps = {
   onUpdateLink: (id: string, name: string, url: string) => boolean;
 };
 
-export function LinksPanel({
-  links,
-  onCreateLink,
-  onDeleteLink,
-  onUpdateLink,
-}: LinksPanelProps) {
+export function LinksCard({ links, onCreateLink, onDeleteLink, onUpdateLink }: LinksPanelProps) {
   const [showForm, setShowForm] = useState(false);
 
   function handleLinkSubmit(name: string, url: string) {
@@ -35,21 +30,13 @@ export function LinksPanel({
   }
 
   return (
-    <SectionCard
-      title="Links"
-      onActionButtonClick={() => setShowForm((isOpen) => !isOpen)}
-    >
+    <SectionCard title="Links" onActionButtonClick={() => setShowForm((isOpen) => !isOpen)}>
       {showForm && <LinkCreateForm onSubmit={handleLinkSubmit} />}
 
       {links.length === 0 && <p>Add quick links you use often.</p>}
       <Box display="flex" flexDirection="column" gap={0.5}>
         {links.map((link) => (
-          <LinkItem
-            key={link.id}
-            link={link}
-            onDelete={onDeleteLink}
-            onSubmit={finishEditingLink}
-          />
+          <LinkItem key={link.id} link={link} onDelete={onDeleteLink} onSubmit={finishEditingLink} />
         ))}
       </Box>
     </SectionCard>
