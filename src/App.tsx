@@ -575,7 +575,7 @@ export default function App() {
           <NotesCard notes={notes} setNotes={updateNotes} />
         </Box>
 
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 2, flex: 1 }}>
           <Header
             isLoadingTodos={isLoadingTodos}
             onRefresh={refreshTodoList}
