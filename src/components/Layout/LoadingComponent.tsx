@@ -2,7 +2,7 @@ import { Box, CircularProgress } from "@mui/joy";
 import { MODAL_Z } from "../../constants/ui";
 
 type Props = {
-  loafing: boolean;
+  loading: boolean;
 };
 
 export const LoadingComponent: React.FC<Props> = ({ loading }) => {
