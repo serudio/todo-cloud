@@ -6,6 +6,7 @@ import { getDoneTodos } from "../../utils/todos";
 
 type DoneListProps = {
   todos: Todo[];
+  saveTodos: (todos: Todo[]) => void;
   tags: TodoTag[];
   onAddTodoText: (text: string) => void;
   onAssignTodoTag: (id: string, tagId: string | null) => void;
@@ -16,6 +17,7 @@ type DoneListProps = {
 
 export const DoneCard: React.FC<DoneListProps> = ({
   todos,
+  // saveTodos,
   tags,
   onAddTodoText,
   onAssignTodoTag,
@@ -23,28 +25,27 @@ export const DoneCard: React.FC<DoneListProps> = ({
   onResetTodoCount,
   onToggleEndOfDayRepeat,
 }) => {
-  function assignTodoTag(todoId: string, tagId: string | null) {
-    onAssignTodoTag(todoId, tagId);
-  }
-
   const doneTodos = getDoneTodos(todos);
 
   return (
     <SectionCard title="Done">
       {doneTodos.length === 0 && <p className="status">Done items will show up here.</p>}
+
       <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-        {doneTodos.map((todo) => (
-          <DoneItem
-            key={todo.id}
-            item={todo}
-            tags={tags}
-            onAddTodoText={onAddTodoText}
-            assignTodoTag={assignTodoTag}
-            onToggleEndOfDayRepeat={onToggleEndOfDayRepeat}
-            onDeleteTodo={onDeleteTodo}
-            onResetTodoCount={onResetTodoCount}
-          />
-        ))}
+        {doneTodos.map((todo) => {
+          return (
+            <DoneItem
+              key={todo.id}
+              item={todo}
+              tags={tags}
+              onAddTodoText={onAddTodoText}
+              assignTodoTag={onAssignTodoTag}
+              onToggleEndOfDayRepeat={onToggleEndOfDayRepeat}
+              onDeleteTodo={onDeleteTodo}
+              onResetTodoCount={onResetTodoCount}
+            />
+          );
+        })}
       </Box>
     </SectionCard>
   );

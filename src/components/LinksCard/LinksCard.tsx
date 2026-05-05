@@ -7,6 +7,7 @@ import { Box } from "@mui/joy";
 
 type LinksPanelProps = {
   links: CustomLink[];
+  updateLinks: (links: CustomLink[]) => void;
   onCreateLink: (name: string, url: string) => boolean;
   onDeleteLink: (id: string) => void;
   onUpdateLink: (id: string, name: string, url: string) => boolean;

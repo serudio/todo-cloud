@@ -1,4 +1,8 @@
 import type { CustomLink, Todo, TodoListItems, TodoTag } from "../types/todo";
+import dayjs from "dayjs";
+
+export const markTodoNow = (todo: Todo) => ({ ...todo, notNow: false, notToday: false, notTodayDate: null });
+export const markTodoNotNow = (todo: Todo) => ({ ...todo, notNow: true, notToday: false, notTodayDate: null });
 
 export const getDoneTodos = (todos: Todo[]) => {
   return [...todos]
@@ -16,7 +20,6 @@ export const getDoneTodos = (todos: Todo[]) => {
 };
 
 export function parseTodoListItems(items: unknown): TodoListItems {
-  console.log({ items });
   if (Array.isArray(items)) {
     return {
       todos: parseTodos(items),
@@ -153,25 +156,15 @@ export function formatDateKey(dateValue: string | number | null) {
   const dateInputValue = getDateInputValue(dateValue);
   if (!dateInputValue) return "not saved yet";
 
-  const [year, month, day] = dateInputValue.split("-").map(Number);
-  const date = new Date(year, month - 1, day);
-
-  return date.toLocaleDateString(undefined, {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
+  return dayjs(dateInputValue).format("MMM D, YYYY");
 }
 
 export function getDateInputValue(dateValue: string | number | null) {
-  if (typeof dateValue === "number") {
-    const date = new Date(dateValue);
-    if (Number.isNaN(date.getTime())) return "";
+  if (dateValue === null) return "";
 
-    return [date.getFullYear(), String(date.getMonth() + 1).padStart(2, "0"), String(date.getDate()).padStart(2, "0")].join("-");
-  }
+  const date = dayjs(dateValue);
 
-  return dateValue?.match(/^\d{4}-\d{2}-\d{2}/)?.[0] ?? "";
+  return date.isValid() ? date.format("YYYY-MM-DD") : "";
 }
 
 export function getStartOfDayTimestamp(dateKey: string) {
@@ -218,7 +211,8 @@ function mergeDuplicateTodos(todos: Todo[]) {
       dueDate: existingTodo.dueDate ?? todo.dueDate,
       notNow: existingTodo.notNow && todo.notNow,
       notToday: existingTodo.notToday && todo.notToday,
-      notTodayDate: existingTodo.notToday && todo.notToday ? getLatestDate(existingTodo.notTodayDate, todo.notTodayDate) : null,
+      notTodayDate:
+        existingTodo.notToday && todo.notToday ? getLatestDate(existingTodo.notTodayDate, todo.notTodayDate) : null,
     });
   }
 

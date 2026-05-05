@@ -1,15 +1,15 @@
-import { type FormEvent, useEffect, useRef, useState } from "react";
+import { type FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { SetupRequired } from "./components/AppState/SetupRequired";
 import { AuthCard } from "./components/AuthCard";
 import { DoneCard } from "./components/DoneCard/DoneCard";
 import { LinksCard } from "./components/LinksCard/LinksCard";
-import { NotesPanel } from "./components/NotesPanel";
+import { NotesCard } from "./components/NotesCard.tsx";
 import { NotNowList } from "./components/NotNowList.tsx";
 import { TagsCard } from "./components/Tags/TagsCard";
 import { TodoCloud } from "./components/TodoCloud/TodoCloud";
 import { isSupabaseConfigured, supabase } from "./supabase";
-import type { Todo } from "./types/todo";
+import type { CustomLink, Todo, TodoTag } from "./types/todo";
 import { normalizeTodoText } from "./utils/todos";
 import { Box } from "@mui/joy";
 import { Header } from "./components/Layout";
@@ -18,16 +18,8 @@ import { LoadingComponent } from "./components/Layout/LoadingComponent.tsx";
 import { useAppInit } from "./hooks/app.ts";
 import { useTodoListPersistence } from "./hooks/useTodoListPersistence";
 import { NotificationsToast } from "./components/Layout/NotificationAlert";
-import { getLocalDateKey } from "./utils/date.ts";
-
-// Calculates how long the app should wait before running midnight updates.
-function getNextMidnightDelay() {
-  const now = new Date();
-  const nextMidnight = new Date(now);
-  nextMidnight.setHours(24, 0, 0, 0);
-
-  return nextMidnight.getTime() - now.getTime();
-}
+import { getLocalDateKey, getNextMidnightDelay } from "./utils/date.ts";
+import { insertAtRandomPosition } from "./utils/arrays.ts";
 
 // Applies one daily repeat to todos marked for end-of-day auto-add.
 function getTodosWithEndOfDayRepeats(currentTodos: Todo[]) {
@@ -97,25 +89,12 @@ function getTodosWithDailyUpdates(currentTodos: Todo[]) {
   );
 }
 
-// Picks a random insertion position so new/restored cloud items are scattered.
-function getRandomInsertIndex(length: number) {
-  return Math.floor(Math.random() * (length + 1));
-}
-
-// Inserts a todo into a random position without mutating the original array.
-function insertTodoAtRandomPosition(todos: Todo[], todo: Todo) {
-  const nextTodos = [...todos];
-  nextTodos.splice(getRandomInsertIndex(nextTodos.length), 0, todo);
-
-  return nextTodos;
-}
-
 // Reorders an existing todo into a new random cloud position.
 function moveTodoToRandomPosition(todos: Todo[], id: string) {
   const todo = todos.find((currentTodo) => currentTodo.id === id);
   if (!todo) return todos;
 
-  return insertTodoAtRandomPosition(
+  return insertAtRandomPosition(
     todos.filter((currentTodo) => currentTodo.id !== id),
     todo,
   );
@@ -156,12 +135,11 @@ export default function App() {
     setNotification,
   } = useAppInit();
 
-  const activeTodos = todos.filter((todo) => !todo.done && !todo.notNow && !todo.notToday);
-  const notNowTodos = todos.filter((todo) => !todo.done && todo.notNow);
   const notTodayTodos = todos.filter((todo) => !todo.done && !todo.notNow && todo.notToday);
-  const { loadTodoList, saveTodoList, saveTodos } = useTodoListPersistence({
+  const { loadTodoList, saveTodoList, saveTodos, saveTags, saveLinks, saveNotes } = useTodoListPersistence({
     session,
     todoListId,
+    todos,
     tags,
     links,
     notes,
@@ -330,7 +308,7 @@ export default function App() {
           ),
           existingTodo.id,
         )
-      : insertTodoAtRandomPosition(todos, {
+      : insertAtRandomPosition(todos, {
           id: crypto.randomUUID(),
           text: trimmedText,
           done: false,
@@ -403,81 +381,6 @@ export default function App() {
     saveTodos(nextTodos);
   }
 
-  // Creates a tag after checking for duplicate names and colors.
-  function createTag(name: string, color: string) {
-    const trimmedName = name.trim().replace(/\s+/g, " ");
-    if (!trimmedName) return false;
-
-    const existingTag = tags.find((tag) => tag.name.toLocaleLowerCase() === trimmedName.toLocaleLowerCase());
-
-    if (existingTag) {
-      showNotification(`"${existingTag.name}" tag already exists.`);
-      return false;
-    }
-
-    if (tags.some((tag) => tag.color === color)) {
-      showNotification("That tag color is already used.");
-      return false;
-    }
-
-    const nextTags = [
-      ...tags,
-      {
-        id: crypto.randomUUID(),
-        name: trimmedName,
-        color,
-      },
-    ];
-
-    setTags(nextTags);
-    saveTodoList(todos, nextTags, links);
-    return true;
-  }
-
-  // Renames a tag while preventing duplicate tag names.
-  function renameTag(id: string, name: string) {
-    const trimmedName = name.trim().replace(/\s+/g, " ");
-    if (!trimmedName) return false;
-
-    const existingTag = tags.find(
-      (tag) => tag.id !== id && tag.name.toLocaleLowerCase() === trimmedName.toLocaleLowerCase(),
-    );
-
-    if (existingTag) {
-      showNotification(`"${existingTag.name}" tag already exists.`);
-      return false;
-    }
-
-    const nextTags = tags.map((tag) => (tag.id === id ? { ...tag, name: trimmedName } : tag));
-
-    setTags(nextTags);
-    saveTodoList(todos, nextTags, links);
-    return true;
-  }
-
-  // Changes a tag color while keeping tag colors unique.
-  function updateTagColor(id: string, color: string) {
-    if (tags.some((tag) => tag.id !== id && tag.color === color)) {
-      showNotification("That tag color is already used.");
-      return;
-    }
-
-    const nextTags = tags.map((tag) => (tag.id === id ? { ...tag, color } : tag));
-
-    setTags(nextTags);
-    saveTodoList(todos, nextTags, links);
-  }
-
-  // Deletes a tag and removes that tag assignment from all todos.
-  function deleteTag(id: string) {
-    const nextTags = tags.filter((tag) => tag.id !== id);
-    const nextTodos = todos.map((todo) => (todo.tagId === id ? { ...todo, tagId: null } : todo));
-
-    setTags(nextTags);
-    setTodos(nextTodos);
-    saveTodoList(nextTodos, nextTags, links);
-  }
-
   // Assigns or clears a tag on a specific todo.
   function assignTodoTag(id: string, tagId: string | null) {
     const nextTodos = todos.map((todo) => (todo.id === id ? { ...todo, tagId } : todo));
@@ -489,26 +392,6 @@ export default function App() {
   // Sets or clears a task's due date. Date-only picks are stored as local-midnight timestamps.
   function setTodoDueDate(id: string, dueDate: number | null) {
     const nextTodos = todos.map((todo) => (todo.id === id ? { ...todo, dueDate } : todo));
-
-    setTodos(nextTodos);
-    saveTodos(nextTodos);
-  }
-
-  // Moves a todo out of the cloud into the left "not now" list.
-  function markTodoNotNow(id: string) {
-    const nextTodos = todos.map((todo) =>
-      todo.id === id ? { ...todo, notNow: true, notToday: false, notTodayDate: null } : todo,
-    );
-
-    setTodos(nextTodos);
-    saveTodos(nextTodos);
-  }
-
-  // Restores a "not now" todo back into the cloud.
-  function restoreTodoFromNotNow(id: string) {
-    const nextTodos = todos.map((todo) =>
-      todo.id === id ? { ...todo, notNow: false, notToday: false, notTodayDate: null } : todo,
-    );
 
     setTodos(nextTodos);
     saveTodos(nextTodos);
@@ -580,12 +463,6 @@ export default function App() {
     saveTodoList(todos, tags, nextLinks);
   }
 
-  // Saves the free-form notes text with the rest of the list state.
-  function updateNotes(nextNotes: string) {
-    setNotes(nextNotes);
-    saveTodoList(todos, tags, links, nextNotes);
-  }
-
   // Manually reloads the current user's todo list from Supabase.
   function refreshTodoList() {
     if (!session) return;
@@ -612,6 +489,49 @@ export default function App() {
     saveTodos(nextTodos);
     return true;
   }
+
+  const updateTodo = useCallback(
+    async (newTodo: Todo) => {
+      const newTodos = todos.map((todo) => (todo.id === newTodo.id ? newTodo : todo));
+      setTodos(newTodos);
+      await saveTodos(newTodos);
+    },
+    [todos, setTodos, saveTodos],
+  );
+
+  // Deletes a tag and removes that tag assignment from all todos.
+  function deleteTag(id: string) {
+    const nextTags = tags.filter((tag) => tag.id !== id);
+    const nextTodos = todos.map((todo) => (todo.tagId === id ? { ...todo, tagId: null } : todo));
+
+    setTags(nextTags);
+    setTodos(nextTodos);
+    saveTodoList(nextTodos, nextTags, links);
+  }
+
+  const updateTags = useCallback(
+    async (tags: TodoTag[]) => {
+      setTags(tags);
+      await saveTags(tags);
+    },
+    [saveTags, setTags],
+  );
+
+  const updateLinks = useCallback(
+    async (links: CustomLink[]) => {
+      setLinks(links);
+      await saveLinks(links);
+    },
+    [saveLinks, setLinks],
+  );
+
+  const updateNotes = useCallback(
+    async (notes: string) => {
+      setNotes(notes);
+      await saveNotes(notes);
+    },
+    [saveNotes, setNotes],
+  );
 
   if (!isSupabaseConfigured) return <SetupRequired />;
   if (!session) return <AuthCard authError={authError} onSignIn={signInWithGoogle} />;
@@ -643,17 +563,16 @@ export default function App() {
         }}
       >
         <Box sx={{ gap: 2, display: "flex", flexDirection: "column", width: 230, minWidth: 230 }}>
-          <TagsCard
-            tags={tags}
-            onCreateTag={createTag}
-            onDeleteTag={deleteTag}
-            onRenameTag={renameTag}
-            onUpdateTagColor={updateTagColor}
+          <TagsCard tags={tags} updateTags={updateTags} showNotification={showNotification} onDeleteTag={deleteTag} />
+          <LinksCard
+            links={links}
+            updateLinks={updateLinks}
+            onCreateLink={createLink}
+            onDeleteLink={deleteLink}
+            onUpdateLink={updateLink}
           />
-          <LinksCard links={links} onCreateLink={createLink} onDeleteLink={deleteLink} onUpdateLink={updateLink} />
-
-          <NotNowList todos={notNowTodos} onDropTodo={markTodoNotNow} onRestoreTodo={restoreTodoFromNotNow} />
-          <NotesPanel notes={notes} onNotesChange={updateNotes} />
+          <NotNowList todos={todos} updateTodo={updateTodo} />
+          <NotesCard notes={notes} setNotes={updateNotes} />
         </Box>
 
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
@@ -664,7 +583,7 @@ export default function App() {
             onSignOut={signOut}
           />
           <TodoCloud
-            activeTodos={activeTodos}
+            todos={todos}
             isLoadingTodos={isLoadingTodos}
             notTodayTodos={notTodayTodos}
             tags={tags}
@@ -673,15 +592,15 @@ export default function App() {
             onEditTodoText={editTodoText}
             onMarkTodoNotToday={markTodoNotToday}
             onResetTodoCount={resetTodoCount}
-            onRestoreTodo={restoreTodoFromNotNow}
             onToggleEndOfDayRepeat={toggleEndOfDayRepeat}
-            onMarkTodoNotNow={markTodoNotNow}
             onToggleTodo={toggleTodo}
+            updateTodo={updateTodo}
           />
         </Box>
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2, width: 250, minWidth: 250 }}>
           <DoneCard
             todos={doneTodos}
+            saveTodos={saveTodos}
             tags={tags}
             onAddTodoText={addTodoText}
             onAssignTodoTag={assignTodoTag}

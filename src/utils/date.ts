@@ -4,4 +4,11 @@ import dayjs from "dayjs";
 export function getLocalDateKey(date = new Date()) {
   return dayjs(date).format("YYYY-MM-DD");
 }
-s;
+
+// Calculates how long the app should wait before running midnight updates.
+export function getNextMidnightDelay() {
+  const now = dayjs();
+  const nextMidnight = now.add(1, "day").startOf("day");
+
+  return nextMidnight.diff(now);
+}

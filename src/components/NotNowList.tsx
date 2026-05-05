@@ -2,14 +2,16 @@ import type { DragEvent } from "react";
 import type { Todo } from "../types/todo";
 import { SectionCard } from "./Shared/SectionCard";
 import { Chip } from "@mui/joy";
+import { markTodoNotNow, markTodoNow } from "../utils/todos";
 
 type NotNowListProps = {
   todos: Todo[];
-  onDropTodo: (id: string) => void;
-  onRestoreTodo: (id: string) => void;
+  updateTodo: (todo: Todo) => void;
 };
 
-export function NotNowList({ todos, onDropTodo, onRestoreTodo }: NotNowListProps) {
+export function NotNowList({ todos, updateTodo }: NotNowListProps) {
+  const notNowTodos = todos.filter((todo) => !todo.done && todo.notNow);
+
   function handleDragOver(event: DragEvent<HTMLElement>) {
     event.preventDefault();
     event.dataTransfer.dropEffect = "move";
@@ -20,7 +22,10 @@ export function NotNowList({ todos, onDropTodo, onRestoreTodo }: NotNowListProps
 
     const todoId = event.dataTransfer.getData("text/plain");
     if (todoId) {
-      onDropTodo(todoId);
+      const newTodo = todos.find((x) => x.id === todoId);
+      if (!newTodo) return;
+
+      updateTodo(markTodoNotNow(newTodo));
     }
   }
 
@@ -29,14 +34,21 @@ export function NotNowList({ todos, onDropTodo, onRestoreTodo }: NotNowListProps
     event.dataTransfer.setData("text/plain", todoId);
   }
 
+  const handleClick = (id: string) => () => {
+    const newTodo = todos.find((x) => x.id === id);
+    if (!newTodo) return;
+
+    updateTodo(markTodoNow(newTodo));
+  };
+
   return (
     <SectionCard title="Not Now" onDragOver={handleDragOver} onDrop={handleDrop}>
-      {!todos.length && <p className="status">Drag cloud tasks here to hide them for now.</p>}
-      {todos.map((todo) => (
+      {!notNowTodos.length && <p className="status">Drag cloud tasks here to hide them for now.</p>}
+      {notNowTodos.map((todo) => (
         <Chip
           key={todo.id}
           draggable
-          onClick={() => onRestoreTodo(todo.id)}
+          onClick={handleClick(todo.id)}
           onDragStart={(event) => handleDragStart(event, todo.id)}
           size="sm"
         >

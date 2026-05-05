@@ -15,6 +15,7 @@ import {
 type UseTodoListPersistenceParams = {
   session: Session | null;
   todoListId: string | null;
+  todos: Todo[];
   tags: TodoTag[];
   links: CustomLink[];
   notes: string;
@@ -31,6 +32,7 @@ type UseTodoListPersistenceParams = {
 export function useTodoListPersistence({
   session,
   todoListId,
+  todos,
   tags,
   links,
   notes,
@@ -86,7 +88,12 @@ export function useTodoListPersistence({
         return;
       }
 
-      const createdItems = parseTodoListColumns(createdTodoList.items, createdTodoList.tags, createdTodoList.links, createdTodoList.notes);
+      const createdItems = parseTodoListColumns(
+        createdTodoList.items,
+        createdTodoList.tags,
+        createdTodoList.links,
+        createdTodoList.notes,
+      );
 
       setTodoListId(createdTodoList.id);
       applyTodoListItems(createdItems);
@@ -96,18 +103,22 @@ export function useTodoListPersistence({
   );
 
   const saveTodoList = useCallback(
-    async (nextTodos: Todo[], nextTags: TodoTag[], nextLinks: CustomLink[], nextNotes = notes) => {
+    async (newTodos: Todo[], newTags: TodoTag[], newLinks: CustomLink[], newNotes = notes) => {
       if (!supabase || !todoListId) return;
 
       setSaveError(null);
 
-      if (isEmptyTodoList(nextTodos, nextTags, nextLinks, nextNotes)) {
-        const { data, error } = await supabase.from("todo_lists").select("items, tags, links, notes").eq("id", todoListId).maybeSingle<{
-          items: unknown;
-          tags: unknown;
-          links: unknown;
-          notes: unknown;
-        }>();
+      if (isEmptyTodoList(newTodos, newTags, newLinks, newNotes)) {
+        const { data, error } = await supabase
+          .from("todo_lists")
+          .select("items, tags, links, notes")
+          .eq("id", todoListId)
+          .maybeSingle<{
+            items: unknown;
+            tags: unknown;
+            links: unknown;
+            notes: unknown;
+          }>();
 
         if (error) {
           setSaveError(error.message);
@@ -123,10 +134,10 @@ export function useTodoListPersistence({
       }
 
       const nextItems = {
-        todos: nextTodos,
-        tags: nextTags,
-        links: nextLinks,
-        notes: nextNotes,
+        todos: newTodos,
+        tags: newTags,
+        links: newLinks,
+        notes: newNotes,
       };
       const { error } = await updateTodoListItems(todoListId, nextItems);
 
@@ -140,15 +151,6 @@ export function useTodoListPersistence({
     },
     [notes, todoListId, session, setSaveError, showNotification],
   );
-
-  const saveTodos = useCallback(
-    async (nextTodos: Todo[]) => {
-      saveTodoList(nextTodos, tags, links);
-    },
-    [links, saveTodoList, tags],
-  );
-
-  return { loadTodoList, saveTodoList, saveTodos };
 
   function applyTodoListItems(items: TodoListItems) {
     setTodos(items.todos);
@@ -164,4 +166,34 @@ export function useTodoListPersistence({
     setNotes("");
     setTodoListId(null);
   }
+
+  const saveTodos = useCallback(
+    async (newTodos: Todo[]) => {
+      saveTodoList(newTodos, tags, links, notes);
+    },
+    [links, saveTodoList, tags, notes],
+  );
+
+  const saveTags = useCallback(
+    async (newTags: TodoTag[]) => {
+      await saveTodoList(todos, newTags, links, notes);
+    },
+    [links, notes, saveTodoList, todos],
+  );
+
+  const saveLinks = useCallback(
+    async (newLinks: CustomLink[]) => {
+      await saveTodoList(todos, tags, newLinks, notes);
+    },
+    [tags, notes, saveTodoList, todos],
+  );
+
+  const saveNotes = useCallback(
+    async (newNotes: string) => {
+      await saveTodoList(todos, tags, links, newNotes);
+    },
+    [tags, links, saveTodoList, todos],
+  );
+
+  return { loadTodoList, saveTodoList, saveTodos, saveTags, saveLinks, saveNotes };
 }

@@ -1,37 +1,22 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Todo, TodoTag } from "../../types/todo";
-import { formatDateKey, getDateInputValue, getTodoSize, isStaleTodo } from "../../utils/todos";
-import { AutoRepeatButton } from "../Shared/AutoRepeatButton";
-import { NotTodayButton } from "../Shared/NotTodayButton";
-import { TagPicker } from "../Shared/TagPicker";
-import { TodoDetails } from "../Shared/TodoDetails";
-import { Box, Card, IconButton, Popover, Tooltip } from "@mui/material";
-import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import type { Dayjs } from "dayjs";
-import dayjs from "dayjs";
+import { getDateInputValue, getTodoSize, isStaleTodo } from "../../utils/todos";
+import { Box, IconButton } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
-import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
-import { TASK_ACTION_HOVER_Z, TASK_ACTIONS_Z, TASK_Z } from "../../constants/ui";
+import { DEFAULT_TAG_COLOR, TASK_ACTION_HOVER_Z, TASK_ACTIONS_Z, TASK_Z } from "../../constants/ui";
+import { getTodoFontSize, getTodoPadding } from "../../utils/ui";
+import { TodoActions } from "./TodoActions";
 
 type Props = {
   todo: Todo;
-  editId: string | null;
   index: number;
   onToggleTodo: (id: string) => void;
   onAssignTodoTag: (id: string, tagId: string | null) => void;
+  onEditTodoText: (id: string, nextText: string) => boolean;
   onMarkTodoNotToday: (id: string) => void;
   onSetTodoDueDate: (id: string, dueDate: number | null) => void;
   onToggleEndOfDayRepeat: (id: string) => void;
   onResetTodoCount: (id: string) => void;
-  handleEdit: (todo: Todo) => void;
-  editInputRef: React.RefObject<HTMLInputElement | null> | null;
-  editText: string;
-  setEditText: (text: string) => void;
-  finishEditing: (todo: Todo) => void;
-  handleEditSubmit: (event: React.FormEvent<HTMLFormElement>, todo: Todo) => void;
-  handleEditKeyDown: (event: React.KeyboardEvent<HTMLInputElement>) => void;
   handleTodoDragStart: (event: React.DragEvent<HTMLElement>, todoId: string) => void;
   tags: TodoTag[];
 };
@@ -46,55 +31,74 @@ function getTomorrowDateInputValue() {
 
 export const TodoItem: React.FC<Props> = ({
   todo,
-  editId,
   index,
   onToggleTodo,
   onAssignTodoTag,
+  onEditTodoText,
   onMarkTodoNotToday,
   onSetTodoDueDate,
   onToggleEndOfDayRepeat,
   onResetTodoCount,
-  handleEdit,
-  editInputRef,
-  editText,
-  setEditText,
-  finishEditing,
-  handleEditSubmit,
-  handleEditKeyDown,
   handleTodoDragStart,
   tags,
 }) => {
   const { id, text } = todo;
 
-  const isEdit = editId === id;
   const isStale = isStaleTodo(todo.lastAddedDate);
   const selectedTag = tags.find((tag) => tag.id === todo.tagId);
-  const { color = "#e2e2e2" } = selectedTag || {};
+  const { color = DEFAULT_TAG_COLOR } = selectedTag || {};
 
+  const [isEdit, setIsEdit] = useState(false);
+  const [editText, setEditText] = useState("");
   const [hovered, setHovered] = useState(false);
   const [actionsFocused, setActionsFocused] = useState(false);
-  const [calendarAnchorElement, setCalendarAnchorElement] = useState<HTMLElement | null>(null);
+  const editInputRef = useRef<HTMLInputElement>(null);
   const showActions = (hovered || actionsFocused) && !isEdit;
   const isDayBeforeDueDate = getDateInputValue(todo.dueDate) === getTomorrowDateInputValue();
-  const isCalendarOpen = Boolean(calendarAnchorElement);
-  const dueDateTooltip = todo.dueDate ? `Due ${formatDateKey(todo.dueDate)}` : "Set due date";
 
   const size = getTodoSize(todo.count);
 
-  const getFontSize = () => {
-    if (size === 5) return "2rem";
-    if (size === 4) return "1.5rem";
-    if (size === 3) return "1.25rem";
-    if (size === 2) return "1rem";
-    return "0.8rem";
-  };
-  const getPadding = () => {
-    if (size === 5) return "16px 16px";
-    if (size === 4) return "14px 14px";
-    if (size === 3) return "12px 12px";
-    if (size === 2) return "9px 9px";
-    return "5px 9px";
-  };
+  useEffect(() => {
+    if (!isEdit) return;
+
+    editInputRef.current?.focus();
+    editInputRef.current?.select();
+  }, [isEdit]);
+
+  function handleEdit() {
+    setIsEdit(true);
+    setEditText(todo.text);
+  }
+
+  function cancelEditing() {
+    setIsEdit(false);
+    setEditText("");
+  }
+
+  function finishEditing() {
+    const trimmedText = editText.trim().replace(/\s+/g, " ");
+
+    if (!trimmedText || trimmedText === todo.text) {
+      cancelEditing();
+      return;
+    }
+
+    if (onEditTodoText(todo.id, trimmedText)) {
+      cancelEditing();
+    }
+  }
+
+  function handleEditSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    finishEditing();
+  }
+
+  function handleEditKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      cancelEditing();
+    }
+  }
 
   function handleDragStart(event: React.DragEvent<HTMLElement>) {
     const target = event.target;
@@ -105,11 +109,6 @@ export const TodoItem: React.FC<Props> = ({
     }
 
     handleTodoDragStart(event, todo.id);
-  }
-
-  function handleDueDateChange(date: Dayjs | null) {
-    onSetTodoDueDate(todo.id, date ? date.startOf("day").valueOf() : null);
-    setCalendarAnchorElement(null);
   }
 
   return (
@@ -128,8 +127,8 @@ export const TodoItem: React.FC<Props> = ({
         borderRadius: 999,
         paddingLeft: 2,
         paddingRight: 2,
-        fontSize: getFontSize(),
-        padding: getPadding(),
+        fontSize: getTodoFontSize(size),
+        padding: getTodoPadding(size),
         cursor: !isEdit ? "grab" : "text",
         minWidth: 120,
         justifyContent: "center",
@@ -158,7 +157,7 @@ export const TodoItem: React.FC<Props> = ({
           onClick={(event) => {
             event.preventDefault();
             event.stopPropagation();
-            handleEdit(todo);
+            handleEdit();
           }}
           sx={{
             position: "absolute",
@@ -182,11 +181,11 @@ export const TodoItem: React.FC<Props> = ({
         {text}
       </Box>
       {isEdit && (
-        <form className="todo-editor" onSubmit={(event) => handleEditSubmit(event, todo)}>
+        <form className="todo-editor" onSubmit={handleEditSubmit}>
           <input
             ref={editInputRef}
             value={editText}
-            onBlur={() => finishEditing(todo)}
+            onBlur={finishEditing}
             onChange={(event) => setEditText(event.target.value)}
             onKeyDown={handleEditKeyDown}
           />
@@ -199,66 +198,17 @@ export const TodoItem: React.FC<Props> = ({
         </span>
       )}
       {showActions && (
-        <Card
-          onFocusCapture={() => setActionsFocused(true)}
-          onBlurCapture={(event) => {
-            const nextFocusedElement = event.relatedTarget;
-
-            if (!(nextFocusedElement instanceof Node) || !event.currentTarget.contains(nextFocusedElement)) {
-              setActionsFocused(false);
-            }
-          }}
-          sx={{
-            display: "flex",
-            flexDirection: "row",
-            position: "absolute",
-            bottom: -10,
-            left: "50%",
-            transform: "translateX(-50%)",
-            zIndex: TASK_ACTIONS_Z,
-            padding: 0,
-            opacity: 0.9,
-          }}
-        >
-          <TagPicker selectedTagId={todo.tagId} tags={tags} onAssignTag={(tagId) => onAssignTodoTag(id, tagId)} />
-          <Tooltip title={dueDateTooltip}>
-            <IconButton
-              aria-label="Set due date"
-              color={todo.dueDate ? "warning" : "default"}
-              onClick={(event) => {
-                event.preventDefault();
-                event.stopPropagation();
-                setActionsFocused(true);
-                setCalendarAnchorElement(event.currentTarget);
-              }}
-              onPointerDown={(event) => event.stopPropagation()}
-              size="small"
-              sx={{
-                bgcolor: todo.dueDate ? "warning.light" : undefined,
-                "&:hover": {
-                  bgcolor: todo.dueDate ? "warning.main" : undefined,
-                },
-              }}
-            >
-              <CalendarMonthIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-          <Popover
-            open={isCalendarOpen}
-            anchorEl={calendarAnchorElement}
-            onClose={() => setCalendarAnchorElement(null)}
-            anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-            transformOrigin={{ vertical: "top", horizontal: "center" }}
-          >
-            <LocalizationProvider dateAdapter={AdapterDayjs}>
-              <DateCalendar value={todo.dueDate ? dayjs(todo.dueDate) : null} onChange={handleDueDateChange} />
-            </LocalizationProvider>
-          </Popover>
-          {/* <NotNowButton onClick={() => onMarkTodoNotNow(todo.id)} /> */}
-          {!isDayBeforeDueDate && <NotTodayButton onClick={() => onMarkTodoNotToday(todo.id)} />}
-          <AutoRepeatButton checked={todo.repeatAtEndOfDay} onClick={() => onToggleEndOfDayRepeat(todo.id)} />
-          <TodoDetails todo={todo} onReset={onResetTodoCount} />
-        </Card>
+        <TodoActions
+          todo={todo}
+          tags={tags}
+          isDayBeforeDueDate={isDayBeforeDueDate}
+          onAssignTodoTag={onAssignTodoTag}
+          onMarkTodoNotToday={onMarkTodoNotToday}
+          onResetTodoCount={onResetTodoCount}
+          onSetActionsFocused={setActionsFocused}
+          onSetTodoDueDate={onSetTodoDueDate}
+          onToggleEndOfDayRepeat={onToggleEndOfDayRepeat}
+        />
       )}
     </Box>
   );

@@ -1,87 +1,41 @@
-import { type DragEvent, type FormEvent, type KeyboardEvent, useEffect, useRef, useState } from "react";
+import type { DragEvent } from "react";
 import type { Todo, TodoTag } from "../../types/todo";
 import { NotTodayList } from "./NotTodayList";
 import { TodoItem } from "./TodoItem";
 import { Box, Card } from "@mui/joy";
 import { LoadingComponent } from "../Layout/LoadingComponent";
+import { markTodoNow } from "../../utils/todos";
 
 type TodoCloudProps = {
-  activeTodos: Todo[];
+  todos: Todo[];
   isLoadingTodos: boolean;
   notTodayTodos: Todo[];
   tags: TodoTag[];
   onAssignTodoTag: (id: string, tagId: string | null) => void;
   onEditTodoText: (id: string, nextText: string) => boolean;
   onMarkTodoNotToday: (id: string) => void;
-  onMarkTodoNotNow: (id: string) => void;
   onResetTodoCount: (id: string) => void;
-  onRestoreTodo: (id: string) => void;
   onSetTodoDueDate: (id: string, dueDate: number | null) => void;
   onToggleEndOfDayRepeat: (id: string) => void;
   onToggleTodo: (id: string) => void;
+  updateTodo: (todo: Todo) => void;
 };
 
 export function TodoCloud({
-  activeTodos,
+  todos,
   isLoadingTodos,
   notTodayTodos,
   tags,
   onAssignTodoTag,
   onEditTodoText,
   onMarkTodoNotToday,
-  // onMarkTodoNotNow,
   onResetTodoCount,
-  onRestoreTodo,
   onSetTodoDueDate,
   onToggleEndOfDayRepeat,
   onToggleTodo,
+  updateTodo,
 }: TodoCloudProps) {
-  const [editId, setEditId] = useState<string | null>(null);
-  const [editText, setEditText] = useState("");
-  const editInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (!editId) return;
-
-    editInputRef.current?.focus();
-    editInputRef.current?.select();
-  }, [editId]);
-
-  const handleEdit = (todo: Todo) => {
-    setEditId(todo.id);
-    setEditText(todo.text);
-  };
-
-  function cancelEditing() {
-    setEditId(null);
-    setEditText("");
-  }
-
-  function finishEditing(todo: Todo) {
-    const trimmedText = editText.trim().replace(/\s+/g, " ");
-
-    if (!trimmedText || trimmedText === todo.text) {
-      cancelEditing();
-      return;
-    }
-
-    if (onEditTodoText(todo.id, trimmedText)) {
-      cancelEditing();
-    }
-  }
-
-  function handleEditSubmit(event: FormEvent<HTMLFormElement>, todo: Todo) {
-    event.preventDefault();
-    finishEditing(todo);
-  }
-
-  function handleEditKeyDown(event: KeyboardEvent<HTMLInputElement>) {
-    if (event.key === "Escape") {
-      event.preventDefault();
-      cancelEditing();
-    }
-  }
-
+  const activeTodos = todos.filter((todo) => !todo.done && !todo.notNow && !todo.notToday);
   function handleTodoDragStart(event: DragEvent<HTMLElement>, todoId: string) {
     event.dataTransfer.effectAllowed = "move";
     event.dataTransfer.setData("text/plain", todoId);
@@ -97,14 +51,16 @@ export function TodoCloud({
 
     const todoId = event.dataTransfer.getData("text/plain");
     if (todoId) {
-      onRestoreTodo(todoId);
+      const newTodo = todos.find((x) => x.id === todoId);
+      if (!newTodo) return;
+      updateTodo(markTodoNow(newTodo));
     }
   }
 
   return (
     <Card sx={{ flex: 1, position: "relative" }}>
       <LoadingComponent loading={isLoadingTodos} />
-      {!isLoadingTodos && notTodayTodos.length > 0 && <NotTodayList todos={notTodayTodos} onClick={onRestoreTodo} />}
+      {!isLoadingTodos && notTodayTodos.length > 0 && <NotTodayList todos={notTodayTodos} updateTodo={updateTodo} />}
       <Box
         sx={{
           display: "flex",
@@ -125,21 +81,14 @@ export function TodoCloud({
           <TodoItem
             key={todo.id}
             todo={todo}
-            editId={editId}
             index={index}
             onToggleTodo={onToggleTodo}
             onAssignTodoTag={onAssignTodoTag}
+            onEditTodoText={onEditTodoText}
             onMarkTodoNotToday={onMarkTodoNotToday}
             onSetTodoDueDate={onSetTodoDueDate}
             onToggleEndOfDayRepeat={onToggleEndOfDayRepeat}
             onResetTodoCount={onResetTodoCount}
-            handleEdit={handleEdit}
-            editInputRef={editInputRef}
-            editText={editText}
-            setEditText={setEditText}
-            finishEditing={finishEditing}
-            handleEditSubmit={handleEditSubmit}
-            handleEditKeyDown={handleEditKeyDown}
             handleTodoDragStart={handleTodoDragStart}
             tags={tags}
           />

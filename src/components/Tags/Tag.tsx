@@ -6,19 +6,12 @@ import { TAG_Z } from "../../constants/ui";
 
 type Props = {
   tag: TodoTag;
+  updateTag: (tag: TodoTag) => void;
   onDelete: (id: string) => void;
-  onRename: (id: string, name: string) => boolean;
-  onUpdateColor: (id: string, color: string) => void;
   usedColors: Set<string>;
 };
-export const Tag: React.FC<Props> = ({
-  tag,
-  onDelete,
-  onRename,
-  onUpdateColor,
-  usedColors,
-}) => {
-  const { id, name, color } = tag;
+export const Tag: React.FC<Props> = ({ tag, updateTag, onDelete, usedColors }) => {
+  const { name, color } = tag;
   const [edit, setEdit] = useState(false);
   const [editName, setEditName] = useState(name);
   const [showColors, setShowColors] = useState(false);
@@ -56,9 +49,8 @@ export const Tag: React.FC<Props> = ({
   };
 
   const handleEdit = () => {
-    if (onRename(id, editName)) {
-      setEdit(false);
-    }
+    updateTag({ ...tag, name: editName });
+    setEdit(false);
   };
 
   const handleEditKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
@@ -76,21 +68,17 @@ export const Tag: React.FC<Props> = ({
   };
 
   const handleColorClick = () => {
-    setShowColors((current) => !current);
+    setShowColors((prev) => !prev);
   };
 
-  const handleColorSelect = (nextColor: string) => {
-    onUpdateColor(id, nextColor);
+  const handleColorSelect = (newColor: string) => {
+    updateTag({ ...tag, color: newColor });
     setShowColors(false);
   };
 
   return (
     <Box ref={tagRef} display="inline-flex" position="relative">
-      <Chip
-        size="sm"
-        sx={{ color }}
-        endDecorator={<ChipDelete onClick={() => onDelete(tag.id)} />}
-      >
+      <Chip size="sm" sx={{ color }} endDecorator={<ChipDelete onClick={() => onDelete(tag.id)} />}>
         <Box display="flex">
           {edit ? (
             <Input
@@ -139,11 +127,7 @@ export const Tag: React.FC<Props> = ({
             boxShadow: "lg",
           }}
         >
-          <ColorPicker
-            selectedColor={color}
-            usedColors={usedColors}
-            onClick={handleColorSelect}
-          />
+          <ColorPicker selectedColor={color} usedColors={usedColors} onClick={handleColorSelect} />
         </Box>
       ) : null}
     </Box>

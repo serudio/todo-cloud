@@ -4,6 +4,7 @@ import type { Todo, TodoTag } from "../../types/todo";
 import { AutoRepeatButton } from "../Shared/AutoRepeatButton";
 import ClearIcon from "@mui/icons-material/Clear";
 import { TodoDetails } from "../Shared/TodoDetails";
+import { DEFAULT_TAG_COLOR } from "../../constants/ui";
 
 type Props = {
   item: Todo;
@@ -26,7 +27,7 @@ export const DoneItem: React.FC<Props> = ({
 }) => {
   const { id, text, tagId } = item;
   const tag = tags.find((t) => t.id === tagId);
-  const color = tag?.color;
+  const color = tag?.color ?? DEFAULT_TAG_COLOR;
   return (
     <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 0.5 }}>
       <TagPicker selectedTagId={tagId} tags={tags} onAssignTag={(tagId) => assignTodoTag(id, tagId)} />
@@ -35,7 +36,14 @@ export const DoneItem: React.FC<Props> = ({
         <Chip
           label={text}
           onClick={() => onAddTodoText(text)}
-          sx={{ color, flex: 1, maxWidth: "none", minWidth: 0, justifyContent: "flex-start", ".MuiChip-label": { padding: "0 4px" } }}
+          sx={{
+            color,
+            flex: 1,
+            maxWidth: "none",
+            minWidth: 0,
+            justifyContent: "flex-start",
+            ".MuiChip-label": { padding: "0 4px" },
+          }}
           variant="filled"
         />
       </Tooltip>
