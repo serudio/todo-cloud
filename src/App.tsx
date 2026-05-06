@@ -1,5 +1,4 @@
-import { type FormEvent, useCallback, useEffect, useRef, useState } from "react";
-import type { Session } from "@supabase/supabase-js";
+import { type FormEvent, useEffect } from "react";
 import { SetupRequired } from "./components/AppState/SetupRequired";
 import { AuthCard } from "./components/AuthCard";
 import { DeletedCard } from "./components/DeletedCard/DeletedCard";
@@ -10,20 +9,17 @@ import { NotNowList } from "./components/NotNowList.tsx";
 import { TagsCard } from "./components/Tags/TagsCard";
 import { TodoCloud } from "./components/TodoCloud/TodoCloud";
 import { isSupabaseConfigured, supabase } from "./supabase";
-import type { CustomLink, Todo, TodoTag } from "./types/todo";
 import { getTodosWithDailyUpdates, normalizeTodoText } from "./utils/todos";
 import { Box } from "@mui/material";
 import { Header } from "./components/Layout";
 import { AddTask } from "./components/TodoCloud/AddTask.tsx";
 import { LoadingComponent } from "./components/Layout/LoadingComponent.tsx";
 import { useAppInit } from "./hooks/app.ts";
-import { useTodoListPersistence } from "./hooks/useTodoListPersistence";
 import { NotificationsToast } from "./components/Layout/NotificationAlert";
 import { getLocalDateKey, getNextMidnightDelay } from "./utils/date.ts";
 import {
   clearDeletedTodos,
   createDeletedTodo,
-  type DeletedTodo,
   readDeletedTodos,
   restoreDeletedTodo,
   saveDeletedTodos,
@@ -31,50 +27,50 @@ import {
 import { moveItemToFront } from "./utils/arrays";
 
 export default function App() {
-  const [session, setSession] = useState<Session | null>(null);
-  const [isLoadingSession, setIsLoadingSession] = useState(true);
-  const [isLoadingTodos, setIsLoadingTodos] = useState(false);
-  const [saveError, setSaveError] = useState<string | null>(null);
-  const [todoListId, setTodoListId] = useState<string | null>(null);
-  const todosRef = useRef<Todo[]>([]);
-  const sessionUserIdRef = useRef<string | null>(null);
-  const [text, setText] = useState("");
-  const [deletedTodos, setDeletedTodos] = useState<DeletedTodo[]>([]);
-
   // todo: combine useAppInit and useTodoListPersistence into a single hook
   const {
+    session,
+    setSession,
+    setIsLoadingSession,
+    isLoadingSession,
+    sessionUserIdRef,
+
+    saveError,
+
+    todoListId,
+    loadTodoList,
+    saveTodoList,
+
     todos,
     setTodos,
+    doneTodos,
+    deletedTodos,
+    setDeletedTodos,
+    updateTodos,
+    updateTodo,
+    resetTodoList,
+    isLoadingTodos,
+    text,
+    setText,
+    todosRef,
+
+    saveTodos,
+
     tags,
     setTags,
     links,
-    setLinks,
     notes,
-    setNotes,
-    doneTodos,
+
+    updateTags,
+    updateLinks,
+    updateNotes,
+
     notification,
     setNotification,
     closeNotification,
   } = useAppInit();
 
   const notTodayTodos = todos.filter((todo) => !todo.done && !todo.notNow && todo.notToday);
-  const { loadTodoList, saveTodoList, saveTodos, saveTags, saveLinks, saveNotes, resetTodoList } =
-    useTodoListPersistence({
-      session,
-      todoListId,
-      todos,
-      tags,
-      links,
-      notes,
-      setTodos,
-      setTags,
-      setLinks,
-      setNotes,
-      setTodoListId,
-      setIsLoadingTodos,
-      setSaveError,
-      setNotification,
-    });
 
   // Moves a todo out of the saved list and into the local deleted history.
   function deleteTodo(id: string) {
@@ -86,9 +82,9 @@ export default function App() {
     const nextTodos = todos.filter((todo) => todo.id !== id);
     const nextDeletedTodos = [createDeletedTodo(deletedTodo), ...deletedTodos.filter((todo) => todo.id !== id)];
 
-    setTodos(nextTodos);
+    updateTodos(nextTodos);
     setDeletedTodos(nextDeletedTodos);
-    saveTodos(nextTodos);
+
     saveDeletedTodos(session.user.id, nextDeletedTodos);
   }
 
@@ -233,14 +229,6 @@ export default function App() {
     addTodoText(text);
   }
 
-  // Removes a custom link from the saved list.
-  function deleteLink(id: string) {
-    const nextLinks = links.filter((link) => link.id !== id);
-
-    setLinks(nextLinks);
-    saveTodoList(todos, tags, nextLinks);
-  }
-
   // Manually reloads the current user's todo list from Supabase.
   function refreshTodoList() {
     if (!session) return;
@@ -280,23 +268,6 @@ export default function App() {
     saveDeletedTodos(session.user.id, nextDeletedTodos);
   }
 
-  // const updateTodos = useCallback(
-  //   async (newTodos: Todo[]) => {
-  //     setTodos(newTodos);
-  //     await saveTodos(newTodos);
-  //   },
-  //   [todos, setTodos, saveTodos],
-  // );
-
-  const updateTodo = useCallback(
-    async (newTodo: Todo) => {
-      const newTodos = todos.map((todo) => (todo.id === newTodo.id ? newTodo : todo));
-      setTodos(newTodos);
-      await saveTodos(newTodos);
-    },
-    [todos, setTodos, saveTodos],
-  );
-
   // Deletes a tag and removes that tag assignment from all todos.
   function deleteTag(id: string) {
     const nextTags = tags.filter((tag) => tag.id !== id);
@@ -304,32 +275,8 @@ export default function App() {
 
     setTags(nextTags);
     setTodos(nextTodos);
-    saveTodoList(nextTodos, nextTags, links);
+    saveTodoList(nextTodos, nextTags, links, notes);
   }
-
-  const updateTags = useCallback(
-    async (tags: TodoTag[]) => {
-      setTags(tags);
-      await saveTags(tags);
-    },
-    [saveTags, setTags],
-  );
-
-  const updateLinks = useCallback(
-    async (links: CustomLink[]) => {
-      setLinks(links);
-      await saveLinks(links);
-    },
-    [saveLinks, setLinks],
-  );
-
-  const updateNotes = useCallback(
-    async (notes: string) => {
-      setNotes(notes);
-      await saveNotes(notes);
-    },
-    [saveNotes, setNotes],
-  );
 
   if (!isSupabaseConfigured) return <SetupRequired />;
   if (!session) return <AuthCard />;
@@ -371,12 +318,7 @@ export default function App() {
           }}
         >
           <TagsCard tags={tags} updateTags={updateTags} setNotification={setNotification} onDeleteTag={deleteTag} />
-          <LinksCard
-            links={links}
-            updateLinks={updateLinks}
-            onDeleteLink={deleteLink}
-            setNotification={setNotification}
-          />
+          <LinksCard links={links} updateLinks={updateLinks} setNotification={setNotification} />
           <NotNowList todos={todos} updateTodo={updateTodo} />
           <NotesCard notes={notes} setNotes={updateNotes} />
         </Box>

@@ -9,15 +9,14 @@ import { normalizeCustomLinkUrl } from "../../utils/todos";
 type LinksPanelProps = {
   links: CustomLink[];
   updateLinks: (links: CustomLink[]) => void;
-  onDeleteLink: (id: string) => void;
   setNotification: (message: string) => void;
 };
 
-export function LinksCard({ links, updateLinks, onDeleteLink, setNotification }: LinksPanelProps) {
+export function LinksCard({ links, updateLinks, setNotification }: LinksPanelProps) {
   const [showForm, setShowForm] = useState(false);
 
   function handleLinkSubmit(name: string, url: string) {
-    const trimmedName = name.trim().replace(/\s+/g, " ");
+    const trimmedName = name.trim().replace(/\s+/g, " "); // todo normalize
     const normalizedUrl = normalizeCustomLinkUrl(url);
     if (!trimmedName || !normalizedUrl) return;
 
@@ -42,6 +41,11 @@ export function LinksCard({ links, updateLinks, onDeleteLink, setNotification }:
     [updateLinks],
   );
 
+  const handleDelete = (id: string) => () => {
+    const newLinks = links.filter((link) => link.id !== id);
+    updateLinks(newLinks);
+  };
+
   return (
     <SectionCard title="Links" onActionButtonClick={() => setShowForm((isOpen) => !isOpen)}>
       {/* //todo */}
@@ -49,7 +53,7 @@ export function LinksCard({ links, updateLinks, onDeleteLink, setNotification }:
       {links.length === 0 && <p>Add quick links you use often.</p>}
       <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
         {links.map((link) => (
-          <LinkItem key={link.id} link={link} updateLink={updateLink} onDelete={onDeleteLink} />
+          <LinkItem key={link.id} link={link} updateLink={updateLink} onDelete={handleDelete(link.id)} />
         ))}
       </Box>
     </SectionCard>
