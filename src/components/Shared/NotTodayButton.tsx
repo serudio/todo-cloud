@@ -6,7 +6,12 @@ type Props = {
 
 export function NotTodayButton({ onClick }: Props) {
   return (
-    <Button onClick={onClick} size="small" variant="outlined" color="inherit" sx={{ p: 0, minHeight: 22, minWidth: 0 }}>
+    <Button
+      onClick={onClick}
+      size="small"
+      variant="text"
+      sx={{ p: 0, minHeight: 22, minWidth: 0, fontWeight: 700, textTransform: "lowercase" }}
+    >
       <s>today</s>
     </Button>
   );

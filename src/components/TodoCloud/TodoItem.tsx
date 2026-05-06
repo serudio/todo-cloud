@@ -182,15 +182,15 @@ export const TodoItem: React.FC<Props> = ({ todo, updateTodo, index, onEditTodoT
           STALE
         </span>
       )}
-      {showActions && (
-        <TodoActions
-          todo={todo}
-          tags={tags}
-          updateTodo={updateTodo}
-          isDayBeforeDueDate={isDayBeforeDueDate}
-          onSetActionsFocused={setActionsFocused}
-        />
-      )}
+      {/* {showActions && ( */}
+      <TodoActions
+        todo={todo}
+        tags={tags}
+        updateTodo={updateTodo}
+        isDayBeforeDueDate={isDayBeforeDueDate}
+        onSetActionsFocused={setActionsFocused}
+      />
+      {/* )} */}
     </Box>
   );
 };

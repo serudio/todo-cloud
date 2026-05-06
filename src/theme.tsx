@@ -30,6 +30,9 @@ export function AppThemeProvider({ children }: { children: React.ReactNode }) {
       createTheme({
         palette: {
           mode: resolvedMode,
+          primary: {
+            main: resolvedMode === "light" ? "#252525" : "#f5f5f5",
+          },
         },
       }),
     [resolvedMode],
