@@ -269,3 +269,71 @@ function getLatestDate(firstDate: string | null, secondDate: string | null) {
 export function getTodoSize(count: number) {
   return Math.min(5, Math.max(1, count));
 }
+
+// Applies one daily repeat to todos marked for end-of-day auto-add.
+function getTodosWithEndOfDayRepeats(currentTodos: Todo[]) {
+  const today = getLocalDateKey();
+  let hasChanges = false;
+
+  const nextTodos = currentTodos.map((todo) => {
+    if (!todo.repeatAtEndOfDay) return todo;
+
+    if (!todo.lastAutoAddedDate) {
+      hasChanges = true;
+      return { ...todo, lastAutoAddedDate: today };
+    }
+
+    if (todo.lastAutoAddedDate >= today) return todo;
+
+    hasChanges = true;
+    return {
+      ...todo,
+      done: false,
+      doneAt: null,
+      notNow: false,
+      notToday: false,
+      notTodayDate: null,
+      count: todo.count + 1,
+      lastAddedDate: today,
+      lastAutoAddedDate: today,
+    };
+  });
+
+  return hasChanges ? nextTodos : null;
+}
+
+// Moves "not today" todos back into the cloud after their saved day passes.
+function getTodosWithExpiredNotTodayCleared(currentTodos: Todo[]) {
+  const today = getLocalDateKey();
+  let hasChanges = false;
+
+  const nextTodos = currentTodos.map((todo) => {
+    if (!todo.notToday || todo.notTodayDate === today) return todo;
+
+    hasChanges = true;
+    if (!todo.notTodayDate) {
+      return {
+        ...todo,
+        notTodayDate: today,
+      };
+    }
+
+    return {
+      ...todo,
+      notToday: false,
+      notTodayDate: null,
+    };
+  });
+
+  return hasChanges ? nextTodos : null;
+}
+
+// Combines all midnight-driven todo changes into one update pass.
+export function getTodosWithDailyUpdates(currentTodos: Todo[]) {
+  const todosWithoutExpiredNotToday = getTodosWithExpiredNotTodayCleared(currentTodos) ?? currentTodos;
+
+  return (
+    getTodosWithEndOfDayRepeats(todosWithoutExpiredNotToday) ??
+    (todosWithoutExpiredNotToday === currentTodos ? null : todosWithoutExpiredNotToday)
+  );
+}

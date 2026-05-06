@@ -11,7 +11,7 @@ import { TagsCard } from "./components/Tags/TagsCard";
 import { TodoCloud } from "./components/TodoCloud/TodoCloud";
 import { isSupabaseConfigured, supabase } from "./supabase";
 import type { CustomLink, Todo, TodoTag } from "./types/todo";
-import { normalizeTodoText } from "./utils/todos";
+import { getTodosWithDailyUpdates, normalizeTodoText } from "./utils/todos";
 import { Box } from "@mui/material";
 import { Header } from "./components/Layout";
 import { AddTask } from "./components/TodoCloud/AddTask.tsx";
@@ -30,75 +30,6 @@ import {
 } from "./utils/deletedTodos";
 import { moveItemToFront } from "./utils/arrays";
 
-// Applies one daily repeat to todos marked for end-of-day auto-add.
-function getTodosWithEndOfDayRepeats(currentTodos: Todo[]) {
-  const today = getLocalDateKey();
-  let hasChanges = false;
-
-  const nextTodos = currentTodos.map((todo) => {
-    if (!todo.repeatAtEndOfDay) return todo;
-
-    if (!todo.lastAutoAddedDate) {
-      hasChanges = true;
-      return { ...todo, lastAutoAddedDate: today };
-    }
-
-    if (todo.lastAutoAddedDate >= today) return todo;
-
-    hasChanges = true;
-    return {
-      ...todo,
-      done: false,
-      doneAt: null,
-      notNow: false,
-      notToday: false,
-      notTodayDate: null,
-      count: todo.count + 1,
-      lastAddedDate: today,
-      lastAutoAddedDate: today,
-    };
-  });
-
-  return hasChanges ? nextTodos : null;
-}
-
-// Moves "not today" todos back into the cloud after their saved day passes.
-function getTodosWithExpiredNotTodayCleared(currentTodos: Todo[]) {
-  const today = getLocalDateKey();
-  let hasChanges = false;
-
-  const nextTodos = currentTodos.map((todo) => {
-    if (!todo.notToday || todo.notTodayDate === today) return todo;
-
-    hasChanges = true;
-    if (!todo.notTodayDate) {
-      return {
-        ...todo,
-        notTodayDate: today,
-      };
-    }
-
-    return {
-      ...todo,
-      notToday: false,
-      notTodayDate: null,
-    };
-  });
-
-  return hasChanges ? nextTodos : null;
-}
-
-// Combines all midnight-driven todo changes into one update pass.
-function getTodosWithDailyUpdates(currentTodos: Todo[]) {
-  const todosWithoutExpiredNotToday = getTodosWithExpiredNotTodayCleared(currentTodos) ?? currentTodos;
-
-  return (
-    getTodosWithEndOfDayRepeats(todosWithoutExpiredNotToday) ??
-    (todosWithoutExpiredNotToday === currentTodos ? null : todosWithoutExpiredNotToday)
-  );
-}
-
-// Owns the authenticated todo app state and wires persistence to the UI.
 export default function App() {
   const [session, setSession] = useState<Session | null>(null);
   const [isLoadingSession, setIsLoadingSession] = useState(true);

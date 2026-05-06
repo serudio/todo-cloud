@@ -1,4 +1,5 @@
 import type { Todo } from "../types/todo";
+import { removeLocalStorageItem, setLocalStorageItem } from "./storage";
 
 const DELETED_TODOS_KEY_PREFIX = "todo-cloud:deleted-todos:";
 
@@ -14,11 +15,11 @@ export function readDeletedTodos(userId: string) {
 }
 
 export function saveDeletedTodos(userId: string, deletedTodos: DeletedTodo[]) {
-  window.localStorage.setItem(getDeletedTodosKey(userId), JSON.stringify(deletedTodos));
+  setLocalStorageItem(getDeletedTodosKey(userId), JSON.stringify(deletedTodos));
 }
 
 export function clearDeletedTodos(userId: string) {
-  window.localStorage.removeItem(getDeletedTodosKey(userId));
+  removeLocalStorageItem(getDeletedTodosKey(userId));
 }
 
 export function createDeletedTodo(todo: Todo): DeletedTodo {
