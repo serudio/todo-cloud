@@ -189,6 +189,16 @@ export function getDateInputValue(dateValue: string | number | null) {
   return date.isValid() ? date.format("YYYY-MM-DD") : "";
 }
 
+export function shouldHighlightDueDate(dueDate: string | number | null) {
+  const dueDateInputValue = getDateInputValue(dueDate);
+  if (!dueDateInputValue) return false;
+
+  const today = dayjs().startOf("day");
+  const highlightFrom = dayjs(dueDateInputValue).subtract(1, "day").startOf("day");
+
+  return !today.isBefore(highlightFrom, "day");
+}
+
 export function getStartOfDayTimestamp(dateKey: string) {
   const [year, month, day] = dateKey.split("-").map(Number);
   return new Date(year, month - 1, day, 0, 0, 0, 0).getTime();

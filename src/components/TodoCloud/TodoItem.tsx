@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Todo, TodoTag } from "../../types/todo";
-import { getDateInputValue, getTodoSize, isStaleTodo, markTodoDone } from "../../utils/todos";
+import { getTodoSize, isStaleTodo, markTodoDone, shouldHighlightDueDate } from "../../utils/todos";
 import { Box, IconButton } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import { DEFAULT_TAG_COLOR, TASK_ACTION_HOVER_Z, TASK_ACTIONS_Z, TASK_Z } from "../../constants/ui";
@@ -16,14 +16,6 @@ type Props = {
   tags: TodoTag[];
 };
 
-function getTomorrowDateInputValue() {
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  tomorrow.setHours(0, 0, 0, 0);
-
-  return getDateInputValue(tomorrow.getTime());
-}
-
 export const TodoItem: React.FC<Props> = ({ todo, updateTodo, index, onEditTodoText, handleTodoDragStart, tags }) => {
   const { text } = todo;
 
@@ -37,7 +29,7 @@ export const TodoItem: React.FC<Props> = ({ todo, updateTodo, index, onEditTodoT
   const [actionsFocused, setActionsFocused] = useState(false);
   const editInputRef = useRef<HTMLInputElement>(null);
   const showActions = (hovered || actionsFocused) && !isEdit;
-  const isDayBeforeDueDate = getDateInputValue(todo.dueDate) === getTomorrowDateInputValue();
+  const shouldHighlightDue = shouldHighlightDueDate(todo.dueDate);
 
   const size = getTodoSize(todo.count);
 
@@ -115,6 +107,7 @@ export const TodoItem: React.FC<Props> = ({ todo, updateTodo, index, onEditTodoT
         transform: `rotate(calc((${index % 5} - 2) * 2deg))`,
         color: "#000",
         background: color,
+        maxWidth: 300,
         borderRadius: 999,
         paddingLeft: 2,
         paddingRight: 2,
@@ -125,7 +118,7 @@ export const TodoItem: React.FC<Props> = ({ todo, updateTodo, index, onEditTodoT
         justifyContent: "center",
         zIndex: showActions ? TASK_ACTION_HOVER_Z : TASK_Z,
         scale: showActions ? 1.03 : 1,
-        ...(isDayBeforeDueDate && {
+        ...(shouldHighlightDue && {
           outline: "2px solid",
           outlineColor: "warning.main",
           outlineOffset: 3,
@@ -182,15 +175,15 @@ export const TodoItem: React.FC<Props> = ({ todo, updateTodo, index, onEditTodoT
           STALE
         </span>
       )}
-      {/* {showActions && ( */}
-      <TodoActions
-        todo={todo}
-        tags={tags}
-        updateTodo={updateTodo}
-        isDayBeforeDueDate={isDayBeforeDueDate}
-        onSetActionsFocused={setActionsFocused}
-      />
-      {/* )} */}
+      {showActions && (
+        <TodoActions
+          todo={todo}
+          tags={tags}
+          updateTodo={updateTodo}
+          isDayBeforeDueDate={shouldHighlightDue}
+          onSetActionsFocused={setActionsFocused}
+        />
+      )}
     </Box>
   );
 };
