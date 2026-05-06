@@ -30,7 +30,6 @@ export const TodoActions: React.FC<Props> = ({ todo, tags, isDayBeforeDueDate, u
     });
   };
 
-  const updateCount = () => updateTodo({ ...todo, count: 0 });
   const updateNotToday = () => updateTodo(markTodoNotToday(todo));
   const updateDueDate = (dueDate: number | null) => updateTodo({ ...todo, dueDate });
 
@@ -63,7 +62,7 @@ export const TodoActions: React.FC<Props> = ({ todo, tags, isDayBeforeDueDate, u
       {/* <NotNowButton onClick={() => onMarkTodoNotNow(todo.id)} /> */}
       {!isDayBeforeDueDate && <NotTodayButton onClick={updateNotToday} />}
       <AutoRepeatButton checked={todo.repeatAtEndOfDay} onClick={updateAutoRepeat} />
-      <TodoDetails todo={todo} onReset={updateCount} />
+      <TodoDetails todo={todo} updateTodo={updateTodo} />
     </Card>
   );
 };

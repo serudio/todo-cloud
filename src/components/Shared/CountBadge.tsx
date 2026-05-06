@@ -3,12 +3,16 @@ import { Button, Popover, Stack, Typography } from "@mui/material";
 
 type CountBadgeProps = {
   count: number;
-  onReset: () => void;
+  updateCount: (count: number) => void;
 };
 
-export function CountBadge({ count, onReset }: CountBadgeProps) {
+export function CountBadge({ count, updateCount }: CountBadgeProps) {
   const [anchorElement, setAnchorElement] = useState<HTMLElement | null>(null);
   const isOpen = Boolean(anchorElement);
+
+  const handleClick = (count: number) => () => {
+    updateCount(count);
+  };
 
   return (
     <>
@@ -27,10 +31,17 @@ export function CountBadge({ count, onReset }: CountBadgeProps) {
           <Typography
             color="text.secondary"
             sx={{ fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase" }}
+            onClick={handleClick(count + 1)}
           >
             Count
           </Typography>
-          <Button size="small" type="button" variant="contained" onClick={onReset} sx={{ borderRadius: 999, whiteSpace: "nowrap" }}>
+          <Button
+            size="small"
+            type="button"
+            variant="contained"
+            onClick={handleClick(0)}
+            sx={{ borderRadius: 999, whiteSpace: "nowrap" }}
+          >
             Reset to 0
           </Button>
         </Stack>

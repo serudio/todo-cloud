@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { SectionCard } from "./Shared/SectionCard";
 import { TextField } from "@mui/material";
 
@@ -7,6 +8,17 @@ type NotesPanelProps = {
 };
 
 export function NotesCard({ notes, setNotes }: NotesPanelProps) {
+  const [value, setValue] = useState(notes);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value;
+    setNotes(raw);
+    // replace ";" with ";\n", but avoid duplicating newlines
+
+    const formatted = raw.replace(/;\s*(?!\n)/g, ";\n");
+
+    setValue(formatted);
+  };
   return (
     <SectionCard title="Notes">
       <TextField
@@ -15,8 +27,9 @@ export function NotesCard({ notes, setNotes }: NotesPanelProps) {
         minRows={2}
         maxRows={10}
         size="small"
-        value={notes}
-        onChange={(event) => setNotes(event.target.value)}
+        value={value}
+        onChange={handleChange}
+        sx={{ textarea: { fontSize: "0.85rem", lineHeight: "1.1rem", letterSpacing: 1.2 } }}
       />
     </SectionCard>
   );

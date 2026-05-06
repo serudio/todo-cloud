@@ -32,10 +32,6 @@ export const DoneItem: React.FC<Props> = ({ item, tags, updateTodo, onAddTodoTex
     });
   };
 
-  const updateCount = () => {
-    updateTodo({ ...item, count: 0 });
-  };
-
   return (
     <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 0.5 }}>
       <TagPicker selectedTagId={tagId} tags={tags} onTagSelect={updateTag} />
@@ -57,7 +53,7 @@ export const DoneItem: React.FC<Props> = ({ item, tags, updateTodo, onAddTodoTex
       </Tooltip>
       <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
         <AutoRepeatButton checked={item.repeatAtEndOfDay} onClick={updateAutoRepeat} />
-        <TodoDetails todo={item} onReset={updateCount} />
+        <TodoDetails todo={item} updateTodo={updateTodo} />
         <IconButton onClick={() => onDeleteTodo(id)} size="small" sx={{ padding: 0 }}>
           <ClearIcon />
         </IconButton>

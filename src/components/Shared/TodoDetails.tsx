@@ -7,11 +7,13 @@ import InfoIcon from "@mui/icons-material/Info";
 
 type Props = {
   todo: Todo;
-  onReset?: (id: string) => void;
+  updateTodo: (todo: Todo) => void;
 };
-export const TodoDetails: React.FC<Props> = ({ todo, onReset }) => {
+export const TodoDetails: React.FC<Props> = ({ todo, updateTodo }) => {
   const [anchorElement, setAnchorElement] = useState<HTMLElement | null>(null);
   const isOpen = Boolean(anchorElement);
+
+  const updateCount = (count: number) => updateTodo({ ...todo, count });
 
   return (
     <>
@@ -32,14 +34,10 @@ export const TodoDetails: React.FC<Props> = ({ todo, onReset }) => {
         transformOrigin={{ vertical: "top", horizontal: "center" }}
       >
         <Box sx={{ p: 1 }}>
-          <Typography variant="body2">
-            Last added: {formatDateKey(todo.lastAddedDate)}
-          </Typography>
-          <Typography variant="body2">
-            Due: {todo.dueDate ? formatDateKey(todo.dueDate) : "not set"}
-          </Typography>
+          <Typography variant="body2">Last added: {formatDateKey(todo.lastAddedDate)}</Typography>
+          <Typography variant="body2">Due: {todo.dueDate ? formatDateKey(todo.dueDate) : "not set"}</Typography>
 
-          <CountBadge count={todo.count} onReset={() => onReset?.(todo.id)} />
+          <CountBadge count={todo.count} updateCount={updateCount} />
         </Box>
       </Popover>
     </>

@@ -13,13 +13,8 @@ export const TagPicker: React.FC<TagPickerProps> = ({ selectedTagId, tags, onTag
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
   const open = Boolean(anchorEl);
 
-  const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
+  const handleClick = (event: MouseEvent<HTMLButtonElement>) => setAnchorEl(event.currentTarget);
+  const handleClose = () => setAnchorEl(null);
 
   function handleTagSelect(tagId: string | null) {
     onTagSelect(tagId);
@@ -39,7 +34,7 @@ export const TagPicker: React.FC<TagPickerProps> = ({ selectedTagId, tags, onTag
             }}
           />
         ) : (
-          <LocalOfferIcon />
+          <LocalOfferIcon fontSize="small" />
         )}
       </IconButton>
       <Popover

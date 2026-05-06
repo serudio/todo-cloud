@@ -63,17 +63,17 @@ export function TodoCloud({ todos, isLoadingTodos, notTodayTodos, tags, updateTo
             sx={{
               display: "inline-flex",
               overflow: "visible",
-              animation: "todo-slide-in 700ms cubic-bezier(0.2, 0.8, 0.2, 1)",
-              "@keyframes todo-slide-in": {
-                from: {
-                  opacity: 0,
-                  transform: "translate(calc(50vw - 50%), calc(100vh + 100px))",
-                },
-                to: {
-                  opacity: 1,
-                  transform: "translateY(0)",
-                },
-              },
+              // animation: "todo-slide-in 700ms cubic-bezier(0.2, 0.8, 0.2, 1)",
+              // "@keyframes todo-slide-in": {
+              //   from: {
+              //     opacity: 0,
+              //     transform: "translate(calc(50vw - 50%), calc(100vh + 100px))",
+              //   },
+              //   to: {
+              //     opacity: 1,
+              //     transform: "translateY(0)",
+              //   },
+              // },
             }}
           >
             <TodoItem
