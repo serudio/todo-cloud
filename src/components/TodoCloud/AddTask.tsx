@@ -1,27 +1,21 @@
 import type { Todo } from "../../types/todo";
 import { type FormEvent, type KeyboardEvent, useEffect, useMemo, useState } from "react";
-import { normalizeTodoText } from "../../utils/todos";
-import { Box, TextField } from "@mui/material";
+import { getDoneTodos, normalizeTodoText } from "../../utils/todos";
+import { alpha, Box, List, ListItemButton, ListItemText, TextField } from "@mui/material";
 import { ADD_TODO_Z } from "../../constants/ui";
 
 type Props = {
   isLoadingTodos: boolean;
-  suggestedTodos: Todo[];
+  todos: Todo[];
   text: string;
   onAddTodo: (event: FormEvent<HTMLFormElement>) => void;
   onAddTodoText: (text: string) => void;
   onTextChange: (text: string) => void;
 };
 
-export const AddTask: React.FC<Props> = ({
-  isLoadingTodos,
-  suggestedTodos,
-  text,
-  onAddTodo,
-  onAddTodoText,
+export const AddTask: React.FC<Props> = ({ isLoadingTodos, todos, text, onAddTodo, onAddTodoText, onTextChange }) => {
+  const suggestedTodos = getDoneTodos(todos);
 
-  onTextChange,
-}) => {
   const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(0);
   const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(false);
   const matchingTodos = useMemo(() => {
@@ -86,7 +80,7 @@ export const AddTask: React.FC<Props> = ({
         zIndex: ADD_TODO_Z,
       }}
     >
-      <form className="todo-form" onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit}>
         <TextField
           variant="outlined"
           placeholder="Add a task"
@@ -102,28 +96,37 @@ export const AddTask: React.FC<Props> = ({
           sx={{ width: 400 }}
         />
 
-        {showSuggestions ? (
-          <ol className="task-suggestions" id="task-suggestions">
-            {matchingTodos.map((todo, index) => (
-              <li key={todo.id}>
-                <button
-                  aria-selected={index === activeSuggestionIndex}
-                  className="task-suggestion"
-                  id={`task-suggestion-${todo.id}`}
-                  type="button"
+        {showSuggestions && (
+          <List
+            disablePadding
+            sx={{
+              position: "absolute",
+              bottom: "100%",
+              left: 0,
+              right: 0,
+              bgcolor: (theme) => alpha(theme.palette.background.paper, 0.82),
+              backdropFilter: "blur(8px)",
+            }}
+          >
+            {matchingTodos.map((todo, i) => {
+              const { text, count } = todo;
+              return (
+                <ListItemButton
+                  key={todo.id}
+                  selected={i === activeSuggestionIndex}
                   onMouseDown={(event) => {
                     event.preventDefault();
                     selectSuggestion(todo);
                   }}
-                  onMouseEnter={() => setActiveSuggestionIndex(index)}
+                  onMouseEnter={() => setActiveSuggestionIndex(i)}
+                  sx={{ paddingTop: 0.5, paddingBottom: 0.5 }}
                 >
-                  <span>{todo.text}</span>
-                  <strong>{todo.count}</strong>
-                </button>
-              </li>
-            ))}
-          </ol>
-        ) : null}
+                  <ListItemText primary={`${text} • ${count}`} />
+                </ListItemButton>
+              );
+            })}
+          </List>
+        )}
       </form>
     </Box>
   );

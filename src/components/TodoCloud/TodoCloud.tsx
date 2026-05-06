@@ -11,11 +11,10 @@ type TodoCloudProps = {
   isLoadingTodos: boolean;
   notTodayTodos: Todo[];
   tags: TodoTag[];
-  onEditTodoText: (id: string, nextText: string) => boolean;
   updateTodo: (todo: Todo) => void;
 };
 
-export function TodoCloud({ todos, isLoadingTodos, notTodayTodos, tags, onEditTodoText, updateTodo }: TodoCloudProps) {
+export function TodoCloud({ todos, isLoadingTodos, notTodayTodos, tags, updateTodo }: TodoCloudProps) {
   const activeTodos = todos.filter((todo) => !todo.done && !todo.notNow && !todo.notToday);
   function handleTodoDragStart(event: DragEvent<HTMLElement>, todoId: string) {
     event.dataTransfer.effectAllowed = "move";
@@ -59,15 +58,32 @@ export function TodoCloud({ todos, isLoadingTodos, notTodayTodos, tags, onEditTo
       >
         {!isLoadingTodos && activeTodos.length === 0 && <p className="status">No todos yet. Add the first one.</p>}
         {activeTodos.map((todo, index) => (
-          <TodoItem
+          <Box
             key={todo.id}
-            todo={todo}
-            updateTodo={updateTodo}
-            index={index}
-            onEditTodoText={onEditTodoText}
-            handleTodoDragStart={handleTodoDragStart}
-            tags={tags}
-          />
+            sx={{
+              display: "inline-flex",
+              overflow: "visible",
+              animation: "todo-slide-in 700ms cubic-bezier(0.2, 0.8, 0.2, 1)",
+              "@keyframes todo-slide-in": {
+                from: {
+                  opacity: 0,
+                  transform: "translate(calc(50vw - 50%), calc(100vh + 100px))",
+                },
+                to: {
+                  opacity: 1,
+                  transform: "translateY(0)",
+                },
+              },
+            }}
+          >
+            <TodoItem
+              todo={todo}
+              updateTodo={updateTodo}
+              index={index}
+              handleTodoDragStart={handleTodoDragStart}
+              tags={tags}
+            />
+          </Box>
         ))}
       </Box>
     </Card>

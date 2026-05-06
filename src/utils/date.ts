@@ -12,3 +12,11 @@ export function getNextMidnightDelay() {
 
   return nextMidnight.diff(now);
 }
+
+export function getDateInputValue(dateValue: string | number | null) {
+  if (dateValue === null) return "";
+
+  const date = dayjs(dateValue);
+
+  return date.isValid() ? date.format("YYYY-MM-DD") : "";
+}

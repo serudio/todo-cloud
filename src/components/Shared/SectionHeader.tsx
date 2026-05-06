@@ -13,7 +13,7 @@ export const SectionHeader: React.FC<Props> = ({ title, onClick, onActionButtonC
         variant="subtitle2"
         onClick={onClick}
         color="warning"
-        sx={{ textTransform: "uppercase", letterSpacing: 2 }}
+        sx={{ textTransform: "uppercase", letterSpacing: 2, cursor: "pointer" }}
       >
         {title}
       </Typography>

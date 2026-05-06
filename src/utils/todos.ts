@@ -1,6 +1,6 @@
 import type { CustomLink, Todo, TodoListItems, TodoTag } from "../types/todo";
 import dayjs from "dayjs";
-import { getLocalDateKey } from "./date";
+import { getDateInputValue, getLocalDateKey } from "./date";
 
 export const markTodoNow = (todo: Todo) => ({ ...todo, notNow: false, notToday: false, notTodayDate: null });
 export const markTodoNotNow = (todo: Todo) => ({ ...todo, notNow: true, notToday: false, notTodayDate: null });
@@ -179,14 +179,6 @@ export function formatDateKey(dateValue: string | number | null) {
   if (!dateInputValue) return "not saved yet";
 
   return dayjs(dateInputValue).format("MMM D, YYYY");
-}
-
-export function getDateInputValue(dateValue: string | number | null) {
-  if (dateValue === null) return "";
-
-  const date = dayjs(dateValue);
-
-  return date.isValid() ? date.format("YYYY-MM-DD") : "";
 }
 
 export function shouldHighlightDueDate(dueDate: string | number | null) {

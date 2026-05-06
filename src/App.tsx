@@ -2,6 +2,7 @@ import { type FormEvent, useCallback, useEffect, useRef, useState } from "react"
 import type { Session } from "@supabase/supabase-js";
 import { SetupRequired } from "./components/AppState/SetupRequired";
 import { AuthCard } from "./components/AuthCard";
+import { DeletedCard } from "./components/DeletedCard/DeletedCard";
 import { DoneCard } from "./components/DoneCard/DoneCard";
 import { LinksCard } from "./components/LinksCard/LinksCard";
 import { NotesCard } from "./components/NotesCard.tsx";
@@ -19,7 +20,15 @@ import { useAppInit } from "./hooks/app.ts";
 import { useTodoListPersistence } from "./hooks/useTodoListPersistence";
 import { NotificationsToast } from "./components/Layout/NotificationAlert";
 import { getLocalDateKey, getNextMidnightDelay } from "./utils/date.ts";
-import { insertAtRandomPosition } from "./utils/arrays.ts";
+import {
+  clearDeletedTodos,
+  createDeletedTodo,
+  type DeletedTodo,
+  readDeletedTodos,
+  restoreDeletedTodo,
+  saveDeletedTodos,
+} from "./utils/deletedTodos";
+import { moveItemToFront } from "./utils/arrays";
 
 // Applies one daily repeat to todos marked for end-of-day auto-add.
 function getTodosWithEndOfDayRepeats(currentTodos: Todo[]) {
@@ -89,17 +98,6 @@ function getTodosWithDailyUpdates(currentTodos: Todo[]) {
   );
 }
 
-// Reorders an existing todo into a new random cloud position.
-function moveTodoToRandomPosition(todos: Todo[], id: string) {
-  const todo = todos.find((currentTodo) => currentTodo.id === id);
-  if (!todo) return todos;
-
-  return insertAtRandomPosition(
-    todos.filter((currentTodo) => currentTodo.id !== id),
-    todo,
-  );
-}
-
 // Owns the authenticated todo app state and wires persistence to the UI.
 export default function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -110,6 +108,7 @@ export default function App() {
   const todosRef = useRef<Todo[]>([]);
   const sessionUserIdRef = useRef<string | null>(null);
   const [text, setText] = useState("");
+  const [deletedTodos, setDeletedTodos] = useState<DeletedTodo[]>([]);
 
   // todo: combine useAppInit and useTodoListPersistence into a single hook
   const {
@@ -146,11 +145,20 @@ export default function App() {
       showNotification,
     });
 
-  // Permanently removes a todo from the list.
+  // Moves a todo out of the saved list and into the local deleted history.
   function deleteTodo(id: string) {
+    if (!session) return;
+
+    const deletedTodo = todos.find((todo) => todo.id === id);
+    if (!deletedTodo) return;
+
     const nextTodos = todos.filter((todo) => todo.id !== id);
+    const nextDeletedTodos = [createDeletedTodo(deletedTodo), ...deletedTodos.filter((todo) => todo.id !== id)];
+
     setTodos(nextTodos);
+    setDeletedTodos(nextDeletedTodos);
     saveTodos(nextTodos);
+    saveDeletedTodos(session.user.id, nextDeletedTodos);
   }
 
   // Initializes Supabase auth and only reloads data when the signed-in user changes.
@@ -183,9 +191,11 @@ export default function App() {
   useEffect(() => {
     if (!session || !supabase) {
       resetTodoList();
+      setDeletedTodos([]);
       return;
     }
 
+    setDeletedTodos(readDeletedTodos(session.user.id));
     loadTodoList(session.user.id);
   }, [session?.user.id]);
 
@@ -243,7 +253,7 @@ export default function App() {
   // todo
   // Adds a task by text, reviving duplicates from done/hidden states when needed.
   function addTodoText(todoText: string) {
-    const trimmedText = todoText.trim().replace(/\s+/g, " ");
+    const trimmedText = normalizeTodoText(todoText);
     if (!trimmedText || isLoadingTodos) return;
 
     const today = getLocalDateKey();
@@ -257,7 +267,7 @@ export default function App() {
     }
 
     const nextTodos = existingTodo
-      ? moveTodoToRandomPosition(
+      ? moveItemToFront(
           todos.map((todo) =>
             todo.id === existingTodo.id
               ? {
@@ -272,23 +282,26 @@ export default function App() {
                 }
               : todo,
           ),
-          existingTodo.id,
+          (todo) => todo.id === existingTodo.id,
         )
-      : insertAtRandomPosition(todos, {
-          id: crypto.randomUUID(),
-          text: trimmedText,
-          done: false,
-          doneAt: null,
-          count: 1,
-          lastAddedDate: today,
-          repeatAtEndOfDay: false,
-          lastAutoAddedDate: null,
-          tagId: null,
-          dueDate: null,
-          notNow: false,
-          notToday: false,
-          notTodayDate: null,
-        });
+      : [
+          {
+            id: crypto.randomUUID(),
+            text: trimmedText,
+            done: false,
+            doneAt: null,
+            count: 1,
+            lastAddedDate: today,
+            repeatAtEndOfDay: false,
+            lastAutoAddedDate: null,
+            tagId: null,
+            dueDate: null,
+            notNow: false,
+            notToday: false,
+            notTodayDate: null,
+          },
+          ...todos,
+        ];
 
     setTodos(nextTodos);
     setText("");
@@ -317,25 +330,38 @@ export default function App() {
     loadTodoList(session.user.id);
   }
 
-  // Edits a todo's text while preserving uniqueness by normalized text.
-  function editTodoText(id: string, nextText: string) {
-    const trimmedText = nextText.trim().replace(/\s+/g, " ");
-    if (!trimmedText || isLoadingTodos) return false;
+  function clearDeletedItems() {
+    if (!session) return;
 
-    const normalizedText = normalizeTodoText(trimmedText);
-    const existingTodo = todos.find((todo) => todo.id !== id && normalizeTodoText(todo.text) === normalizedText);
+    setDeletedTodos([]);
+    clearDeletedTodos(session.user.id);
+  }
 
-    if (existingTodo) {
-      showNotification(`"${existingTodo.text}" is already there.`);
-      return false;
-    }
+  function removeDeletedItem(id: string) {
+    if (!session) return;
 
-    const nextTodos = todos.map((todo) => (todo.id === id ? { ...todo, text: trimmedText } : todo));
+    const nextDeletedTodos = deletedTodos.filter((todo) => todo.id !== id);
+
+    setDeletedTodos(nextDeletedTodos);
+    saveDeletedTodos(session.user.id, nextDeletedTodos);
+  }
+
+  function restoreDeletedItem(id: string) {
+    if (!session) return;
+
+    const deletedTodo = deletedTodos.find((todo) => todo.id === id);
+    if (!deletedTodo) return;
+
+    const restoredTodo = restoreDeletedTodo(deletedTodo);
+    const nextTodos = [restoredTodo, ...todos.filter((todo) => todo.id !== id)];
+    const nextDeletedTodos = deletedTodos.filter((todo) => todo.id !== id);
 
     setTodos(nextTodos);
+    setDeletedTodos(nextDeletedTodos);
     saveTodos(nextTodos);
-    return true;
+    saveDeletedTodos(session.user.id, nextDeletedTodos);
   }
+
   // const updateTodos = useCallback(
   //   async (newTodos: Todo[]) => {
   //     setTodos(newTodos);
@@ -398,8 +424,8 @@ export default function App() {
       <NotificationsToast notification={notification} />
 
       <AddTask
+        todos={todos}
         isLoadingTodos={isLoadingTodos}
-        suggestedTodos={doneTodos}
         text={text}
         onAddTodo={addTodo}
         onAddTodoText={addTodoText}
@@ -409,14 +435,23 @@ export default function App() {
       <Box
         sx={{
           paddingTop: 2,
-          minHeight: "100vh",
+          minHeight: "calc(100vh - 16px)",
           width: "min(1300px, calc(100% - 32px))",
           display: "flex",
           gap: 2,
           margin: "0 auto",
         }}
       >
-        <Box sx={{ gap: 2, display: "flex", flexDirection: "column", width: 230, minWidth: 230 }}>
+        <Box
+          sx={{
+            gap: 2,
+            display: "flex",
+            flexDirection: "column",
+            width: 230,
+            minWidth: 230,
+            maxHeight: "calc(100vh - 24px)",
+          }}
+        >
           <TagsCard tags={tags} updateTags={updateTags} showNotification={showNotification} onDeleteTag={deleteTag} />
           <LinksCard
             links={links}
@@ -436,16 +471,30 @@ export default function App() {
             isLoadingTodos={isLoadingTodos}
             notTodayTodos={notTodayTodos}
             tags={tags}
-            onEditTodoText={editTodoText}
           />
         </Box>
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 2, width: 250, minWidth: 250 }}>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 2,
+            width: 250,
+            minWidth: 250,
+            maxHeight: "calc(100vh - 24px)",
+          }}
+        >
           <DoneCard
             todos={doneTodos}
             updateTodo={updateTodo}
             tags={tags}
             onAddTodoText={addTodoText}
             onDeleteTodo={deleteTodo}
+          />
+          <DeletedCard
+            deletedTodos={deletedTodos}
+            onClear={clearDeletedItems}
+            onRemoveDeletedTodo={removeDeletedItem}
+            onRestoreDeletedTodo={restoreDeletedItem}
           />
         </Box>
       </Box>

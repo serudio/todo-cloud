@@ -17,10 +17,10 @@ export const DoneCard: React.FC<DoneListProps> = ({ todos, updateTodo, tags, onA
   const doneTodos = getDoneTodos(todos);
 
   return (
-    <SectionCard title="Done">
+    <SectionCard title="Done" sx={{ overflow: "auto" }}>
       {doneTodos.length === 0 && <p className="status">Done items will show up here.</p>}
 
-      <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 1, overflow: "auto" }}>
         {doneTodos.map((todo) => {
           return (
             <DoneItem

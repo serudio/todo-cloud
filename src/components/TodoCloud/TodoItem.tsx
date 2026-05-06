@@ -1,22 +1,22 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Todo, TodoTag } from "../../types/todo";
-import { getTodoSize, isStaleTodo, markTodoDone, shouldHighlightDueDate } from "../../utils/todos";
+import { getTodoSize, isStaleTodo, markTodoDone, normalizeTodoText, shouldHighlightDueDate } from "../../utils/todos";
 import { Box, IconButton } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import { DEFAULT_TAG_COLOR, TASK_ACTION_HOVER_Z, TASK_ACTIONS_Z, TASK_Z } from "../../constants/ui";
 import { getTodoFontSize, getTodoPadding } from "../../utils/ui";
 import { TodoActions } from "./TodoActions";
+import { DueDateChip } from "./DueDateChip";
 
 type Props = {
   todo: Todo;
   updateTodo: (todo: Todo) => void;
   index: number;
-  onEditTodoText: (id: string, nextText: string) => boolean;
   handleTodoDragStart: (event: React.DragEvent<HTMLElement>, todoId: string) => void;
   tags: TodoTag[];
 };
 
-export const TodoItem: React.FC<Props> = ({ todo, updateTodo, index, onEditTodoText, handleTodoDragStart, tags }) => {
+export const TodoItem: React.FC<Props> = ({ todo, updateTodo, index, handleTodoDragStart, tags }) => {
   const { text } = todo;
 
   const isStale = isStaleTodo(todo.lastAddedDate);
@@ -45,22 +45,21 @@ export const TodoItem: React.FC<Props> = ({ todo, updateTodo, index, onEditTodoT
     setEditText(todo.text);
   }
 
-  function cancelEditing() {
+  function resetEdit() {
     setIsEdit(false);
     setEditText("");
   }
 
   function finishEditing() {
-    const trimmedText = editText.trim().replace(/\s+/g, " ");
+    const trimmedText = normalizeTodoText(editText);
 
     if (!trimmedText || trimmedText === todo.text) {
-      cancelEditing();
+      resetEdit();
       return;
     }
 
-    if (onEditTodoText(todo.id, trimmedText)) {
-      cancelEditing();
-    }
+    updateTodo({ ...todo, text: trimmedText });
+    resetEdit();
   }
 
   function handleEditSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -71,7 +70,7 @@ export const TodoItem: React.FC<Props> = ({ todo, updateTodo, index, onEditTodoT
   function handleEditKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
     if (event.key === "Escape") {
       event.preventDefault();
-      cancelEditing();
+      resetEdit();
     }
   }
 
@@ -111,6 +110,7 @@ export const TodoItem: React.FC<Props> = ({ todo, updateTodo, index, onEditTodoT
         borderRadius: 999,
         paddingLeft: 2,
         paddingRight: 2,
+        letterSpacing: 1.5,
         fontSize: getTodoFontSize(size),
         padding: getTodoPadding(size),
         cursor: !isEdit ? "grab" : "text",
@@ -118,39 +118,18 @@ export const TodoItem: React.FC<Props> = ({ todo, updateTodo, index, onEditTodoT
         justifyContent: "center",
         zIndex: showActions ? TASK_ACTION_HOVER_Z : TASK_Z,
         scale: showActions ? 1.03 : 1,
-        ...(shouldHighlightDue && {
-          outline: "2px solid",
-          outlineColor: "warning.main",
-          outlineOffset: 3,
-          animation: "dueTomorrowPulse 1.4s ease-in-out infinite",
-          "@keyframes dueTomorrowPulse": (theme) => ({
-            "0%, 100%": {
-              boxShadow: `0 0 0 0 ${theme.palette.warning.main}`,
-            },
-            "50%": {
-              boxShadow: `0 0 0 6px ${theme.palette.warning.light}`,
-            },
-          }),
-        }),
       }}
     >
       {showActions && (
         <IconButton
           size="small"
           onPointerDown={(event) => event.stopPropagation()}
-          onClick={(event) => {
-            event.preventDefault();
-            event.stopPropagation();
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
             handleEdit();
           }}
-          sx={{
-            position: "absolute",
-            right: -1,
-            minHeight: "100%",
-            borderTopRightRadius: 999,
-            borderBottomRightRadius: 999,
-            zIndex: TASK_ACTIONS_Z,
-          }}
+          sx={{ position: "absolute", right: -1, zIndex: TASK_ACTIONS_Z }}
         >
           <EditIcon fontSize="small" />
         </IconButton>
@@ -164,17 +143,12 @@ export const TodoItem: React.FC<Props> = ({ todo, updateTodo, index, onEditTodoT
             ref={editInputRef}
             value={editText}
             onBlur={finishEditing}
-            onChange={(event) => setEditText(event.target.value)}
+            onChange={(e) => setEditText(e.target.value)}
             onKeyDown={handleEditKeyDown}
           />
         </form>
       )}
 
-      {isStale && (
-        <span className="stale-badge" title="Added at least a month ago">
-          STALE
-        </span>
-      )}
       {showActions && (
         <TodoActions
           todo={todo}
@@ -184,6 +158,8 @@ export const TodoItem: React.FC<Props> = ({ todo, updateTodo, index, onEditTodoT
           onSetActionsFocused={setActionsFocused}
         />
       )}
+      {shouldHighlightDue && <DueDateChip />}
+      {isStale && <span>STALE</span>}
     </Box>
   );
 };
