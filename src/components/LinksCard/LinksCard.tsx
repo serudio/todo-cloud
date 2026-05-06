@@ -10,10 +10,10 @@ type LinksPanelProps = {
   links: CustomLink[];
   updateLinks: (links: CustomLink[]) => void;
   onDeleteLink: (id: string) => void;
-  showNotification: (message: string) => void;
+  setNotification: (message: string) => void;
 };
 
-export function LinksCard({ links, updateLinks, onDeleteLink, showNotification }: LinksPanelProps) {
+export function LinksCard({ links, updateLinks, onDeleteLink, setNotification }: LinksPanelProps) {
   const [showForm, setShowForm] = useState(false);
 
   function handleLinkSubmit(name: string, url: string) {
@@ -24,7 +24,7 @@ export function LinksCard({ links, updateLinks, onDeleteLink, showNotification }
     const existingLink = links.find((link) => link.name.toLocaleLowerCase() === trimmedName.toLocaleLowerCase());
 
     if (existingLink) {
-      showNotification(`"${existingLink.name}" link already exists.`);
+      setNotification(`"${existingLink.name}" link already exists.`);
       return;
     }
 

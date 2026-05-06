@@ -26,7 +26,7 @@ type UseTodoListPersistenceParams = {
   setTodoListId: Dispatch<SetStateAction<string | null>>;
   setIsLoadingTodos: Dispatch<SetStateAction<boolean>>;
   setSaveError: Dispatch<SetStateAction<string | null>>;
-  showNotification: (message: string) => void;
+  setNotification: (message: string | null) => void;
 };
 
 export function useTodoListPersistence({
@@ -43,7 +43,7 @@ export function useTodoListPersistence({
   setTodoListId,
   setIsLoadingTodos,
   setSaveError,
-  showNotification,
+  setNotification,
 }: UseTodoListPersistenceParams) {
   const loadTodoList = useCallback(
     async (userId: string) => {
@@ -67,12 +67,12 @@ export function useTodoListPersistence({
         const nextItems = backedUpItems ?? parsedItems;
 
         setTodoListId(data.id);
-        applyTodoListItems(nextItems);
+        setTodoListItems(nextItems);
         setIsLoadingTodos(false);
         backupTodoList(userId, nextItems);
 
         if (backedUpItems) {
-          showNotification("Restored your todo list from the local backup.");
+          setNotification("Restored your todo list from the local backup.");
           await updateTodoListItems(data.id, backedUpItems);
         }
 
@@ -96,10 +96,10 @@ export function useTodoListPersistence({
       );
 
       setTodoListId(createdTodoList.id);
-      applyTodoListItems(createdItems);
+      setTodoListItems(createdItems);
       setIsLoadingTodos(false);
     },
-    [setIsLoadingTodos, setLinks, setNotes, setSaveError, setTags, setTodoListId, setTodos, showNotification],
+    [setIsLoadingTodos, setLinks, setNotes, setSaveError, setTags, setTodoListId, setTodos, setNotification],
   );
 
   const saveTodoList = useCallback(
@@ -128,7 +128,7 @@ export function useTodoListPersistence({
         if (data && !canSaveEmptyOverExistingItems(data.items, data.tags, data.links, data.notes)) {
           const message = "Refused to save an empty list over existing todo data. Refresh before making more changes.";
           setSaveError(message);
-          showNotification(message);
+          setNotification(message);
           return;
         }
       }
@@ -149,10 +149,10 @@ export function useTodoListPersistence({
         setSaveError(error.message);
       }
     },
-    [notes, todoListId, session, setSaveError, showNotification],
+    [notes, todoListId, session, setSaveError, setNotification],
   );
 
-  function applyTodoListItems(items: TodoListItems) {
+  function setTodoListItems(items: TodoListItems) {
     setTodos(items.todos);
     setTags(items.tags);
     setLinks(items.links);
@@ -169,30 +169,22 @@ export function useTodoListPersistence({
   }
 
   const saveTodos = useCallback(
-    async (newTodos: Todo[]) => {
-      saveTodoList(newTodos, tags, links, notes);
-    },
+    async (newTodos: Todo[]) => saveTodoList(newTodos, tags, links, notes),
     [links, saveTodoList, tags, notes],
   );
 
   const saveTags = useCallback(
-    async (newTags: TodoTag[]) => {
-      await saveTodoList(todos, newTags, links, notes);
-    },
+    async (newTags: TodoTag[]) => await saveTodoList(todos, newTags, links, notes),
     [links, notes, saveTodoList, todos],
   );
 
   const saveLinks = useCallback(
-    async (newLinks: CustomLink[]) => {
-      await saveTodoList(todos, tags, newLinks, notes);
-    },
+    async (newLinks: CustomLink[]) => await saveTodoList(todos, tags, newLinks, notes),
     [tags, notes, saveTodoList, todos],
   );
 
   const saveNotes = useCallback(
-    async (newNotes: string) => {
-      await saveTodoList(todos, tags, links, newNotes);
-    },
+    async (newNotes: string) => await saveTodoList(todos, tags, links, newNotes),
     [tags, links, saveTodoList, todos],
   );
 

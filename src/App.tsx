@@ -122,8 +122,8 @@ export default function App() {
     setNotes,
     doneTodos,
     notification,
-    showNotification,
     setNotification,
+    closeNotification,
   } = useAppInit();
 
   const notTodayTodos = todos.filter((todo) => !todo.done && !todo.notNow && todo.notToday);
@@ -142,7 +142,7 @@ export default function App() {
       setTodoListId,
       setIsLoadingTodos,
       setSaveError,
-      showNotification,
+      setNotification,
     });
 
   // Moves a todo out of the saved list and into the local deleted history.
@@ -199,19 +199,6 @@ export default function App() {
     loadTodoList(session.user.id);
   }, [session?.user.id]);
 
-  // Automatically hides transient notifications after a short delay.
-  useEffect(() => {
-    if (!notification) return;
-
-    const timeoutId = window.setTimeout(() => {
-      setNotification(null);
-    }, 3000);
-
-    return () => {
-      window.clearTimeout(timeoutId);
-    };
-  }, [notification?.id]);
-
   // Keeps a ref copy of todos so scheduled midnight callbacks see fresh state.
   useEffect(() => {
     todosRef.current = todos;
@@ -261,7 +248,7 @@ export default function App() {
     const existingTodo = todos.find((todo) => normalizeTodoText(todo.text) === normalizedText);
 
     if (existingTodo && !existingTodo.done) {
-      showNotification(`"${existingTodo.text}" is already there.`);
+      setNotification(`"${existingTodo.text}" is already there.`);
       setText("");
       return;
     }
@@ -305,7 +292,7 @@ export default function App() {
 
     setTodos(nextTodos);
     setText("");
-    showNotification(`"${trimmedText}" added.`);
+    setNotification(`"${trimmedText}" added.`);
     saveTodos(nextTodos);
   }
 
@@ -421,7 +408,7 @@ export default function App() {
     <Box sx={{ bgcolor: "background.body", color: "text.primary" }}>
       {saveError ? <p className="error">{saveError}</p> : null}
 
-      <NotificationsToast notification={notification} />
+      <NotificationsToast notification={notification} onClose={closeNotification} />
 
       <AddTask
         todos={todos}
@@ -452,12 +439,12 @@ export default function App() {
             maxHeight: "calc(100vh - 24px)",
           }}
         >
-          <TagsCard tags={tags} updateTags={updateTags} showNotification={showNotification} onDeleteTag={deleteTag} />
+          <TagsCard tags={tags} updateTags={updateTags} setNotification={setNotification} onDeleteTag={deleteTag} />
           <LinksCard
             links={links}
             updateLinks={updateLinks}
             onDeleteLink={deleteLink}
-            showNotification={showNotification}
+            setNotification={setNotification}
           />
           <NotNowList todos={todos} updateTodo={updateTodo} />
           <NotesCard notes={notes} setNotes={updateNotes} />

@@ -1,22 +1,23 @@
 import { Slide, Snackbar, type SlideProps } from "@mui/material";
-import type { Notification } from "../../types/notification";
 
 function SnackbarSlideTransition(props: SlideProps) {
   return <Slide {...props} direction="down" />;
 }
 
 type Props = {
-  notification: Notification | null;
+  notification: string | null;
+  onClose: () => void;
 };
 
-export const NotificationsToast: React.FC<Props> = ({ notification }) => {
+export const NotificationsToast: React.FC<Props> = ({ notification, onClose }) => {
   return (
     <Snackbar
       anchorOrigin={{ vertical: "top", horizontal: "center" }}
-      key={notification?.id}
-      message={notification?.message}
+      message={notification}
       open={Boolean(notification)}
       slots={{ transition: SnackbarSlideTransition }}
+      onClose={onClose}
+      autoHideDuration={3000}
     />
   );
 };

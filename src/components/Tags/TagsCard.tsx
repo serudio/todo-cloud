@@ -9,11 +9,11 @@ import { SectionCard } from "../Shared/SectionCard";
 type Props = {
   tags: TodoTag[];
   updateTags: (tags: TodoTag[]) => void;
-  showNotification: (message: string) => void;
+  setNotification: (message: string) => void;
   onDeleteTag: (id: string) => void;
 };
 
-export const TagsCard: React.FC<Props> = ({ tags, updateTags, showNotification, onDeleteTag }) => {
+export const TagsCard: React.FC<Props> = ({ tags, updateTags, setNotification, onDeleteTag }) => {
   const [name, setName] = useState("");
   const [selectedColor, setSelectedColor] = useState(TAG_COLORS[0]);
   const [showForm, setShowForm] = useState(false);
@@ -41,12 +41,12 @@ export const TagsCard: React.FC<Props> = ({ tags, updateTags, showNotification, 
     const existingTag = tags.find((tag) => tag.name.toLocaleLowerCase() === trimmedName.toLocaleLowerCase());
 
     if (existingTag) {
-      showNotification(`"${existingTag.name}" tag already exists.`);
+      setNotification(`"${existingTag.name}" tag already exists.`);
       return;
     }
 
     if (tags.some((tag) => tag.color === selectedColor)) {
-      showNotification("That tag color is already used.");
+      setNotification("That tag color is already used.");
       return false;
     }
 
