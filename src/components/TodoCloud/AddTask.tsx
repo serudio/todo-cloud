@@ -94,6 +94,7 @@ export const AddTask: React.FC<Props> = ({ isLoadingTodos, todos, text, onAddTod
           onFocus={() => setIsSuggestionsOpen(text.trim().length > 0)}
           onKeyDown={handleInputKeyDown}
           sx={{ width: 400 }}
+          autoComplete="off"
         />
 
         {showSuggestions && (

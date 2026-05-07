@@ -1,5 +1,5 @@
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
-import { IconButton, Popover, Tooltip } from "@mui/material";
+import { Box, Button, IconButton, Popover, Tooltip } from "@mui/material";
 import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -21,6 +21,11 @@ export const DatePicker: React.FC<Props> = ({ value, onChange, onOpen }) => {
 
   function handleDueDateChange(date: Dayjs | null) {
     onChange(date ? date.startOf("day").valueOf() : null);
+    setCalendarAnchorElement(null);
+  }
+
+  function clearDueDate() {
+    onChange(null);
     setCalendarAnchorElement(null);
   }
 
@@ -58,6 +63,11 @@ export const DatePicker: React.FC<Props> = ({ value, onChange, onOpen }) => {
         <LocalizationProvider dateAdapter={AdapterDayjs}>
           <DateCalendar value={value ? dayjs(value) : null} onChange={handleDueDateChange} />
         </LocalizationProvider>
+        <Box sx={{ display: "flex", justifyContent: "flex-end", px: 2, pb: 1.5 }}>
+          <Button disabled={!value} onClick={clearDueDate} size="small" variant="text">
+            Clear
+          </Button>
+        </Box>
       </Popover>
     </>
   );
