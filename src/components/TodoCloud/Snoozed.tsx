@@ -27,8 +27,10 @@ export const Snoozed: React.FC<Props> = ({ todos, updateTodo }) => {
           variant="outlined"
           label={todo.text}
           sx={{
-            background: "rgba(255, 255, 255, 0.5)",
+            justifyContent: "flex-start",
+            background: "rgba(0, 0, 0, 0.5)",
             "&:not(:last-child)": { marginBottom: -2 },
+            maxWidth: 150,
           }}
         />
       ))}

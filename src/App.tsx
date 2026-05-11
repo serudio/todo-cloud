@@ -319,7 +319,7 @@ export default function App() {
         >
           <TagsCard tags={tags} updateTags={updateTags} setNotification={setNotification} onDeleteTag={deleteTag} />
           <LinksCard links={links} updateLinks={updateLinks} setNotification={setNotification} />
-          <NotNowList todos={todos} updateTodo={updateTodo} />
+          <NotNowList tags={tags} todos={todos} updateTodo={updateTodo} />
           <NotesCard notes={notes} setNotes={updateNotes} />
         </Box>
 
