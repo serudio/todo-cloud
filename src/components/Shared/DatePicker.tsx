@@ -51,9 +51,7 @@ export const DatePicker: React.FC<Props> = ({ value, onChange, onOpen }) => {
           size="small"
           sx={{
             bgcolor: value ? "warning.light" : undefined,
-            "&:hover": {
-              bgcolor: value ? "warning.main" : undefined,
-            },
+            "&:hover": { bgcolor: value ? "warning.main" : undefined },
           }}
         >
           <CalendarMonthIcon fontSize="small" />

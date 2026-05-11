@@ -37,19 +37,12 @@ export const LinkItem: React.FC<Props> = ({ link, updateLink, onDelete }) => {
   }
 
   return (
-    <Box
-      key={link.id}
-      sx={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-      }}
-    >
+    <Box key={link.id} sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
       {edit && (
         <form onSubmit={handleSubmit}>
           <Input value={editName} onChange={(event) => setEditName(event.target.value)} onKeyDown={handleEditKeyDown} />
           <Input value={editUrl} onChange={(event) => setEditUrl(event.target.value)} onKeyDown={handleEditKeyDown} />
-          <div className="link-edit-actions">
+          <div>
             <Button type="submit">Save</Button>
             <Button type="button" onClick={() => setEdit(false)}>
               Cancel
@@ -63,15 +56,16 @@ export const LinkItem: React.FC<Props> = ({ link, updateLink, onDelete }) => {
             href={link.url}
             target="_blank"
             rel="noreferrer"
-            sx={{
-              color: "rgb(208, 173, 240)",
-              fontWeight: 500,
-            }}
+            sx={{ color: "rgb(208, 173, 240)", fontWeight: 500, letterSpacing: 2, fontSize: "0.85rem" }}
           >
             {link.name}
           </Link>
           <Box sx={{ display: "inline-flex" }}>
-            <IconButton size="small" onClick={handelEditClick} sx={{ width: 22, height: 22, minWidth: 0, minHeight: 0 }}>
+            <IconButton
+              size="small"
+              onClick={handelEditClick}
+              sx={{ width: 22, height: 22, minWidth: 0, minHeight: 0 }}
+            >
               <EditIcon fontSize="small" />
             </IconButton>
 

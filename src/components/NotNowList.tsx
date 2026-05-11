@@ -43,7 +43,7 @@ export function NotNowList({ todos, updateTodo }: NotNowListProps) {
 
   return (
     <SectionCard title="Not Now" onDragOver={handleDragOver} onDrop={handleDrop}>
-      {!notNowTodos.length && <p className="status">Drag cloud tasks here to hide them for now.</p>}
+      {!notNowTodos.length && <p>Drag cloud tasks here to hide them for now.</p>}
       {notNowTodos.map((todo) => (
         <Chip
           key={todo.id}

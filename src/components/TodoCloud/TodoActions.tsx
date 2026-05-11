@@ -3,7 +3,7 @@ import { DatePicker } from "../Shared/DatePicker";
 import { NotTodayButton } from "../Shared/NotTodayButton";
 import { TagPicker } from "../Shared/TagPicker";
 import { TodoDetails } from "../Shared/TodoDetails";
-import { Card } from "@mui/material";
+import { Button, Card } from "@mui/material";
 import { TASK_ACTIONS_Z } from "../../constants/ui";
 import type { Todo, TodoTag } from "../../types/todo";
 import { getLocalDateKey } from "../../utils/date";
@@ -13,11 +13,21 @@ type Props = {
   todo: Todo;
   tags: TodoTag[];
   isDayBeforeDueDate: boolean;
+  isSnoozed: boolean;
   updateTodo: (todo: Todo) => void;
+  onToggleSnooze: () => void;
   onSetActionsFocused: (isFocused: boolean) => void;
 };
 
-export const TodoActions: React.FC<Props> = ({ todo, tags, isDayBeforeDueDate, updateTodo, onSetActionsFocused }) => {
+export const TodoActions: React.FC<Props> = ({
+  todo,
+  tags,
+  isDayBeforeDueDate,
+  isSnoozed,
+  updateTodo,
+  onToggleSnooze,
+  onSetActionsFocused,
+}) => {
   const updateTag = (tagId: string | null) => updateTodo({ ...todo, tagId });
 
   const updateAutoRepeat = () => {
@@ -61,6 +71,14 @@ export const TodoActions: React.FC<Props> = ({ todo, tags, isDayBeforeDueDate, u
       <DatePicker value={todo.dueDate} onChange={updateDueDate} onOpen={() => onSetActionsFocused(true)} />
       {/* <NotNowButton onClick={() => onMarkTodoNotNow(todo.id)} /> */}
       {!isDayBeforeDueDate && <NotTodayButton onClick={updateNotToday} />}
+      <Button
+        onClick={onToggleSnooze}
+        size="small"
+        variant={isSnoozed ? "contained" : "text"}
+        sx={{ p: 0, minHeight: 22, minWidth: 0, fontWeight: 700, textTransform: "lowercase" }}
+      >
+        snooze
+      </Button>
       <AutoRepeatButton checked={todo.repeatAtEndOfDay} onClick={updateAutoRepeat} />
       <TodoDetails todo={todo} updateTodo={updateTodo} />
     </Card>

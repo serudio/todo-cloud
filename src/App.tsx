@@ -284,7 +284,7 @@ export default function App() {
 
   return (
     <Box sx={{ bgcolor: "background.body", color: "text.primary" }}>
-      {saveError ? <p className="error">{saveError}</p> : null}
+      {saveError ? <p>{saveError}</p> : null}
 
       <NotificationsToast notification={notification} onClose={closeNotification} />
 

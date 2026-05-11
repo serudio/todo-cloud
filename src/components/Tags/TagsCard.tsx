@@ -74,7 +74,7 @@ export const TagsCard: React.FC<Props> = ({ tags, updateTags, setNotification, o
     <SectionCard title="Tags" onActionButtonClick={handleAddClick} collapsed>
       {showForm && (
         <Box>
-          <form className="tag-form" onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit}>
             <Input placeholder="tag name" value={name} onChange={(event) => setName(event.target.value)} />
 
             <ColorPicker selectedColor={selectedColor} onClick={setSelectedColor} usedColors={usedTagColors} />

@@ -1,10 +1,11 @@
-import type { DragEvent } from "react";
+import { useEffect, useState, type DragEvent } from "react";
 import type { Todo, TodoTag } from "../../types/todo";
 import { NotTodayList } from "./NotTodayList";
 import { TodoItem } from "./TodoItem";
 import { Box, Card } from "@mui/material";
 import { LoadingComponent } from "../Layout/LoadingComponent";
 import { markTodoNow } from "../../utils/todos";
+import { Snoozed } from "./Snoozed";
 
 type TodoCloudProps = {
   todos: Todo[];
@@ -14,8 +15,92 @@ type TodoCloudProps = {
   updateTodo: (todo: Todo) => void;
 };
 
+const SNOOZE_DURATION_MS = 60 * 60 * 1000;
+const SNOOZED_TODOS_STORAGE_KEY = "todo-cloud:snoozed-todos";
+
+function getStoredSnoozedTodoExpirations() {
+  if (typeof window === "undefined") {
+    return {};
+  }
+
+  try {
+    const storedSnoozedTodos = window.localStorage.getItem(SNOOZED_TODOS_STORAGE_KEY);
+    if (!storedSnoozedTodos) return {};
+
+    const parsedSnoozedTodos = JSON.parse(storedSnoozedTodos) as unknown;
+    if (!parsedSnoozedTodos || typeof parsedSnoozedTodos !== "object" || Array.isArray(parsedSnoozedTodos)) {
+      return {};
+    }
+
+    const now = Date.now();
+    return Object.fromEntries(
+      Object.entries(parsedSnoozedTodos).filter(
+        (entry): entry is [string, number] =>
+          typeof entry[1] === "number" && Number.isFinite(entry[1]) && entry[1] > now,
+      ),
+    );
+  } catch {
+    return {};
+  }
+}
+
 export function TodoCloud({ todos, isLoadingTodos, notTodayTodos, tags, updateTodo }: TodoCloudProps) {
+  const [currentTime, setCurrentTime] = useState(() => Date.now());
+  const [snoozedTodoExpirations, setSnoozedTodoExpirations] = useState<Record<string, number>>(
+    getStoredSnoozedTodoExpirations,
+  );
   const activeTodos = todos.filter((todo) => !todo.done && !todo.notNow && !todo.notToday);
+  const cloudTodos = activeTodos.filter((todo) => !isTodoSnoozed(todo.id));
+  const snoozedTodos = activeTodos.filter((todo) => isTodoSnoozed(todo.id));
+
+  useEffect(() => {
+    const nextSnoozeExpiry = Object.values(snoozedTodoExpirations)
+      .filter((expiresAt) => expiresAt > currentTime)
+      .sort((firstExpiry, secondExpiry) => firstExpiry - secondExpiry)[0];
+
+    if (!nextSnoozeExpiry) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => setCurrentTime(Date.now()), Math.max(0, nextSnoozeExpiry - currentTime));
+
+    return () => window.clearTimeout(timeoutId);
+  }, [currentTime, snoozedTodoExpirations]);
+
+  useEffect(() => {
+    const activeExpirations = Object.fromEntries(
+      Object.entries(snoozedTodoExpirations).filter(([, expiresAt]) => expiresAt > currentTime),
+    );
+
+    window.localStorage.setItem(SNOOZED_TODOS_STORAGE_KEY, JSON.stringify(activeExpirations));
+  }, [currentTime, snoozedTodoExpirations]);
+
+  function isTodoSnoozed(todoId: string) {
+    return (snoozedTodoExpirations[todoId] ?? 0) > currentTime;
+  }
+
+  function handleToggleSnooze(todoId: string) {
+    const now = Date.now();
+    setCurrentTime(now);
+    setSnoozedTodoExpirations((currentExpirations) => {
+      if ((currentExpirations[todoId] ?? 0) > now) {
+        const nextExpirations = { ...currentExpirations };
+        delete nextExpirations[todoId];
+        return nextExpirations;
+      }
+
+      return { ...currentExpirations, [todoId]: now + SNOOZE_DURATION_MS };
+    });
+  }
+
+  function handleRemoveSnooze(todoId: string) {
+    setSnoozedTodoExpirations((currentExpirations) => {
+      const nextExpirations = { ...currentExpirations };
+      delete nextExpirations[todoId];
+      return nextExpirations;
+    });
+  }
+
   function handleTodoDragStart(event: DragEvent<HTMLElement>, todoId: string) {
     event.dataTransfer.effectAllowed = "move";
     event.dataTransfer.setData("text/plain", todoId);
@@ -33,6 +118,13 @@ export function TodoCloud({ todos, isLoadingTodos, notTodayTodos, tags, updateTo
     if (todoId) {
       const newTodo = todos.find((x) => x.id === todoId);
       if (!newTodo) return;
+      setSnoozedTodoExpirations((currentExpirations) => {
+        if (!(todoId in currentExpirations)) return currentExpirations;
+
+        const nextExpirations = { ...currentExpirations };
+        delete nextExpirations[todoId];
+        return nextExpirations;
+      });
       updateTodo(markTodoNow(newTodo));
     }
   }
@@ -41,6 +133,7 @@ export function TodoCloud({ todos, isLoadingTodos, notTodayTodos, tags, updateTo
     <Card sx={{ flex: 1, position: "relative", display: "flex" }}>
       <LoadingComponent loading={isLoadingTodos} />
       {!isLoadingTodos && notTodayTodos.length > 0 && <NotTodayList todos={notTodayTodos} updateTodo={updateTodo} />}
+      {!isLoadingTodos && snoozedTodos.length > 0 && <Snoozed todos={snoozedTodos} updateTodo={handleRemoveSnooze} />}
       <Box
         sx={{
           display: "flex",
@@ -56,30 +149,15 @@ export function TodoCloud({ todos, isLoadingTodos, notTodayTodos, tags, updateTo
         onDragOver={handleCloudDragOver}
         onDrop={handleCloudDrop}
       >
-        {!isLoadingTodos && activeTodos.length === 0 && <p className="status">No todos yet. Add the first one.</p>}
-        {activeTodos.map((todo, index) => (
-          <Box
-            key={todo.id}
-            sx={{
-              display: "inline-flex",
-              overflow: "visible",
-              // animation: "todo-slide-in 700ms cubic-bezier(0.2, 0.8, 0.2, 1)",
-              // "@keyframes todo-slide-in": {
-              //   from: {
-              //     opacity: 0,
-              //     transform: "translate(calc(50vw - 50%), calc(100vh + 100px))",
-              //   },
-              //   to: {
-              //     opacity: 1,
-              //     transform: "translateY(0)",
-              //   },
-              // },
-            }}
-          >
+        {!isLoadingTodos && activeTodos.length === 0 && <p>No todos yet. Add the first one.</p>}
+        {cloudTodos.map((todo, index) => (
+          <Box key={todo.id} sx={{ display: "inline-flex", overflow: "visible" }}>
             <TodoItem
               todo={todo}
               updateTodo={updateTodo}
               index={index}
+              isSnoozed={false}
+              onToggleSnooze={() => handleToggleSnooze(todo.id)}
               handleTodoDragStart={handleTodoDragStart}
               tags={tags}
             />

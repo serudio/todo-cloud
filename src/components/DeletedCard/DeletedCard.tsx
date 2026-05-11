@@ -13,7 +13,7 @@ type DeletedCardProps = {
 export function DeletedCard({ deletedTodos, onClear, onRemoveDeletedTodo, onRestoreDeletedTodo }: DeletedCardProps) {
   return (
     <SectionCard title="Deleted" collapsed sx={{ maxHeight: 200, overflow: "auto" }}>
-      {deletedTodos.length === 0 ? <p className="status">Deleted items will show up here.</p> : null}
+      {deletedTodos.length === 0 ? <p>Deleted items will show up here.</p> : null}
 
       <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.75 }}>
         {deletedTodos.map((todo) => (

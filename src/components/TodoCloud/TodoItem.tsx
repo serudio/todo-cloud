@@ -12,11 +12,21 @@ type Props = {
   todo: Todo;
   updateTodo: (todo: Todo) => void;
   index: number;
+  isSnoozed: boolean;
+  onToggleSnooze: () => void;
   handleTodoDragStart: (event: React.DragEvent<HTMLElement>, todoId: string) => void;
   tags: TodoTag[];
 };
 
-export const TodoItem: React.FC<Props> = ({ todo, updateTodo, index, handleTodoDragStart, tags }) => {
+export const TodoItem: React.FC<Props> = ({
+  todo,
+  updateTodo,
+  index,
+  isSnoozed,
+  onToggleSnooze,
+  handleTodoDragStart,
+  tags,
+}) => {
   const { text } = todo;
 
   const isStale = isStaleTodo(todo.lastAddedDate);
@@ -138,7 +148,7 @@ export const TodoItem: React.FC<Props> = ({ todo, updateTodo, index, handleTodoD
         {text}
       </Box>
       {isEdit && (
-        <form className="todo-editor" onSubmit={handleEditSubmit}>
+        <form onSubmit={handleEditSubmit}>
           <input
             ref={editInputRef}
             value={editText}
@@ -155,6 +165,8 @@ export const TodoItem: React.FC<Props> = ({ todo, updateTodo, index, handleTodoD
           tags={tags}
           updateTodo={updateTodo}
           isDayBeforeDueDate={shouldHighlightDue}
+          isSnoozed={isSnoozed}
+          onToggleSnooze={onToggleSnooze}
           onSetActionsFocused={setActionsFocused}
         />
       )}
