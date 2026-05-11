@@ -4,16 +4,8 @@ import { NotTodayList } from "./NotTodayList";
 import { TodoItem } from "./TodoItem";
 import { Box, Card } from "@mui/material";
 import { LoadingComponent } from "../Layout/LoadingComponent";
-import { markTodoNow } from "../../utils/todos";
+import { getNotTodayTodos, markTodoNow } from "../../utils/todos";
 import { Snoozed } from "./Snoozed";
-
-type TodoCloudProps = {
-  todos: Todo[];
-  isLoadingTodos: boolean;
-  notTodayTodos: Todo[];
-  tags: TodoTag[];
-  updateTodo: (todo: Todo) => void;
-};
 
 const SNOOZE_DURATION_MS = 60 * 60 * 1000;
 const SNOOZED_TODOS_STORAGE_KEY = "todo-cloud:snoozed-todos";
@@ -43,13 +35,20 @@ function getStoredSnoozedTodoExpirations() {
     return {};
   }
 }
+type Props = {
+  todos: Todo[];
+  isLoadingTodos: boolean;
+  tags: TodoTag[];
+  updateTodo: (todo: Todo) => void;
+};
 
-export function TodoCloud({ todos, isLoadingTodos, notTodayTodos, tags, updateTodo }: TodoCloudProps) {
+export const TodoCloud: React.FC<Props> = ({ todos, isLoadingTodos, tags, updateTodo }) => {
   const [currentTime, setCurrentTime] = useState(() => Date.now());
   const [snoozedTodoExpirations, setSnoozedTodoExpirations] = useState<Record<string, number>>(
     getStoredSnoozedTodoExpirations,
   );
   const activeTodos = todos.filter((todo) => !todo.done && !todo.notNow && !todo.notToday);
+  const notTodayTodos = getNotTodayTodos(todos);
   const cloudTodos = activeTodos.filter((todo) => !isTodoSnoozed(todo.id));
   const snoozedTodos = activeTodos.filter((todo) => isTodoSnoozed(todo.id));
 
@@ -166,4 +165,4 @@ export function TodoCloud({ todos, isLoadingTodos, notTodayTodos, tags, updateTo
       </Box>
     </Card>
   );
-}
+};

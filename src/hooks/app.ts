@@ -1,8 +1,15 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { CustomLink, Todo, TodoListItems, TodoTag } from "../types/todo";
-import { getDoneTodos, parseTodoListColumns } from "../utils/todos";
+import { getDoneTodos, getTodosWithDailyUpdates, parseTodoListColumns } from "../utils/todos";
 import type { Session } from "@supabase/supabase-js";
-import type { DeletedTodo } from "../utils/deletedTodos";
+import {
+  clearDeletedTodos,
+  createDeletedTodo,
+  readDeletedTodos,
+  restoreDeletedTodo,
+  saveDeletedTodos,
+  type DeletedTodo,
+} from "../utils/deletedTodos";
 import { supabase } from "../supabase";
 import { createTodoList, getFirstTodoList, updateTodoListItems } from "../utils/db/todoLists";
 import {
@@ -12,6 +19,7 @@ import {
   isEmptyTodoListItems,
   readBackedUpTodoList,
 } from "../utils/todoListBackup";
+import { getNextMidnightDelay } from "../utils/date";
 
 export function useAppInit() {
   const [todos, setTodos] = useState<Todo[]>([]);
@@ -30,7 +38,87 @@ export function useAppInit() {
   const [text, setText] = useState("");
   const [deletedTodos, setDeletedTodos] = useState<DeletedTodo[]>([]);
 
-  const doneTodos = getDoneTodos(todos);
+  // Keeps a ref copy of todos so scheduled midnight callbacks see fresh state.
+  useEffect(() => {
+    todosRef.current = todos;
+  }, [todos]);
+
+  // Initializes Supabase auth and only reloads data when the signed-in user changes.
+  useEffect(() => {
+    if (!supabase) {
+      setIsLoadingSession(false);
+      return;
+    }
+
+    supabase.auth.getSession().then(({ data }) => {
+      sessionUserIdRef.current = data.session?.user.id ?? null;
+      setSession(data.session);
+      setIsLoadingSession(false);
+    });
+
+    const { data } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      const nextUserId = nextSession?.user.id ?? null;
+      if (sessionUserIdRef.current === nextUserId) return;
+
+      sessionUserIdRef.current = nextUserId;
+      setSession(nextSession);
+    });
+
+    return () => {
+      data.subscription.unsubscribe();
+    };
+  }, []);
+  // Loads or clears todo-list data when the authenticated user changes.
+  useEffect(() => {
+    if (!session || !supabase) {
+      resetTodoList();
+      setDeletedTodos([]);
+      return;
+    }
+
+    setDeletedTodos(readDeletedTodos(session.user.id));
+    loadTodoList(session.user.id);
+  }, [session?.user.id]);
+
+  // Runs daily todo updates now and schedules them to repeat after each midnight.
+  useEffect(() => {
+    if (!session || !todoListId || isLoadingTodos) return;
+
+    // Applies daily changes and persists them only when something changed.
+    function applyDailyTodoUpdates() {
+      const nextTodos = getTodosWithDailyUpdates(todosRef.current);
+      if (!nextTodos) return;
+
+      todosRef.current = nextTodos;
+      setTodos(nextTodos);
+      saveTodos(nextTodos);
+    }
+
+    applyDailyTodoUpdates();
+
+    let timeoutId: number;
+
+    // Reschedules itself so the app handles every future local midnight.
+    function scheduleNextMidnight() {
+      timeoutId = window.setTimeout(() => {
+        applyDailyTodoUpdates();
+        scheduleNextMidnight();
+      }, getNextMidnightDelay() + 1000);
+    }
+
+    scheduleNextMidnight();
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [session, todoListId, isLoadingTodos, tags, links, notes]);
+
+  // Manually reloads the current user's todo list from Supabase.
+  function refreshTodoList() {
+    if (!session) return;
+
+    loadTodoList(session.user.id);
+  }
 
   const closeNotification = () => setNotification(null);
 
@@ -194,6 +282,54 @@ export function useAppInit() {
     [todos, setTodos, saveTodos],
   );
 
+  // Moves a todo out of the saved list and into the local deleted history.
+  function deleteTodo(id: string) {
+    if (!session) return;
+
+    const deletedTodo = todos.find((todo) => todo.id === id);
+    if (!deletedTodo) return;
+
+    const nextTodos = todos.filter((todo) => todo.id !== id);
+    const nextDeletedTodos = [createDeletedTodo(deletedTodo), ...deletedTodos.filter((todo) => todo.id !== id)];
+
+    updateTodos(nextTodos);
+    setDeletedTodos(nextDeletedTodos);
+
+    saveDeletedTodos(session.user.id, nextDeletedTodos);
+  }
+
+  function clearDeletedItems() {
+    if (!session) return;
+
+    setDeletedTodos([]);
+    clearDeletedTodos(session.user.id);
+  }
+
+  function removeDeletedItem(id: string) {
+    if (!session) return;
+
+    const nextDeletedTodos = deletedTodos.filter((todo) => todo.id !== id);
+
+    setDeletedTodos(nextDeletedTodos);
+    saveDeletedTodos(session.user.id, nextDeletedTodos);
+  }
+
+  function restoreDeletedItem(id: string) {
+    if (!session) return;
+
+    const deletedTodo = deletedTodos.find((todo) => todo.id === id);
+    if (!deletedTodo) return;
+
+    const restoredTodo = restoreDeletedTodo(deletedTodo);
+    const nextTodos = [restoredTodo, ...todos.filter((todo) => todo.id !== id)];
+    const nextDeletedTodos = deletedTodos.filter((todo) => todo.id !== id);
+
+    setTodos(nextTodos);
+    setDeletedTodos(nextDeletedTodos);
+    saveTodos(nextTodos);
+    saveDeletedTodos(session.user.id, nextDeletedTodos);
+  }
+
   const updateTags = useCallback(
     async (tags: TodoTag[]) => {
       setTags(tags);
@@ -201,6 +337,16 @@ export function useAppInit() {
     },
     [saveTags, setTags],
   );
+
+  // Deletes a tag and removes that tag assignment from all todos.
+  function deleteTag(id: string) {
+    const nextTags = tags.filter((tag) => tag.id !== id);
+    const nextTodos = todos.map((todo) => (todo.tagId === id ? { ...todo, tagId: null } : todo));
+
+    setTags(nextTags);
+    setTodos(nextTodos);
+    saveTodoList(nextTodos, nextTags, links, notes);
+  }
 
   const updateLinks = useCallback(
     async (links: CustomLink[]) => {
@@ -220,37 +366,32 @@ export function useAppInit() {
 
   return {
     session,
-    setSession,
-    setIsLoadingSession,
     isLoadingSession,
-    sessionUserIdRef,
 
     saveError,
 
-    todoListId,
     loadTodoList,
-    saveTodoList,
+    refreshTodoList,
 
     todos,
     setTodos,
-    doneTodos,
     deletedTodos,
     setDeletedTodos,
-    updateTodos,
+    deleteTodo,
     updateTodo,
-    resetTodoList,
+    clearDeletedItems,
+    removeDeletedItem,
+    restoreDeletedItem,
     isLoadingTodos,
     text,
     setText,
-    todosRef,
 
     saveTodos,
 
     tags,
-    setTags,
+    deleteTag,
     links,
     notes,
-    setNotes,
 
     updateTags,
     updateLinks,

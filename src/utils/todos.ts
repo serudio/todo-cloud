@@ -22,16 +22,14 @@ export const getDoneTodos = (todos: Todo[]) => {
   return [...todos]
     .filter((todo) => todo.done)
     .sort((a, b) => {
-      if (a.doneAt && b.doneAt) {
-        return b.doneAt.localeCompare(a.doneAt);
-      }
-
+      if (a.doneAt && b.doneAt) return b.doneAt.localeCompare(a.doneAt);
       if (a.doneAt) return -1;
       if (b.doneAt) return 1;
 
       return b.count - a.count;
     });
 };
+export const getNotTodayTodos = (todos: Todo[]) => todos.filter((todo) => !todo.done && !todo.notNow && todo.notToday);
 
 // Normalizes a custom link URL and adds https:// when the scheme is missing.
 export function normalizeCustomLinkUrl(url: string) {

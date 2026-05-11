@@ -6,7 +6,6 @@ import { getDoneTodos } from "../../utils/todos";
 
 type DoneListProps = {
   todos: Todo[];
-
   updateTodo: (todos: Todo) => void;
   tags: TodoTag[];
   onAddTodoText: (text: string) => void;
