@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { CustomLink, Todo, TodoListItems, TodoTag } from "../types/todo";
-import { getDoneTodos, getTodosWithDailyUpdates, parseTodoListColumns } from "../utils/todos";
+import { getTodosWithDailyUpdates, parseTodoListColumns } from "../utils/todos";
 import type { Session } from "@supabase/supabase-js";
 import {
   clearDeletedTodos,
