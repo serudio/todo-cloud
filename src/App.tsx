@@ -26,15 +26,13 @@ export default function App() {
 
     todos,
     deletedTodos,
-    addTodoText,
     deleteTodo,
     updateTodo,
+    updateTodos,
     clearDeletedItems,
     removeDeletedItem,
     restoreDeletedItem,
     isLoadingTodos,
-    text,
-    setText,
 
     tags,
     deleteTag,
@@ -64,9 +62,8 @@ export default function App() {
       <AddTask
         todos={todos}
         isLoadingTodos={isLoadingTodos}
-        text={text}
-        onAddTodoText={addTodoText}
-        onTextChange={setText}
+        updateTodos={updateTodos}
+        setNotification={setNotification}
       />
 
       <Box

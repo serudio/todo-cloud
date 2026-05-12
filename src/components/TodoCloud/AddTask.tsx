@@ -1,28 +1,32 @@
 import type { Todo } from "../../types/todo";
-import { type FormEvent, type KeyboardEvent, useEffect, useMemo, useState } from "react";
-import { getDoneTodos, normalizeTodoText } from "../../utils/todos";
+import { type ChangeEvent, type FormEvent, type KeyboardEvent, useEffect, useMemo, useState } from "react";
+import { getDoneTodos, getNewTodo, normalizeTodoText, restoreTodoFromDone } from "../../utils/todos";
 import { alpha, Box, List, ListItemButton, ListItemText, TextField } from "@mui/material";
 import { ADD_TODO_Z } from "../../constants/ui";
+import { moveItemToFront } from "../../utils/arrays";
 
 type Props = {
   isLoadingTodos: boolean;
   todos: Todo[];
-  text: string;
-  onAddTodoText: (text: string) => void;
-  onTextChange: (text: string) => void;
+  updateTodos: (todos: Todo[]) => void;
+  setNotification: (notification: string) => void;
 };
 
-export const AddTask: React.FC<Props> = ({ isLoadingTodos, todos, text, onAddTodoText, onTextChange }) => {
+export const AddTask: React.FC<Props> = ({ isLoadingTodos, todos, updateTodos, setNotification }) => {
+  const [text, setText] = useState("");
+
   const suggestedTodos = getDoneTodos(todos);
 
   const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(0);
   const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(false);
+
   const matchingTodos = useMemo(() => {
     const normalizedText = normalizeTodoText(text);
     if (!normalizedText) return [];
 
     return suggestedTodos.filter((todo) => normalizeTodoText(todo.text).includes(normalizedText)).slice(0, 6);
   }, [suggestedTodos, text]);
+
   const showSuggestions = isSuggestionsOpen && matchingTodos.length > 0;
 
   useEffect(() => {
@@ -30,8 +34,38 @@ export const AddTask: React.FC<Props> = ({ isLoadingTodos, todos, text, onAddTod
     setIsSuggestionsOpen(text.trim().length > 0);
   }, [text]);
 
+  const handleInoutChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setText(e.target.value);
+    setIsSuggestionsOpen(true);
+  };
+
+  // Adds a task by text, reviving duplicates from done/hidden states when needed.
+  function addTodoText(todoText: string) {
+    const trimmedText = normalizeTodoText(todoText);
+    if (!trimmedText || isLoadingTodos) return;
+
+    const existingTodo = todos.find((todo) => normalizeTodoText(todo.text) === trimmedText);
+
+    if (existingTodo && !existingTodo.done) {
+      setNotification(`"${existingTodo.text}" is already there.`);
+      setText("");
+      return;
+    }
+
+    const newTodos = existingTodo
+      ? moveItemToFront(
+          todos.map((todo) => (todo.id === existingTodo.id ? restoreTodoFromDone(todo) : todo)),
+          (todo) => todo.id === existingTodo.id,
+        )
+      : [getNewTodo(trimmedText), ...todos];
+
+    setNotification(`"${trimmedText}" added.`);
+    setText("");
+    updateTodos(newTodos);
+  }
+
   function selectSuggestion(todo: Todo) {
-    onAddTodoText(todo.text);
+    addTodoText(todo.text);
     setActiveSuggestionIndex(0);
     setIsSuggestionsOpen(false);
   }
@@ -67,8 +101,9 @@ export const AddTask: React.FC<Props> = ({ isLoadingTodos, todos, text, onAddTod
   function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setIsSuggestionsOpen(false);
-    onAddTodoText(text);
+    addTodoText(text);
   }
+
   return (
     <Box
       sx={{
@@ -87,10 +122,7 @@ export const AddTask: React.FC<Props> = ({ isLoadingTodos, todos, text, onAddTod
           disabled={isLoadingTodos}
           value={text}
           onBlur={() => setIsSuggestionsOpen(false)}
-          onChange={(event) => {
-            onTextChange(event.target.value);
-            setIsSuggestionsOpen(true);
-          }}
+          onChange={handleInoutChange}
           onFocus={() => setIsSuggestionsOpen(text.trim().length > 0)}
           onKeyDown={handleInputKeyDown}
           sx={{ width: 400 }}

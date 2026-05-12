@@ -1,12 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { CustomLink, Todo, TodoListItems, TodoTag } from "../types/todo";
-import {
-  getNewTodo,
-  getTodosWithDailyUpdates,
-  normalizeTodoText,
-  parseTodoListColumns,
-  restoreTodoFromDone,
-} from "../utils/todos";
+import { getTodosWithDailyUpdates, parseTodoListColumns } from "../utils/todos";
 import type { Session } from "@supabase/supabase-js";
 import {
   clearDeletedTodos,
@@ -26,7 +20,6 @@ import {
   readBackedUpTodoList,
 } from "../utils/todoListBackup";
 import { getNextMidnightDelay } from "../utils/date";
-import { moveItemToFront } from "../utils/arrays";
 
 export function useAppInit() {
   const [todos, setTodos] = useState<Todo[]>([]);
@@ -42,7 +35,6 @@ export function useAppInit() {
   const [todoListId, setTodoListId] = useState<string | null>(null);
   const todosRef = useRef<Todo[]>([]);
   const sessionUserIdRef = useRef<string | null>(null);
-  const [text, setText] = useState("");
   const [deletedTodos, setDeletedTodos] = useState<DeletedTodo[]>([]);
 
   // Keeps a ref copy of todos so scheduled midnight callbacks see fresh state.
@@ -197,12 +189,7 @@ export function useAppInit() {
           .from("todo_lists")
           .select("items, tags, links, notes")
           .eq("id", todoListId)
-          .maybeSingle<{
-            items: unknown;
-            tags: unknown;
-            links: unknown;
-            notes: unknown;
-          }>();
+          .maybeSingle<{ items: unknown; tags: unknown; links: unknown; notes: unknown }>();
 
         if (error) {
           setSaveError(error.message);
@@ -289,31 +276,6 @@ export function useAppInit() {
     [todos, setTodos, saveTodos],
   );
 
-  // Adds a task by text, reviving duplicates from done/hidden states when needed.
-  function addTodoText(todoText: string) {
-    const trimmedText = normalizeTodoText(todoText);
-    if (!trimmedText || isLoadingTodos) return;
-
-    const existingTodo = todos.find((todo) => normalizeTodoText(todo.text) === trimmedText);
-
-    if (existingTodo && !existingTodo.done) {
-      setNotification(`"${existingTodo.text}" is already there.`);
-      setText("");
-      return;
-    }
-
-    const newTodos = existingTodo
-      ? moveItemToFront(
-          todos.map((todo) => (todo.id === existingTodo.id ? restoreTodoFromDone(todo) : todo)),
-          (todo) => todo.id === existingTodo.id,
-        )
-      : [getNewTodo(trimmedText), ...todos];
-
-    setText("");
-    setNotification(`"${trimmedText}" added.`);
-    updateTodos(newTodos);
-  }
-
   // Moves a todo out of the saved list and into the local deleted history.
   function deleteTodo(id: string) {
     if (!session) return;
@@ -353,12 +315,11 @@ export function useAppInit() {
     if (!deletedTodo) return;
 
     const restoredTodo = restoreDeletedTodo(deletedTodo);
-    const nextTodos = [restoredTodo, ...todos.filter((todo) => todo.id !== id)];
+    const newTodos = [restoredTodo, ...todos.filter((todo) => todo.id !== id)];
     const nextDeletedTodos = deletedTodos.filter((todo) => todo.id !== id);
 
-    setTodos(nextTodos);
+    updateTodos(newTodos);
     setDeletedTodos(nextDeletedTodos);
-    saveTodos(nextTodos);
     saveDeletedTodos(session.user.id, nextDeletedTodos);
   }
 
@@ -406,15 +367,13 @@ export function useAppInit() {
 
     todos,
     deletedTodos,
-    addTodoText,
     deleteTodo,
     updateTodo,
+    updateTodos,
     clearDeletedItems,
     removeDeletedItem,
     restoreDeletedItem,
     isLoadingTodos,
-    text,
-    setText,
 
     tags,
     deleteTag,
