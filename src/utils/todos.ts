@@ -304,7 +304,7 @@ function getTodosWithEndOfDayRepeats(currentTodos: Todo[]) {
   const today = getLocalDateKey();
   let hasChanges = false;
 
-  const nextTodos = currentTodos.map((todo) => {
+  const newTodos = currentTodos.map((todo) => {
     if (!todo.repeatAtEndOfDay) return todo;
 
     if (!todo.lastAutoAddedDate) {
@@ -328,7 +328,7 @@ function getTodosWithEndOfDayRepeats(currentTodos: Todo[]) {
     };
   });
 
-  return hasChanges ? nextTodos : null;
+  return hasChanges ? newTodos : null;
 }
 
 // Moves "not today" todos back into the cloud after their saved day passes.
@@ -336,7 +336,7 @@ function getTodosWithExpiredNotTodayCleared(currentTodos: Todo[]) {
   const today = getLocalDateKey();
   let hasChanges = false;
 
-  const nextTodos = currentTodos.map((todo) => {
+  const newTodos = currentTodos.map((todo) => {
     if (!todo.notToday || todo.notTodayDate === today) return todo;
 
     hasChanges = true;
@@ -354,7 +354,7 @@ function getTodosWithExpiredNotTodayCleared(currentTodos: Todo[]) {
     };
   });
 
-  return hasChanges ? nextTodos : null;
+  return hasChanges ? newTodos : null;
 }
 
 // Combines all midnight-driven todo changes into one update pass.

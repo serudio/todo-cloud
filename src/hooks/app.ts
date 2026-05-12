@@ -85,12 +85,12 @@ export function useAppInit() {
 
     // Applies daily changes and persists them only when something changed.
     function applyDailyTodoUpdates() {
-      const nextTodos = getTodosWithDailyUpdates(todosRef.current);
-      if (!nextTodos) return;
+      const newTodos = getTodosWithDailyUpdates(todosRef.current);
+      if (!newTodos) return;
 
-      todosRef.current = nextTodos;
-      setTodos(nextTodos);
-      saveTodos(nextTodos);
+      todosRef.current = newTodos;
+      setTodos(newTodos);
+      saveTodos(newTodos);
     }
 
     applyDailyTodoUpdates();
@@ -140,12 +140,12 @@ export function useAppInit() {
       if (data) {
         const parsedItems = parseTodoListColumns(data.items, data.tags, data.links, data.notes);
         const backedUpItems = isEmptyTodoListItems(parsedItems) ? readBackedUpTodoList(userId) : null;
-        const nextItems = backedUpItems ?? parsedItems;
+        const newItems = backedUpItems ?? parsedItems;
 
         setTodoListId(data.id);
-        setTodoListItems(nextItems);
+        setTodoListItems(newItems);
         setIsLoadingTodos(false);
-        backupTodoList(userId, nextItems);
+        backupTodoList(userId, newItems);
 
         if (backedUpItems) {
           setNotification("Restored your todo list from the local backup.");
@@ -204,16 +204,11 @@ export function useAppInit() {
         }
       }
 
-      const nextItems = {
-        todos: newTodos,
-        tags: newTags,
-        links: newLinks,
-        notes: newNotes,
-      };
-      const { error } = await updateTodoListItems(todoListId, nextItems);
+      const newItems = { todos: newTodos, tags: newTags, links: newLinks, notes: newNotes };
+      const { error } = await updateTodoListItems(todoListId, newItems);
 
       if (!error && session) {
-        backupTodoList(session.user.id, nextItems);
+        backupTodoList(session.user.id, newItems);
       }
 
       if (error) {
@@ -283,13 +278,13 @@ export function useAppInit() {
     const deletedTodo = todos.find((todo) => todo.id === id);
     if (!deletedTodo) return;
 
-    const nextTodos = todos.filter((todo) => todo.id !== id);
-    const nextDeletedTodos = [createDeletedTodo(deletedTodo), ...deletedTodos.filter((todo) => todo.id !== id)];
+    const newTodos = todos.filter((todo) => todo.id !== id);
+    const newDeletedTodos = [createDeletedTodo(deletedTodo), ...deletedTodos.filter((todo) => todo.id !== id)];
 
-    updateTodos(nextTodos);
-    setDeletedTodos(nextDeletedTodos);
+    updateTodos(newTodos);
+    setDeletedTodos(newDeletedTodos);
 
-    saveDeletedTodos(session.user.id, nextDeletedTodos);
+    saveDeletedTodos(session.user.id, newDeletedTodos);
   }
 
   function clearDeletedItems() {
@@ -302,10 +297,10 @@ export function useAppInit() {
   function removeDeletedItem(id: string) {
     if (!session) return;
 
-    const nextDeletedTodos = deletedTodos.filter((todo) => todo.id !== id);
+    const newDeletedTodos = deletedTodos.filter((todo) => todo.id !== id);
 
-    setDeletedTodos(nextDeletedTodos);
-    saveDeletedTodos(session.user.id, nextDeletedTodos);
+    setDeletedTodos(newDeletedTodos);
+    saveDeletedTodos(session.user.id, newDeletedTodos);
   }
 
   function restoreDeletedItem(id: string) {
@@ -316,11 +311,11 @@ export function useAppInit() {
 
     const restoredTodo = restoreDeletedTodo(deletedTodo);
     const newTodos = [restoredTodo, ...todos.filter((todo) => todo.id !== id)];
-    const nextDeletedTodos = deletedTodos.filter((todo) => todo.id !== id);
+    const newDeletedTodos = deletedTodos.filter((todo) => todo.id !== id);
 
     updateTodos(newTodos);
-    setDeletedTodos(nextDeletedTodos);
-    saveDeletedTodos(session.user.id, nextDeletedTodos);
+    setDeletedTodos(newDeletedTodos);
+    saveDeletedTodos(session.user.id, newDeletedTodos);
   }
 
   const updateTags = useCallback(
@@ -332,13 +327,13 @@ export function useAppInit() {
   );
 
   // Deletes a tag and removes that tag assignment from all todos.
-  function deleteTag(id: string) {
-    const nextTags = tags.filter((tag) => tag.id !== id);
-    const nextTodos = todos.map((todo) => (todo.tagId === id ? { ...todo, tagId: null } : todo));
+  async function deleteTag(id: string) {
+    const newTags = tags.filter((tag) => tag.id !== id);
+    const newTodos = todos.map((todo) => (todo.tagId === id ? { ...todo, tagId: null } : todo));
 
-    setTags(nextTags);
-    setTodos(nextTodos);
-    saveTodoList(nextTodos, nextTags, links, notes);
+    setTags(newTags);
+    setTodos(newTodos);
+    await saveTodoList(newTodos, newTags, links, notes);
   }
 
   const updateLinks = useCallback(
