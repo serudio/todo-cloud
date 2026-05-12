@@ -8,12 +8,11 @@ type Props = {
   isLoadingTodos: boolean;
   todos: Todo[];
   text: string;
-  onAddTodo: (event: FormEvent<HTMLFormElement>) => void;
   onAddTodoText: (text: string) => void;
   onTextChange: (text: string) => void;
 };
 
-export const AddTask: React.FC<Props> = ({ isLoadingTodos, todos, text, onAddTodo, onAddTodoText, onTextChange }) => {
+export const AddTask: React.FC<Props> = ({ isLoadingTodos, todos, text, onAddTodoText, onTextChange }) => {
   const suggestedTodos = getDoneTodos(todos);
 
   const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(0);
@@ -37,37 +36,38 @@ export const AddTask: React.FC<Props> = ({ isLoadingTodos, todos, text, onAddTod
     setIsSuggestionsOpen(false);
   }
 
-  function handleInputKeyDown(event: KeyboardEvent<HTMLInputElement>) {
-    if (event.key === "Escape") {
+  function handleInputKeyDown(e: KeyboardEvent<HTMLInputElement>) {
+    if (e.key === "Escape") {
       setIsSuggestionsOpen(false);
       return;
     }
 
     if (matchingTodos.length === 0) return;
 
-    if (event.key === "ArrowDown") {
-      event.preventDefault();
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
       setIsSuggestionsOpen(true);
       setActiveSuggestionIndex((currentIndex) => (currentIndex + 1) % matchingTodos.length);
       return;
     }
 
-    if (event.key === "ArrowUp") {
-      event.preventDefault();
+    if (e.key === "ArrowUp") {
+      e.preventDefault();
       setIsSuggestionsOpen(true);
       setActiveSuggestionIndex((currentIndex) => (currentIndex - 1 + matchingTodos.length) % matchingTodos.length);
       return;
     }
 
-    if (event.key === "Enter" && showSuggestions) {
-      event.preventDefault();
+    if (e.key === "Enter" && showSuggestions) {
+      e.preventDefault();
       selectSuggestion(matchingTodos[activeSuggestionIndex]);
     }
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
     setIsSuggestionsOpen(false);
-    onAddTodo(event);
+    onAddTodoText(text);
   }
   return (
     <Box

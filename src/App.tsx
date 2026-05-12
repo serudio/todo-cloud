@@ -1,4 +1,3 @@
-import { type FormEvent } from "react";
 import { SetupRequired } from "./components/AppState/SetupRequired";
 import { AuthCard } from "./components/AuthCard";
 import { DeletedCard } from "./components/DeletedCard/DeletedCard";
@@ -9,15 +8,12 @@ import { NotNowList } from "./components/NotNowList.tsx";
 import { TagsCard } from "./components/Tags/TagsCard";
 import { TodoCloud } from "./components/TodoCloud/TodoCloud";
 import { isSupabaseConfigured } from "./supabase";
-import { normalizeTodoText } from "./utils/todos";
 import { Box } from "@mui/material";
 import { Header } from "./components/Layout";
 import { AddTask } from "./components/TodoCloud/AddTask.tsx";
 import { LoadingComponent } from "./components/Layout/LoadingComponent.tsx";
 import { useAppInit } from "./hooks/app.ts";
 import { NotificationsToast } from "./components/Layout/NotificationAlert";
-import { getLocalDateKey } from "./utils/date.ts";
-import { moveItemToFront } from "./utils/arrays";
 
 export default function App() {
   const {
@@ -29,8 +25,8 @@ export default function App() {
     refreshTodoList,
 
     todos,
-    setTodos,
     deletedTodos,
+    addTodoText,
     deleteTodo,
     updateTodo,
     clearDeletedItems,
@@ -39,8 +35,6 @@ export default function App() {
     isLoadingTodos,
     text,
     setText,
-
-    saveTodos,
 
     tags,
     deleteTag,
@@ -57,78 +51,13 @@ export default function App() {
     closeNotification,
   } = useAppInit();
 
-  // todo
-  // Adds a task by text, reviving duplicates from done/hidden states when needed.
-  function addTodoText(todoText: string) {
-    const trimmedText = normalizeTodoText(todoText);
-    if (!trimmedText || isLoadingTodos) return;
-
-    const today = getLocalDateKey();
-    const normalizedText = normalizeTodoText(trimmedText);
-    const existingTodo = todos.find((todo) => normalizeTodoText(todo.text) === normalizedText);
-
-    if (existingTodo && !existingTodo.done) {
-      setNotification(`"${existingTodo.text}" is already there.`);
-      setText("");
-      return;
-    }
-
-    const nextTodos = existingTodo
-      ? moveItemToFront(
-          todos.map((todo) =>
-            todo.id === existingTodo.id
-              ? {
-                  ...todo,
-                  count: todo.count + 1,
-                  notNow: false,
-                  notToday: false,
-                  notTodayDate: null,
-                  done: false,
-                  doneAt: null,
-                  lastAddedDate: today,
-                }
-              : todo,
-          ),
-          (todo) => todo.id === existingTodo.id,
-        )
-      : [
-          {
-            id: crypto.randomUUID(),
-            text: trimmedText,
-            done: false,
-            doneAt: null,
-            count: 1,
-            lastAddedDate: today,
-            repeatAtEndOfDay: false,
-            lastAutoAddedDate: null,
-            tagId: null,
-            dueDate: null,
-            notNow: false,
-            notToday: false,
-            notTodayDate: null,
-          },
-          ...todos,
-        ];
-
-    setTodos(nextTodos);
-    setText("");
-    setNotification(`"${trimmedText}" added.`);
-    saveTodos(nextTodos);
-  }
-
-  // Handles the add-task form submit and delegates to text-based creation.
-  function addTodo(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    addTodoText(text);
-  }
-
   if (!isSupabaseConfigured) return <SetupRequired />;
   if (!session) return <AuthCard />;
   if (isLoadingSession) return <LoadingComponent loading />;
 
   return (
     <Box sx={{ bgcolor: "background.body", color: "text.primary" }}>
-      {saveError ? <p>{saveError}</p> : null}
+      {saveError && <p>{saveError}</p>}
 
       <NotificationsToast notification={notification} onClose={closeNotification} />
 
@@ -136,7 +65,6 @@ export default function App() {
         todos={todos}
         isLoadingTodos={isLoadingTodos}
         text={text}
-        onAddTodo={addTodo}
         onAddTodoText={addTodoText}
         onTextChange={setText}
       />
