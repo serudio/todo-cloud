@@ -1,6 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { CustomLink, Todo, TodoListItems, TodoTag } from "../types/todo";
-import { getTodosWithDailyUpdates, normalizeTodoText, parseTodoListColumns } from "../utils/todos";
+import {
+  getNewTodo,
+  getTodosWithDailyUpdates,
+  normalizeTodoText,
+  parseTodoListColumns,
+  restoreTodoFromDone,
+} from "../utils/todos";
 import type { Session } from "@supabase/supabase-js";
 import {
   clearDeletedTodos,
@@ -19,7 +25,7 @@ import {
   isEmptyTodoListItems,
   readBackedUpTodoList,
 } from "../utils/todoListBackup";
-import { getLocalDateKey, getNextMidnightDelay } from "../utils/date";
+import { getNextMidnightDelay } from "../utils/date";
 import { moveItemToFront } from "../utils/arrays";
 
 export function useAppInit() {
@@ -288,9 +294,7 @@ export function useAppInit() {
     const trimmedText = normalizeTodoText(todoText);
     if (!trimmedText || isLoadingTodos) return;
 
-    const today = getLocalDateKey();
-    const normalizedText = normalizeTodoText(trimmedText);
-    const existingTodo = todos.find((todo) => normalizeTodoText(todo.text) === normalizedText);
+    const existingTodo = todos.find((todo) => normalizeTodoText(todo.text) === trimmedText);
 
     if (existingTodo && !existingTodo.done) {
       setNotification(`"${existingTodo.text}" is already there.`);
@@ -298,47 +302,16 @@ export function useAppInit() {
       return;
     }
 
-    const nextTodos = existingTodo
+    const newTodos = existingTodo
       ? moveItemToFront(
-          todos.map((todo) =>
-            todo.id === existingTodo.id
-              ? {
-                  ...todo,
-                  count: todo.count + 1,
-                  notNow: false,
-                  notToday: false,
-                  notTodayDate: null,
-                  done: false,
-                  doneAt: null,
-                  lastAddedDate: today,
-                }
-              : todo,
-          ),
+          todos.map((todo) => (todo.id === existingTodo.id ? restoreTodoFromDone(todo) : todo)),
           (todo) => todo.id === existingTodo.id,
         )
-      : [
-          {
-            id: crypto.randomUUID(),
-            text: trimmedText,
-            done: false,
-            doneAt: null,
-            count: 1,
-            lastAddedDate: today,
-            repeatAtEndOfDay: false,
-            lastAutoAddedDate: null,
-            tagId: null,
-            dueDate: null,
-            notNow: false,
-            notToday: false,
-            notTodayDate: null,
-          },
-          ...todos,
-        ];
+      : [getNewTodo(trimmedText), ...todos];
 
-    setTodos(nextTodos);
     setText("");
     setNotification(`"${trimmedText}" added.`);
-    saveTodos(nextTodos);
+    updateTodos(newTodos);
   }
 
   // Moves a todo out of the saved list and into the local deleted history.

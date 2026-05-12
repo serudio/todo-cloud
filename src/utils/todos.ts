@@ -17,6 +17,37 @@ export const markTodoDone = (todo: Todo) => {
     notTodayDate: newDone ? todo.notTodayDate : null,
   };
 };
+export const restoreTodoFromDone = (todo: Todo): Todo => {
+  const today = getLocalDateKey();
+  return {
+    ...todo,
+    count: todo.count + 1,
+    done: false,
+    doneAt: null,
+    notNow: false,
+    notToday: false,
+    notTodayDate: null,
+    lastAddedDate: today,
+  };
+};
+export const getNewTodo = (todoText: string): Todo => {
+  const today = getLocalDateKey();
+  return {
+    id: crypto.randomUUID(),
+    text: todoText,
+    done: false,
+    doneAt: null,
+    count: 1,
+    lastAddedDate: today,
+    repeatAtEndOfDay: false,
+    lastAutoAddedDate: null,
+    tagId: null,
+    dueDate: null,
+    notNow: false,
+    notToday: false,
+    notTodayDate: null,
+  };
+};
 
 export const getDoneTodos = (todos: Todo[]) => {
   return [...todos]

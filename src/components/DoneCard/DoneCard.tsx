@@ -8,11 +8,10 @@ type DoneListProps = {
   todos: Todo[];
   updateTodo: (todos: Todo) => void;
   tags: TodoTag[];
-  onAddTodoText: (text: string) => void;
   onDeleteTodo: (id: string) => void;
 };
 
-export const DoneCard: React.FC<DoneListProps> = ({ todos, updateTodo, tags, onAddTodoText, onDeleteTodo }) => {
+export const DoneCard: React.FC<DoneListProps> = ({ todos, updateTodo, tags, onDeleteTodo }) => {
   const doneTodos = getDoneTodos(todos);
 
   return (
@@ -21,16 +20,7 @@ export const DoneCard: React.FC<DoneListProps> = ({ todos, updateTodo, tags, onA
 
       <Box sx={{ display: "flex", flexDirection: "column", gap: 1, overflow: "auto" }}>
         {doneTodos.map((todo) => {
-          return (
-            <DoneItem
-              key={todo.id}
-              item={todo}
-              tags={tags}
-              updateTodo={updateTodo}
-              onAddTodoText={onAddTodoText}
-              onDeleteTodo={onDeleteTodo}
-            />
-          );
+          return <DoneItem key={todo.id} item={todo} tags={tags} updateTodo={updateTodo} onDeleteTodo={onDeleteTodo} />;
         })}
       </Box>
     </SectionCard>

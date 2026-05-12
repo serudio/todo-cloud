@@ -109,13 +109,7 @@ export default function App() {
             maxHeight: "calc(100vh - 24px)",
           }}
         >
-          <DoneCard
-            todos={todos}
-            updateTodo={updateTodo}
-            tags={tags}
-            onAddTodoText={addTodoText}
-            onDeleteTodo={deleteTodo}
-          />
+          <DoneCard todos={todos} updateTodo={updateTodo} tags={tags} onDeleteTodo={deleteTodo} />
           <DeletedCard
             deletedTodos={deletedTodos}
             onClear={clearDeletedItems}
