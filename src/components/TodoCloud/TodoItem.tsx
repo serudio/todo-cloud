@@ -117,7 +117,7 @@ export const TodoItem: React.FC<Props> = ({
         color: "#000",
         background: color,
         maxWidth: 300,
-        borderRadius: 20,
+        borderRadius: size,
         paddingLeft: 2,
         paddingRight: 2,
         letterSpacing: 1.5,

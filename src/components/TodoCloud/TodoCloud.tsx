@@ -129,7 +129,7 @@ export const TodoCloud: React.FC<Props> = ({ todos, isLoadingTodos, tags, update
   }
 
   return (
-    <Card sx={{ flex: 1, position: "relative", display: "flex" }}>
+    <Card sx={{ flex: 1, position: "relative", display: "flex", maxWidth: 1000 }}>
       <LoadingComponent loading={isLoadingTodos} />
       {!isLoadingTodos && notTodayTodos.length > 0 && <NotTodayList todos={notTodayTodos} updateTodo={updateTodo} />}
       {!isLoadingTodos && snoozedTodos.length > 0 && <Snoozed todos={snoozedTodos} updateTodo={handleRemoveSnooze} />}

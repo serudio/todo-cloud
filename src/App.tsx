@@ -8,7 +8,7 @@ import { NotNowList } from "./components/NotNowList.tsx";
 import { TagsCard } from "./components/Tags/TagsCard";
 import { TodoCloud } from "./components/TodoCloud/TodoCloud";
 import { isSupabaseConfigured } from "./supabase";
-import { Box } from "@mui/material";
+import { Box, Drawer } from "@mui/material";
 import { Header } from "./components/Layout";
 import { AddTask } from "./components/TodoCloud/AddTask.tsx";
 import { LoadingComponent } from "./components/Layout/LoadingComponent.tsx";
@@ -23,6 +23,12 @@ export default function App() {
     saveError,
 
     refreshTodoList,
+
+    showLeftMenu,
+    handleLeftMenuClick,
+
+    showRightMenu,
+    handleRightMenuClick,
 
     todos,
     deletedTodos,
@@ -74,46 +80,67 @@ export default function App() {
           display: "flex",
           gap: 2,
           margin: "0 auto",
+          maxWidth: 1000,
         }}
       >
-        <Box
-          sx={{
-            gap: 2,
-            display: "flex",
-            flexDirection: "column",
-            width: 230,
-            minWidth: 230,
-            maxHeight: "calc(100vh - 24px)",
-          }}
-        >
-          <TagsCard tags={tags} updateTags={updateTags} setNotification={setNotification} onDeleteTag={deleteTag} />
-          <LinksCard links={links} updateLinks={updateLinks} setNotification={setNotification} />
-          <NotNowList tags={tags} todos={todos} updateTodo={updateTodo} />
-          <NotesCard notes={notes} setNotes={updateNotes} />
-        </Box>
-
+        <Drawer open={showLeftMenu} onClose={handleLeftMenuClick} variant="persistent" anchor="left">
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 2,
+              width: 250,
+              minWidth: 250,
+              maxHeight: "calc(100vh - 24px)",
+              p: 1,
+            }}
+          >
+            <TagsCard tags={tags} updateTags={updateTags} setNotification={setNotification} onDeleteTag={deleteTag} />
+            <LinksCard links={links} updateLinks={updateLinks} setNotification={setNotification} />
+            <NotNowList tags={tags} todos={todos} updateTodo={updateTodo} />
+            <NotesCard notes={notes} setNotes={updateNotes} />
+          </Box>
+        </Drawer>
+        {/* {showLeftMenu && (
+          
+            <TagsCard tags={tags} updateTags={updateTags} setNotification={setNotification} onDeleteTag={deleteTag} />
+            <LinksCard links={links} updateLinks={updateLinks} setNotification={setNotification} />
+            <NotNowList tags={tags} todos={todos} updateTodo={updateTodo} />
+            <NotesCard notes={notes} setNotes={updateNotes} />
+          </Box>
+        )} */}
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2, flex: 1 }}>
-          <Header isLoadingTodos={isLoadingTodos} onRefresh={refreshTodoList} email={session.user.email} />
+          <Header
+            isLoadingTodos={isLoadingTodos}
+            onRefresh={refreshTodoList}
+            onLeftMenuClick={handleLeftMenuClick}
+            onRightMenuClick={handleRightMenuClick}
+            email={session.user.email}
+          />
           <TodoCloud todos={todos} updateTodo={updateTodo} isLoadingTodos={isLoadingTodos} tags={tags} />
         </Box>
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            gap: 2,
-            width: 250,
-            minWidth: 250,
-            maxHeight: "calc(100vh - 24px)",
-          }}
-        >
-          <DoneCard todos={todos} updateTodo={updateTodo} tags={tags} onDeleteTodo={deleteTodo} />
-          <DeletedCard
-            deletedTodos={deletedTodos}
-            onClear={clearDeletedItems}
-            onRemoveDeletedTodo={removeDeletedItem}
-            onRestoreDeletedTodo={restoreDeletedItem}
-          />
-        </Box>
+
+        <Drawer open={showRightMenu} onClose={handleRightMenuClick} anchor="right" variant="persistent">
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 2,
+              width: 250,
+              minWidth: 250,
+              maxHeight: "calc(100vh - 24px)",
+              p: 1,
+            }}
+          >
+            <DoneCard todos={todos} updateTodo={updateTodo} tags={tags} onDeleteTodo={deleteTodo} />
+            <DeletedCard
+              deletedTodos={deletedTodos}
+              onClear={clearDeletedItems}
+              onRemoveDeletedTodo={removeDeletedItem}
+              onRestoreDeletedTodo={restoreDeletedItem}
+            />
+          </Box>
+        </Drawer>
       </Box>
     </Box>
   );
