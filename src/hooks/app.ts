@@ -27,8 +27,9 @@ export function useAppInit() {
   const [links, setLinks] = useState<CustomLink[]>([]);
   const [notes, setNotes] = useState("");
   const [notification, setNotification] = useState<string | null>(null);
-  const [showLeftMenu, setShowLeftMenu] = useState(false);
-  const [showRightMenu, setShowRightMenu] = useState(false);
+  const [showLeftMenu, setShowLeftMenu] = useState(true);
+  const [showRightMenu, setShowRightMenu] = useState(true);
+  const [showTopMenu, setShowTopMenu] = useState(false);
 
   const [session, setSession] = useState<Session | null>(null);
   const [isLoadingSession, setIsLoadingSession] = useState(true);
@@ -123,6 +124,7 @@ export function useAppInit() {
 
   const handleLeftMenuClick = () => setShowLeftMenu((prev) => !prev);
   const handleRightMenuClick = () => setShowRightMenu((prev) => !prev);
+  const handleTopMenuClick = () => setShowTopMenu((prev) => !prev);
 
   const closeNotification = () => setNotification(null);
 
@@ -369,6 +371,8 @@ export function useAppInit() {
     handleLeftMenuClick,
     showRightMenu,
     handleRightMenuClick,
+    showTopMenu,
+    handleTopMenuClick,
 
     todos,
     deletedTodos,

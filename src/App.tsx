@@ -26,9 +26,10 @@ export default function App() {
 
     showLeftMenu,
     handleLeftMenuClick,
-
     showRightMenu,
     handleRightMenuClick,
+    showTopMenu,
+    handleTopMenuClick,
 
     todos,
     deletedTodos,
@@ -74,15 +75,18 @@ export default function App() {
 
       <Box
         sx={{
-          paddingTop: 2,
+          paddingTop: 1,
           minHeight: "calc(100vh - 16px)",
           width: "min(1300px, calc(100% - 32px))",
           display: "flex",
+          justifyContent: "center",
           gap: 2,
           margin: "0 auto",
-          maxWidth: 1000,
         }}
       >
+        <Drawer open={showTopMenu} onClose={handleTopMenuClick} anchor="top">
+          <LinksCard links={links} updateLinks={updateLinks} setNotification={setNotification} />
+        </Drawer>
         <Drawer open={showLeftMenu} onClose={handleLeftMenuClick} variant="persistent" anchor="left">
           <Box
             sx={{
@@ -90,8 +94,6 @@ export default function App() {
               flexDirection: "column",
               gap: 2,
               width: 250,
-              minWidth: 250,
-              maxHeight: "calc(100vh - 24px)",
               p: 1,
             }}
           >
@@ -101,20 +103,22 @@ export default function App() {
             <NotesCard notes={notes} setNotes={updateNotes} />
           </Box>
         </Drawer>
-        {/* {showLeftMenu && (
-          
-            <TagsCard tags={tags} updateTags={updateTags} setNotification={setNotification} onDeleteTag={deleteTag} />
-            <LinksCard links={links} updateLinks={updateLinks} setNotification={setNotification} />
-            <NotNowList tags={tags} todos={todos} updateTodo={updateTodo} />
-            <NotesCard notes={notes} setNotes={updateNotes} />
-          </Box>
-        )} */}
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 2, flex: 1 }}>
+
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 2,
+            flex: 1,
+            maxWidth: 1000,
+          }}
+        >
           <Header
             isLoadingTodos={isLoadingTodos}
             onRefresh={refreshTodoList}
             onLeftMenuClick={handleLeftMenuClick}
             onRightMenuClick={handleRightMenuClick}
+            onTopMenuClick={handleTopMenuClick}
             email={session.user.email}
           />
           <TodoCloud todos={todos} updateTodo={updateTodo} isLoadingTodos={isLoadingTodos} tags={tags} />
@@ -127,8 +131,6 @@ export default function App() {
               flexDirection: "column",
               gap: 2,
               width: 250,
-              minWidth: 250,
-              maxHeight: "calc(100vh - 24px)",
               p: 1,
             }}
           >

@@ -47,7 +47,11 @@ export function LinksCard({ links, updateLinks, setNotification }: LinksPanelPro
   };
 
   return (
-    <SectionCard title="Links" onActionButtonClick={() => setShowForm((isOpen) => !isOpen)}>
+    <SectionCard
+      title="Links"
+      onActionButtonClick={() => setShowForm((isOpen) => !isOpen)}
+      sx={{ width: 300, marginLeft: "35%" }}
+    >
       {/* //todo */}
       {showForm && <LinkCreateForm onSubmit={handleLinkSubmit} />}
       {links.length === 0 && <p>Add quick links you use often.</p>}
