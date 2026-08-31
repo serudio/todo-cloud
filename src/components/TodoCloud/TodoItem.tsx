@@ -117,7 +117,7 @@ export const TodoItem: React.FC<Props> = ({
         color: "#000",
         background: color,
         maxWidth: 300,
-        borderRadius: 999,
+        borderRadius: 20,
         paddingLeft: 2,
         paddingRight: 2,
         letterSpacing: 1.5,
@@ -144,7 +144,7 @@ export const TodoItem: React.FC<Props> = ({
           <EditIcon fontSize="small" />
         </IconButton>
       )}
-      <Box sx={{ display: !isEdit ? "block" : "none" }} onClick={handleClick}>
+      <Box sx={{ display: !isEdit ? "block" : "none", textAlign: "center", lineHeight: 1 }} onClick={handleClick}>
         {text}
       </Box>
       {isEdit && (
