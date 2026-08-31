@@ -3,7 +3,8 @@ import RefreshRoundedIcon from "@mui/icons-material/RefreshRounded";
 import LogoutIcon from "@mui/icons-material/Logout";
 import { ThemeSelector } from "./ThemeSelector";
 import { signOut } from "../../utils/auth";
-import MenuIcon from "@mui/icons-material/Menu";
+import ListIcon from "@mui/icons-material/List";
+import TocIcon from "@mui/icons-material/Toc";
 
 type Props = {
   isLoadingTodos: boolean;
@@ -24,7 +25,7 @@ export const Header: React.FC<Props> = ({
     <Card sx={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between", p: 1 }}>
       <Box>
         <Button variant="text" color="secondary" onClick={onLeftMenuClick} sx={{ minWidth: 0 }}>
-          <MenuIcon />
+          <ListIcon />
         </Button>
         <Button disabled={isLoadingTodos} variant="text" color="secondary" onClick={onRefresh} sx={{ minWidth: 0 }}>
           <RefreshRoundedIcon />
@@ -39,7 +40,7 @@ export const Header: React.FC<Props> = ({
       </Box>
 
       <Button variant="text" color="secondary" onClick={onRightMenuClick} sx={{ minWidth: 0 }}>
-        <MenuIcon />
+        <TocIcon />
       </Button>
     </Card>
   );
