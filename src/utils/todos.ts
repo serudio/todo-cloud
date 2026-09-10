@@ -60,7 +60,12 @@ export const getDoneTodos = (todos: Todo[]) => {
       return b.count - a.count;
     });
 };
-export const getNotTodayTodos = (todos: Todo[]) => todos.filter((todo) => !todo.done && !todo.notNow && todo.notToday);
+// A "not now" todo comes back to the main list once its due date is a day out.
+export const isTodoNotNow = (todo: Todo) => todo.notNow && !shouldHighlightDueDate(todo.dueDate);
+
+export const getNotNowTodos = (todos: Todo[]) => todos.filter((todo) => !todo.done && isTodoNotNow(todo));
+export const getNotTodayTodos = (todos: Todo[]) =>
+  todos.filter((todo) => !todo.done && !isTodoNotNow(todo) && todo.notToday);
 
 // Normalizes a custom link URL and adds https:// when the scheme is missing.
 export function normalizeCustomLinkUrl(url: string) {
@@ -357,12 +362,24 @@ function getTodosWithExpiredNotTodayCleared(currentTodos: Todo[]) {
   return hasChanges ? newTodos : null;
 }
 
+// Moves "not now" todos back into the cloud once their due date is close.
+function getTodosWithDueNotNowCleared(currentTodos: Todo[]) {
+  let hasChanges = false;
+
+  const newTodos = currentTodos.map((todo) => {
+    if (todo.done || !todo.notNow || !shouldHighlightDueDate(todo.dueDate)) return todo;
+
+    hasChanges = true;
+    return markTodoNow(todo);
+  });
+
+  return hasChanges ? newTodos : null;
+}
+
 // Combines all midnight-driven todo changes into one update pass.
 export function getTodosWithDailyUpdates(currentTodos: Todo[]) {
-  const todosWithoutExpiredNotToday = getTodosWithExpiredNotTodayCleared(currentTodos) ?? currentTodos;
+  const dailyUpdates = [getTodosWithExpiredNotTodayCleared, getTodosWithDueNotNowCleared, getTodosWithEndOfDayRepeats];
+  const newTodos = dailyUpdates.reduce((todos, applyUpdate) => applyUpdate(todos) ?? todos, currentTodos);
 
-  return (
-    getTodosWithEndOfDayRepeats(todosWithoutExpiredNotToday) ??
-    (todosWithoutExpiredNotToday === currentTodos ? null : todosWithoutExpiredNotToday)
-  );
+  return newTodos === currentTodos ? null : newTodos;
 }

@@ -2,7 +2,7 @@ import type { DragEvent } from "react";
 import type { Todo, TodoTag } from "../types/todo";
 import { SectionCard } from "./Shared/SectionCard";
 import { Chip } from "@mui/material";
-import { markTodoNotNow, markTodoNow } from "../utils/todos";
+import { getNotNowTodos, markTodoNotNow, markTodoNow } from "../utils/todos";
 import { DEFAULT_TAG_COLOR } from "../constants/ui";
 
 type Props = {
@@ -12,7 +12,7 @@ type Props = {
 };
 
 export const NotNowList: React.FC<Props> = ({ todos, updateTodo, tags }) => {
-  const notNowTodos = todos.filter((todo) => !todo.done && todo.notNow);
+  const notNowTodos = getNotNowTodos(todos);
 
   function handleDragOver(event: DragEvent<HTMLElement>) {
     event.preventDefault();
@@ -44,7 +44,12 @@ export const NotNowList: React.FC<Props> = ({ todos, updateTodo, tags }) => {
   };
 
   return (
-    <SectionCard title="Not Now" onDragOver={handleDragOver} onDrop={handleDrop}>
+    <SectionCard
+      title="Not Now"
+      info="Tasks set aside here stay hidden from the cloud. A task with a due date comes back to the main list the day before it is due."
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+    >
       {!notNowTodos.length && <p>Drag cloud tasks here to hide them for now.</p>}
       {notNowTodos.map((todo) => {
         const tag = tags.find((t) => t.id === todo.tagId);
