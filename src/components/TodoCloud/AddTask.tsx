@@ -17,7 +17,8 @@ export const AddTask: React.FC<Props> = ({ isLoadingTodos, todos, updateTodos, s
 
   const suggestedTodos = getDoneTodos(todos);
 
-  const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(0);
+  // -1 means nothing is highlighted, so Enter adds exactly what was typed.
+  const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1);
   const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(false);
 
   const matchingTodos = useMemo(() => {
@@ -29,10 +30,18 @@ export const AddTask: React.FC<Props> = ({ isLoadingTodos, todos, updateTodos, s
 
   const showSuggestions = isSuggestionsOpen && matchingTodos.length > 0;
 
+  // Only a suggestion identical to the typed text is highlighted up front.
+  const exactMatchIndex = useMemo(() => {
+    const normalizedText = normalizeTodoText(text);
+    if (!normalizedText) return -1;
+
+    return matchingTodos.findIndex((todo) => normalizeTodoText(todo.text) === normalizedText);
+  }, [matchingTodos, text]);
+
   useEffect(() => {
-    setActiveSuggestionIndex(0);
+    setActiveSuggestionIndex(exactMatchIndex);
     setIsSuggestionsOpen(text.trim().length > 0);
-  }, [text]);
+  }, [exactMatchIndex, text]);
 
   const handleInoutChange = (e: ChangeEvent<HTMLInputElement>) => {
     setText(e.target.value);
@@ -66,7 +75,7 @@ export const AddTask: React.FC<Props> = ({ isLoadingTodos, todos, updateTodos, s
 
   function selectSuggestion(todo: Todo) {
     addTodoText(todo.text);
-    setActiveSuggestionIndex(0);
+    setActiveSuggestionIndex(-1);
     setIsSuggestionsOpen(false);
   }
 
@@ -88,11 +97,12 @@ export const AddTask: React.FC<Props> = ({ isLoadingTodos, todos, updateTodos, s
     if (e.key === "ArrowUp") {
       e.preventDefault();
       setIsSuggestionsOpen(true);
-      setActiveSuggestionIndex((currentIndex) => (currentIndex - 1 + matchingTodos.length) % matchingTodos.length);
+      setActiveSuggestionIndex((currentIndex) => (currentIndex <= 0 ? matchingTodos.length - 1 : currentIndex - 1));
       return;
     }
 
-    if (e.key === "Enter" && showSuggestions) {
+    // With no suggestion highlighted, let the form submit the typed text as-is.
+    if (e.key === "Enter" && showSuggestions && activeSuggestionIndex >= 0) {
       e.preventDefault();
       selectSuggestion(matchingTodos[activeSuggestionIndex]);
     }
@@ -153,6 +163,7 @@ export const AddTask: React.FC<Props> = ({ isLoadingTodos, todos, updateTodos, s
                     selectSuggestion(todo);
                   }}
                   onMouseEnter={() => setActiveSuggestionIndex(i)}
+                  onMouseLeave={() => setActiveSuggestionIndex(exactMatchIndex)}
                   sx={{ paddingTop: 0.5, paddingBottom: 0.5 }}
                 >
                   <ListItemText primary={`${text} • ${count}`} />
