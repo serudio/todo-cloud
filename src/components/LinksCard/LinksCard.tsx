@@ -5,6 +5,7 @@ import { SectionCard } from "../Shared/SectionCard";
 import { LinkItem } from "./LinkItem";
 import { Box } from "@mui/material";
 import { normalizeCustomLinkUrl } from "../../utils/todos";
+import { ConfirmDialog } from "../Shared/ConfirmDialog";
 
 type LinksPanelProps = {
   links: CustomLink[];
@@ -14,6 +15,7 @@ type LinksPanelProps = {
 
 export function LinksCard({ links, updateLinks, setNotification }: LinksPanelProps) {
   const [showForm, setShowForm] = useState(false);
+  const [linkIdPendingDelete, setLinkIdPendingDelete] = useState<string | null>(null);
 
   function handleLinkSubmit(name: string, url: string) {
     const trimmedName = name.trim().replace(/\s+/g, " "); // todo normalize
@@ -41,9 +43,12 @@ export function LinksCard({ links, updateLinks, setNotification }: LinksPanelPro
     [updateLinks],
   );
 
-  const handleDelete = (id: string) => () => {
-    const newLinks = links.filter((link) => link.id !== id);
+  const linkPendingDelete = links.find((link) => link.id === linkIdPendingDelete) ?? null;
+
+  const handleDeleteConfirm = () => {
+    const newLinks = links.filter((link) => link.id !== linkIdPendingDelete);
     updateLinks(newLinks);
+    setLinkIdPendingDelete(null);
   };
 
   return (
@@ -57,9 +62,17 @@ export function LinksCard({ links, updateLinks, setNotification }: LinksPanelPro
       {links.length === 0 && <p>Add quick links you use often.</p>}
       <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
         {links.map((link) => (
-          <LinkItem key={link.id} link={link} updateLink={updateLink} onDelete={handleDelete(link.id)} />
+          <LinkItem key={link.id} link={link} updateLink={updateLink} onDelete={setLinkIdPendingDelete} />
         ))}
       </Box>
+
+      <ConfirmDialog
+        open={Boolean(linkPendingDelete)}
+        title="Delete link?"
+        message={`"${linkPendingDelete?.name ?? ""}" will be removed from your links.`}
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setLinkIdPendingDelete(null)}
+      />
     </SectionCard>
   );
 }

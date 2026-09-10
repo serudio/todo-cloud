@@ -5,6 +5,7 @@ import { TAG_COLORS } from "../../constants/tags";
 import { Tag } from "./Tag";
 import { ColorPicker } from "./ColorPicker";
 import { SectionCard } from "../Shared/SectionCard";
+import { ConfirmDialog } from "../Shared/ConfirmDialog";
 
 type Props = {
   tags: TodoTag[];
@@ -17,6 +18,7 @@ export const TagsCard: React.FC<Props> = ({ tags, updateTags, setNotification, o
   const [name, setName] = useState("");
   const [selectedColor, setSelectedColor] = useState(TAG_COLORS[0]);
   const [showForm, setShowForm] = useState(false);
+  const [tagIdPendingDelete, setTagIdPendingDelete] = useState<string | null>(null);
   const usedTagColors = useMemo(() => new Set(tags.map((tag) => tag.color)), [tags]);
   const firstAvailableColor = TAG_COLORS.find((color) => !usedTagColors.has(color));
 
@@ -65,6 +67,13 @@ export const TagsCard: React.FC<Props> = ({ tags, updateTags, setNotification, o
     setShowForm(false);
   }
 
+  const tagPendingDelete = tags.find((tag) => tag.id === tagIdPendingDelete) ?? null;
+
+  const handleDeleteConfirm = () => {
+    if (tagIdPendingDelete) onDeleteTag(tagIdPendingDelete);
+    setTagIdPendingDelete(null);
+  };
+
   const updateTag = async (tag: TodoTag) => {
     const newTags = tags.map((x) => (x.id === tag.id ? tag : x));
     await updateTags(newTags);
@@ -96,11 +105,19 @@ export const TagsCard: React.FC<Props> = ({ tags, updateTags, setNotification, o
               tag={tag}
               usedColors={colorsUsedByOtherTags}
               updateTag={updateTag}
-              onDelete={onDeleteTag}
+              onDelete={setTagIdPendingDelete}
             />
           );
         })}
       </Box>
+
+      <ConfirmDialog
+        open={Boolean(tagPendingDelete)}
+        title="Delete tag?"
+        message={`"${tagPendingDelete?.name ?? ""}" will be removed from any tasks using it.`}
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setTagIdPendingDelete(null)}
+      />
     </SectionCard>
   );
 };
