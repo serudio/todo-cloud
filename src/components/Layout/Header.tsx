@@ -1,4 +1,4 @@
-import { Box, Button, Card, Chip, IconButton } from "@mui/material";
+import { Box, Button, Card, Chip, IconButton, Tooltip } from "@mui/material";
 import RefreshRoundedIcon from "@mui/icons-material/RefreshRounded";
 import LogoutIcon from "@mui/icons-material/Logout";
 import { ThemeSelector } from "./ThemeSelector";
@@ -6,6 +6,7 @@ import { signOut } from "../../utils/auth";
 import ListIcon from "@mui/icons-material/List";
 import TocIcon from "@mui/icons-material/Toc";
 import LinkIcon from "@mui/icons-material/Link";
+import BalanceIcon from "@mui/icons-material/Balance";
 
 type Props = {
   isLoadingTodos: boolean;
@@ -13,6 +14,7 @@ type Props = {
   onLeftMenuClick: () => void;
   onRightMenuClick: () => void;
   onTopMenuClick: () => void;
+  onListsClick: () => void;
   email?: string;
 };
 
@@ -22,6 +24,7 @@ export const Header: React.FC<Props> = ({
   onLeftMenuClick,
   onRightMenuClick,
   onTopMenuClick,
+  onListsClick,
   email = "",
 }) => {
   return (
@@ -37,6 +40,11 @@ export const Header: React.FC<Props> = ({
         <Button variant="text" color="secondary" onClick={onLeftMenuClick} sx={{ minWidth: 0 }}>
           <ListIcon />
         </Button>
+        <Tooltip title="Pros and cons lists">
+          <Button variant="text" color="secondary" onClick={onListsClick} sx={{ minWidth: 0 }} aria-label="Open lists">
+            <BalanceIcon />
+          </Button>
+        </Tooltip>
         <ThemeSelector />
 
         <Button variant="text" color="secondary" onClick={onRightMenuClick} sx={{ minWidth: 0 }}>

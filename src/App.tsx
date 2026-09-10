@@ -14,8 +14,22 @@ import { AddTask } from "./components/TodoCloud/AddTask.tsx";
 import { LoadingComponent } from "./components/Layout/LoadingComponent.tsx";
 import { useAppInit } from "./hooks/app.ts";
 import { NotificationsToast } from "./components/Layout/NotificationAlert";
+import { listsPath, navigate, useRoute } from "./hooks/route.ts";
+import { ListsPage } from "./components/Lists/ListsPage";
+import { ListPage } from "./components/Lists/ListPage";
+import { ListEditor } from "./components/Lists/ListEditor";
+
+// A page wrapper for routes that are not the todo cloud itself.
+const PageLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <Box sx={{ bgcolor: "background.body", color: "text.primary", minHeight: "100vh" }}>
+    <Box sx={{ width: "min(1100px, calc(100% - 32px))", margin: "0 auto", paddingTop: 2, paddingBottom: 4 }}>
+      {children}
+    </Box>
+  </Box>
+);
 
 export default function App() {
+  const route = useRoute();
   const {
     session,
     isLoadingSession,
@@ -57,8 +71,34 @@ export default function App() {
   } = useAppInit();
 
   if (!isSupabaseConfigured) return <SetupRequired />;
+
+  // Share links open without an account, so this route comes before the auth gate.
+  if (route.name === "shared") {
+    return (
+      <PageLayout>
+        <ListEditor shareToken={route.shareToken} />
+      </PageLayout>
+    );
+  }
+
   if (!session) return <AuthCard />;
   if (isLoadingSession) return <LoadingComponent loading />;
+
+  if (route.name === "lists") {
+    return (
+      <PageLayout>
+        <ListsPage userId={session.user.id} />
+      </PageLayout>
+    );
+  }
+
+  if (route.name === "list") {
+    return (
+      <PageLayout>
+        <ListPage userId={session.user.id} listId={route.listId} />
+      </PageLayout>
+    );
+  }
 
   return (
     <Box sx={{ bgcolor: "background.body", color: "text.primary" }}>
@@ -119,6 +159,7 @@ export default function App() {
             onLeftMenuClick={handleLeftMenuClick}
             onRightMenuClick={handleRightMenuClick}
             onTopMenuClick={handleTopMenuClick}
+            onListsClick={() => navigate(listsPath)}
             email={session.user.email}
           />
           <TodoCloud todos={todos} updateTodo={updateTodo} isLoadingTodos={isLoadingTodos} tags={tags} />
