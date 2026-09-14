@@ -1,7 +1,7 @@
 import type { DragEvent } from "react";
 import type { Todo, TodoTag } from "../types/todo";
 import { SectionCard } from "./Shared/SectionCard";
-import { Chip } from "@mui/material";
+import { Box, Chip } from "@mui/material";
 import { getNotNowTodos, markTodoNotNow, markTodoNow } from "../utils/todos";
 import { DEFAULT_TAG_COLOR } from "../constants/ui";
 
@@ -49,24 +49,25 @@ export const NotNowList: React.FC<Props> = ({ todos, updateTodo, tags }) => {
       info="Tasks set aside here stay hidden from the cloud. A task with a due date comes back to the main list the day before it is due."
       onDragOver={handleDragOver}
       onDrop={handleDrop}
-      sx={{ maxHeight: 200 }}
     >
-      {!notNowTodos.length && <p>Drag cloud tasks here to hide them for now.</p>}
-      {notNowTodos.map((todo) => {
-        const tag = tags.find((t) => t.id === todo.tagId);
-        const color = tag?.color ?? DEFAULT_TAG_COLOR;
-        return (
-          <Chip
-            key={todo.id}
-            draggable
-            onClick={handleClick(todo.id)}
-            onDragStart={(event) => handleDragStart(event, todo.id)}
-            label={todo.text}
-            size="small"
-            sx={{ color }}
-          />
-        );
-      })}
+      <Box sx={{ maxHeight: 200, overflow: "auto" }}>
+        {!notNowTodos.length && <p>Drag cloud tasks here to hide them for now.</p>}
+        {notNowTodos.map((todo) => {
+          const tag = tags.find((t) => t.id === todo.tagId);
+          const color = tag?.color ?? DEFAULT_TAG_COLOR;
+          return (
+            <Chip
+              key={todo.id}
+              draggable
+              onClick={handleClick(todo.id)}
+              onDragStart={(event) => handleDragStart(event, todo.id)}
+              label={todo.text}
+              size="small"
+              sx={{ color }}
+            />
+          );
+        })}
+      </Box>
     </SectionCard>
   );
 };
