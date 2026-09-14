@@ -1,14 +1,15 @@
-import { Box, IconButton, Typography } from "@mui/material";
-import ClearIcon from "@mui/icons-material/Clear";
+import { Box, Typography } from "@mui/material";
 import type { PointEntry } from "../../types/points";
-import { formatDayLabel, getSortedEntries } from "../../utils/points";
+import { getSortedEntries } from "../../utils/points";
+import { EntryRow } from "./EntryRow";
 
 type Props = {
   entries: PointEntry[];
-  onRemove: (id: string) => void;
+  onChange: (entries: PointEntry[]) => void;
+  onCommit: (entries: PointEntry[]) => void;
 };
 
-export const EntryList: React.FC<Props> = ({ entries, onRemove }) => {
+export const EntryList: React.FC<Props> = ({ entries, onChange, onCommit }) => {
   if (!entries.length) {
     return (
       <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
@@ -17,37 +18,20 @@ export const EntryList: React.FC<Props> = ({ entries, onRemove }) => {
     );
   }
 
+  // Both take the new entry rather than reading it back from state, so an edit that
+  // changes and commits in one go is not overwritten by this render's stale copy.
+  const withEntry = (newEntry: PointEntry) => entries.map((entry) => (entry.id === newEntry.id ? newEntry : entry));
+
   return (
     <Box sx={{ display: "flex", flexDirection: "column", mt: 1 }}>
       {getSortedEntries(entries).map((entry) => (
-        <Box
+        <EntryRow
           key={entry.id}
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            gap: 1,
-            py: 0.5,
-            borderBottom: 1,
-            borderColor: "divider",
-          }}
-        >
-          <Typography variant="caption" color="text.secondary" sx={{ width: 54, flexShrink: 0 }}>
-            {formatDayLabel(entry.date)}
-          </Typography>
-          <Typography variant="body2" noWrap sx={{ flex: 1, minWidth: 0 }}>
-            {entry.task}
-          </Typography>
-          <Typography
-            variant="body2"
-            sx={{ fontWeight: 500, width: 40, textAlign: "right", flexShrink: 0 }}
-            color={entry.points < 0 ? "error.main" : "success.main"}
-          >
-            {entry.points > 0 ? `+${entry.points}` : entry.points}
-          </Typography>
-          <IconButton size="small" onClick={() => onRemove(entry.id)} aria-label="Remove entry" sx={{ padding: 0 }}>
-            <ClearIcon fontSize="small" />
-          </IconButton>
-        </Box>
+          entry={entry}
+          onChange={(newEntry) => onChange(withEntry(newEntry))}
+          onCommit={(newEntry) => onCommit(withEntry(newEntry))}
+          onRemove={() => onCommit(entries.filter((currentEntry) => currentEntry.id !== entry.id))}
+        />
       ))}
     </Box>
   );

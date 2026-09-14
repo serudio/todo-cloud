@@ -42,7 +42,9 @@ export const GoalPage: React.FC<Props> = ({ userId, goalId }) => {
   const taskTotals = getTaskTotals(earnedEntries);
   const checklistTotal = getTasksTotalPoints(goal.tasks);
 
+  const changeEntries = (entries: PointEntry[]) => changeGoal(goal.name, goal.targetPoints, entries, goal.tasks);
   const commitEntries = (entries: PointEntry[]) => commitGoal(goal.name, goal.targetPoints, entries, goal.tasks);
+  const changeTasks = (tasks: PointTask[]) => changeGoal(goal.name, goal.targetPoints, goal.entries, tasks);
   const commitTasks = (tasks: PointTask[]) => commitGoal(goal.name, goal.targetPoints, goal.entries, tasks);
 
   const addEntry = (task: string, points: number, date: string) =>
@@ -92,7 +94,7 @@ export const GoalPage: React.FC<Props> = ({ userId, goalId }) => {
       <Box sx={{ display: "flex", gap: 2, alignItems: "flex-start", flexWrap: "wrap" }}>
         <Card sx={{ flex: "1 1 380px", minWidth: 300, p: 1.5 }}>
           {isChecklist ? (
-            <TaskChecklist tasks={goal.tasks} onChange={commitTasks} />
+            <TaskChecklist tasks={goal.tasks} onChange={changeTasks} onCommit={commitTasks} />
           ) : (
             <>
               <FrequentTasks
@@ -100,10 +102,7 @@ export const GoalPage: React.FC<Props> = ({ userId, goalId }) => {
                 onPick={(task, points) => addEntry(task, points, getLocalDateKey())}
               />
               <EntryForm taskNames={allTaskNames} onAdd={addEntry} />
-              <EntryList
-                entries={goal.entries}
-                onRemove={(id) => commitEntries(goal.entries.filter((entry) => entry.id !== id))}
-              />
+              <EntryList entries={goal.entries} onChange={changeEntries} onCommit={commitEntries} />
             </>
           )}
         </Card>

@@ -1,16 +1,19 @@
 import { type FormEvent, useState } from "react";
-import { Box, Button, Checkbox, IconButton, TextField, Typography } from "@mui/material";
+import { Box, Button, Checkbox, IconButton, InputBase, TextField, Typography } from "@mui/material";
 import ClearIcon from "@mui/icons-material/Clear";
 import type { PointTask } from "../../types/points";
 import { getLocalDateKey } from "../../utils/date";
 import { formatDayLabel, getNewTask, getSortedTasks, QUICK_POINTS } from "../../utils/points";
+import { PointsInput } from "./PointsInput";
 
 type Props = {
   tasks: PointTask[];
+  // Typing a task name only changes; everything else commits straight away.
   onChange: (tasks: PointTask[]) => void;
+  onCommit: (tasks: PointTask[]) => void;
 };
 
-export const TaskChecklist: React.FC<Props> = ({ tasks, onChange }) => {
+export const TaskChecklist: React.FC<Props> = ({ tasks, onChange, onCommit }) => {
   const [name, setName] = useState("");
   const [points, setPoints] = useState("5");
 
@@ -22,19 +25,17 @@ export const TaskChecklist: React.FC<Props> = ({ tasks, onChange }) => {
 
     if (!trimmedName || !Number.isFinite(parsedPoints) || parsedPoints === 0) return;
 
-    onChange([...tasks, getNewTask(trimmedName, Math.round(parsedPoints))]);
+    onCommit([...tasks, getNewTask(trimmedName, Math.round(parsedPoints))]);
     setName("");
   };
 
-  // Crossing a task off stamps the day, which is what the charts plot.
-  const toggleTask = (taskId: string) =>
-    onChange(
-      tasks.map((task) =>
-        task.id === taskId ? { ...task, doneDate: task.doneDate ? null : getLocalDateKey() } : task,
-      ),
-    );
+  const withTask = (newTask: PointTask) => tasks.map((task) => (task.id === newTask.id ? newTask : task));
 
-  const removeTask = (taskId: string) => onChange(tasks.filter((task) => task.id !== taskId));
+  // Crossing a task off stamps the day, which is what the charts plot.
+  const toggleTask = (task: PointTask) =>
+    onCommit(withTask({ ...task, doneDate: task.doneDate ? null : getLocalDateKey() }));
+
+  const removeTask = (taskId: string) => onCommit(tasks.filter((task) => task.id !== taskId));
 
   return (
     <Box>
@@ -100,29 +101,35 @@ export const TaskChecklist: React.FC<Props> = ({ tasks, onChange }) => {
               <Checkbox
                 size="small"
                 checked={isDone}
-                onChange={() => toggleTask(task.id)}
+                onChange={() => toggleTask(task)}
                 sx={{ padding: 0.5 }}
                 slotProps={{ input: { "aria-label": `Mark ${task.name} done` } }}
               />
-              <Typography
-                variant="body2"
-                noWrap
-                sx={{ flex: 1, minWidth: 0, textDecoration: isDone ? "line-through" : "none" }}
-              >
-                {task.name}
-              </Typography>
+              <InputBase
+                value={task.name}
+                onChange={(event) => onChange(withTask({ ...task, name: event.target.value }))}
+                onBlur={() => onCommit(withTask(task))}
+                onKeyDown={(event) => {
+                  if (event.key !== "Enter") return;
+
+                  event.preventDefault();
+                  (event.target as HTMLInputElement).blur();
+                }}
+                sx={{
+                  flex: 1,
+                  minWidth: 60,
+                  fontSize: "0.875rem",
+                  "& input": { padding: 0, textDecoration: isDone ? "line-through" : "none" },
+                }}
+              />
               {task.doneDate && (
                 <Typography variant="caption" color="text.secondary" sx={{ flexShrink: 0 }}>
                   {formatDayLabel(task.doneDate)}
                 </Typography>
               )}
-              <Typography
-                variant="body2"
-                color={isDone ? "success.main" : "text.secondary"}
-                sx={{ fontWeight: 500, width: 34, textAlign: "right", flexShrink: 0 }}
-              >
-                {task.points}
-              </Typography>
+              <Box sx={{ display: "flex", color: isDone ? "success.main" : "text.secondary", fontWeight: 500 }}>
+                <PointsInput points={task.points} onCommit={(points) => onCommit(withTask({ ...task, points }))} />
+              </Box>
               <IconButton size="small" onClick={() => removeTask(task.id)} aria-label="Remove task" sx={{ padding: 0 }}>
                 <ClearIcon fontSize="small" />
               </IconButton>
