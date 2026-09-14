@@ -8,6 +8,9 @@ type Props = React.ComponentProps<typeof Card> & {
   onActionButtonClick?: () => void;
   children: React.ReactNode;
   collapsed?: boolean;
+  // Overrides the collapsed state without forgetting it, so a search can reveal
+  // matches inside a collapsed section and leave it collapsed again afterwards.
+  expanded?: boolean;
 };
 
 export const SectionCard: React.FC<Props> = ({
@@ -16,6 +19,7 @@ export const SectionCard: React.FC<Props> = ({
   onActionButtonClick,
   children,
   collapsed,
+  expanded,
   sx,
   ...cardProps
 }) => {
@@ -25,7 +29,7 @@ export const SectionCard: React.FC<Props> = ({
   return (
     <Card {...cardProps} sx={{ p: 1, overflow: "visible", ...sx }}>
       <SectionHeader title={title} info={info} onClick={handleClick} onActionButtonClick={onActionButtonClick} />
-      {!isCollapsed && children}
+      {(expanded || !isCollapsed) && children}
     </Card>
   );
 };

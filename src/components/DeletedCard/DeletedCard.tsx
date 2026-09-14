@@ -2,18 +2,28 @@ import ClearIcon from "@mui/icons-material/Clear";
 import { Box, Button, Chip } from "@mui/material";
 import { SectionCard } from "../Shared/SectionCard";
 import type { DeletedTodo } from "../../utils/deletedTodos";
+import { isSearching, matchesSearch } from "../../utils/search";
 
 type DeletedCardProps = {
   deletedTodos: DeletedTodo[];
+  search: string;
   onClear: () => void;
   onRemoveDeletedTodo: (id: string) => void;
   onRestoreDeletedTodo: (id: string) => void;
 };
 
-export function DeletedCard({ deletedTodos, onClear, onRemoveDeletedTodo, onRestoreDeletedTodo }: DeletedCardProps) {
+export function DeletedCard({
+  deletedTodos: allDeletedTodos,
+  search,
+  onClear,
+  onRemoveDeletedTodo,
+  onRestoreDeletedTodo,
+}: DeletedCardProps) {
+  const deletedTodos = allDeletedTodos.filter((todo) => matchesSearch(search, todo.text));
+
   return (
-    <SectionCard title="Deleted" collapsed sx={{ maxHeight: 200, overflow: "auto" }}>
-      {deletedTodos.length === 0 ? <p>Deleted items will show up here.</p> : null}
+    <SectionCard title="Deleted" collapsed expanded={isSearching(search)} sx={{ maxHeight: 200, overflow: "auto" }}>
+      {deletedTodos.length === 0 && !isSearching(search) ? <p>Deleted items will show up here.</p> : null}
 
       <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.75 }}>
         {deletedTodos.map((todo) => (

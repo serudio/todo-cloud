@@ -1,4 +1,4 @@
-import { Box, Button, Card, Chip, IconButton, Tooltip } from "@mui/material";
+import { Box, Button, Card, Chip, IconButton, InputBase, Tooltip } from "@mui/material";
 import RefreshRoundedIcon from "@mui/icons-material/RefreshRounded";
 import LogoutIcon from "@mui/icons-material/Logout";
 import { ThemeSelector } from "./ThemeSelector";
@@ -9,6 +9,8 @@ import LinkIcon from "@mui/icons-material/Link";
 import BalanceIcon from "@mui/icons-material/Balance";
 import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 import SortByAlphaIcon from "@mui/icons-material/SortByAlpha";
+import SearchIcon from "@mui/icons-material/Search";
+import CloseIcon from "@mui/icons-material/Close";
 
 type Props = {
   isLoadingTodos: boolean;
@@ -20,6 +22,8 @@ type Props = {
   onPointsClick: () => void;
   isCloudSortedByName: boolean;
   onCloudSortClick: () => void;
+  search: string;
+  onSearchChange: (search: string) => void;
   email?: string;
 };
 
@@ -33,6 +37,8 @@ export const Header: React.FC<Props> = ({
   onPointsClick,
   isCloudSortedByName,
   onCloudSortClick,
+  search,
+  onSearchChange,
   email = "",
 }) => {
   return (
@@ -40,6 +46,34 @@ export const Header: React.FC<Props> = ({
       <Button disabled={isLoadingTodos} variant="text" color="secondary" onClick={onRefresh} sx={{ minWidth: 0 }}>
         <RefreshRoundedIcon />
       </Button>
+
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: 0.5,
+          px: 1,
+          borderRadius: 999,
+          border: 1,
+          borderColor: search ? "warning.main" : "divider",
+          width: 190,
+        }}
+      >
+        <SearchIcon fontSize="small" color="disabled" />
+        <InputBase
+          value={search}
+          placeholder="search tasks"
+          onChange={(event) => onSearchChange(event.target.value)}
+          onKeyDown={(event) => event.key === "Escape" && onSearchChange("")}
+          slotProps={{ input: { "aria-label": "Search tasks" } }}
+          sx={{ flex: 1, fontSize: "0.85rem", "& input": { padding: "2px 0" } }}
+        />
+        {search && (
+          <IconButton size="small" onClick={() => onSearchChange("")} aria-label="Clear search" sx={{ padding: 0 }}>
+            <CloseIcon fontSize="small" />
+          </IconButton>
+        )}
+      </Box>
 
       <Box>
         <Button variant="text" color="secondary" onClick={onTopMenuClick} sx={{ minWidth: 0 }}>

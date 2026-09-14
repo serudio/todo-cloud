@@ -48,6 +48,8 @@ export default function App() {
     handleTopMenuClick,
     isCloudSortedByName,
     handleCloudSortClick,
+    search,
+    setSearch,
 
     todos,
     deletedTodos,
@@ -145,7 +147,7 @@ export default function App() {
         }}
       >
         <Drawer open={showTopMenu} onClose={handleTopMenuClick} anchor="top">
-          <LinksCard links={links} updateLinks={updateLinks} setNotification={setNotification} />
+          <LinksCard links={links} updateLinks={updateLinks} setNotification={setNotification} search={search} />
         </Drawer>
         <Drawer open={showLeftMenu} onClose={handleLeftMenuClick} variant="persistent" anchor="left">
           <Box
@@ -157,9 +159,15 @@ export default function App() {
               p: 1,
             }}
           >
-            <TagsCard tags={tags} updateTags={updateTags} setNotification={setNotification} onDeleteTag={deleteTag} />
-            <LinksCard links={links} updateLinks={updateLinks} setNotification={setNotification} />
-            <NotNowList tags={tags} todos={todos} updateTodo={updateTodo} />
+            <TagsCard
+              tags={tags}
+              updateTags={updateTags}
+              setNotification={setNotification}
+              search={search}
+              onDeleteTag={deleteTag}
+            />
+            <LinksCard links={links} updateLinks={updateLinks} setNotification={setNotification} search={search} />
+            <NotNowList tags={tags} todos={todos} updateTodo={updateTodo} search={search} />
             <NotesCard notes={notes} setNotes={updateNotes} />
           </Box>
         </Drawer>
@@ -183,6 +191,8 @@ export default function App() {
             onPointsClick={() => navigate(pointsPath)}
             isCloudSortedByName={isCloudSortedByName}
             onCloudSortClick={handleCloudSortClick}
+            search={search}
+            onSearchChange={setSearch}
             email={session.user.email}
           />
           <TodoCloud
@@ -190,6 +200,7 @@ export default function App() {
             updateTodo={updateTodo}
             isLoadingTodos={isLoadingTodos}
             isSortedByName={isCloudSortedByName}
+            search={search}
             tags={tags}
           />
         </Box>
@@ -204,9 +215,10 @@ export default function App() {
               p: 1,
             }}
           >
-            <DoneCard todos={todos} updateTodo={updateTodo} tags={tags} onDeleteTodo={deleteTodo} />
+            <DoneCard todos={todos} updateTodo={updateTodo} tags={tags} search={search} onDeleteTodo={deleteTodo} />
             <DeletedCard
               deletedTodos={deletedTodos}
+              search={search}
               onClear={clearDeletedItems}
               onRemoveDeletedTodo={removeDeletedItem}
               onRestoreDeletedTodo={restoreDeletedItem}

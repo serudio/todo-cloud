@@ -6,15 +6,17 @@ import { Tag } from "./Tag";
 import { ColorPicker } from "./ColorPicker";
 import { SectionCard } from "../Shared/SectionCard";
 import { ConfirmDialog } from "../Shared/ConfirmDialog";
+import { isSearching, matchesSearch } from "../../utils/search";
 
 type Props = {
   tags: TodoTag[];
   updateTags: (tags: TodoTag[]) => void;
   setNotification: (message: string) => void;
+  search: string;
   onDeleteTag: (id: string) => void;
 };
 
-export const TagsCard: React.FC<Props> = ({ tags, updateTags, setNotification, onDeleteTag }) => {
+export const TagsCard: React.FC<Props> = ({ tags, updateTags, setNotification, search, onDeleteTag }) => {
   const [name, setName] = useState("");
   const [selectedColor, setSelectedColor] = useState(TAG_COLORS[0]);
   const [showForm, setShowForm] = useState(false);
@@ -80,7 +82,7 @@ export const TagsCard: React.FC<Props> = ({ tags, updateTags, setNotification, o
   };
 
   return (
-    <SectionCard title="Tags" onActionButtonClick={handleAddClick} collapsed>
+    <SectionCard title="Tags" onActionButtonClick={handleAddClick} collapsed expanded={isSearching(search)}>
       {showForm && (
         <Box>
           <form onSubmit={handleSubmit}>
@@ -91,24 +93,26 @@ export const TagsCard: React.FC<Props> = ({ tags, updateTags, setNotification, o
         </Box>
       )}
 
-      {tags.length === 0 && <Box>Create tags to color your tasks.</Box>}
+      {tags.length === 0 && !isSearching(search) && <Box>Create tags to color your tasks.</Box>}
 
       <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-        {tags.map((tag) => {
-          const colorsUsedByOtherTags = new Set(
-            tags.filter((currentTag) => currentTag.id !== tag.id).map((currentTag) => currentTag.color),
-          );
+        {tags
+          .filter((tag) => matchesSearch(search, tag.name))
+          .map((tag) => {
+            const colorsUsedByOtherTags = new Set(
+              tags.filter((currentTag) => currentTag.id !== tag.id).map((currentTag) => currentTag.color),
+            );
 
-          return (
-            <Tag
-              key={tag.id}
-              tag={tag}
-              usedColors={colorsUsedByOtherTags}
-              updateTag={updateTag}
-              onDelete={setTagIdPendingDelete}
-            />
-          );
-        })}
+            return (
+              <Tag
+                key={tag.id}
+                tag={tag}
+                usedColors={colorsUsedByOtherTags}
+                updateTag={updateTag}
+                onDelete={setTagIdPendingDelete}
+              />
+            );
+          })}
       </Box>
 
       <ConfirmDialog

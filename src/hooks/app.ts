@@ -31,6 +31,8 @@ export function useAppInit() {
   const [showLeftMenu, setShowLeftMenu] = useState(true);
   const [showRightMenu, setShowRightMenu] = useState(true);
   const [showTopMenu, setShowTopMenu] = useState(false);
+  // Search is a transient filter, so unlike the sort it is not remembered.
+  const [search, setSearch] = useState("");
   // A view preference, so it lives in localStorage rather than the saved todo list.
   const [isCloudSortedByName, setIsCloudSortedByName] = useState(
     () => window.localStorage.getItem(CLOUD_SORT_STORAGE_KEY) === "name",
@@ -387,6 +389,8 @@ export function useAppInit() {
     handleTopMenuClick,
     isCloudSortedByName,
     handleCloudSortClick,
+    search,
+    setSearch,
 
     todos,
     deletedTodos,

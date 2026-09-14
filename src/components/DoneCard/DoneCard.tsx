@@ -3,20 +3,22 @@ import { SectionCard } from "../Shared/SectionCard";
 import { Box } from "@mui/material";
 import { DoneItem } from "./DoneItem";
 import { getDoneTodos } from "../../utils/todos";
+import { isSearching, matchesSearch } from "../../utils/search";
 
 type DoneListProps = {
   todos: Todo[];
   updateTodo: (todos: Todo) => void;
   tags: TodoTag[];
+  search: string;
   onDeleteTodo: (id: string) => void;
 };
 
-export const DoneCard: React.FC<DoneListProps> = ({ todos, updateTodo, tags, onDeleteTodo }) => {
-  const doneTodos = getDoneTodos(todos);
+export const DoneCard: React.FC<DoneListProps> = ({ todos, updateTodo, tags, search, onDeleteTodo }) => {
+  const doneTodos = getDoneTodos(todos).filter((todo) => matchesSearch(search, todo.text));
 
   return (
-    <SectionCard title="Done" sx={{ overflow: "auto" }}>
-      {doneTodos.length === 0 && <p>Done items will show up here.</p>}
+    <SectionCard title="Done" expanded={isSearching(search)} sx={{ overflow: "auto" }}>
+      {doneTodos.length === 0 && !isSearching(search) && <p>Done items will show up here.</p>}
 
       <Box sx={{ display: "flex", flexDirection: "column", gap: 1, overflow: "auto", maxHeight: 600 }}>
         {doneTodos.map((todo) => {

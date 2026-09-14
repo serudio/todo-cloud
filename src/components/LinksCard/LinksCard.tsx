@@ -6,14 +6,16 @@ import { LinkItem } from "./LinkItem";
 import { Box } from "@mui/material";
 import { normalizeCustomLinkUrl } from "../../utils/todos";
 import { ConfirmDialog } from "../Shared/ConfirmDialog";
+import { isSearching, matchesSearch } from "../../utils/search";
 
 type LinksPanelProps = {
   links: CustomLink[];
   updateLinks: (links: CustomLink[]) => void;
   setNotification: (message: string) => void;
+  search: string;
 };
 
-export function LinksCard({ links, updateLinks, setNotification }: LinksPanelProps) {
+export function LinksCard({ links, updateLinks, setNotification, search }: LinksPanelProps) {
   const [showForm, setShowForm] = useState(false);
   const [linkIdPendingDelete, setLinkIdPendingDelete] = useState<string | null>(null);
 
@@ -54,16 +56,19 @@ export function LinksCard({ links, updateLinks, setNotification }: LinksPanelPro
   return (
     <SectionCard
       title="Links"
+      expanded={isSearching(search)}
       onActionButtonClick={() => setShowForm((isOpen) => !isOpen)}
       sx={{ width: 300, marginLeft: "35%" }}
     >
       {/* //todo */}
       {showForm && <LinkCreateForm onSubmit={handleLinkSubmit} />}
-      {links.length === 0 && <p>Add quick links you use often.</p>}
+      {links.length === 0 && !isSearching(search) && <p>Add quick links you use often.</p>}
       <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
-        {links.map((link) => (
-          <LinkItem key={link.id} link={link} updateLink={updateLink} onDelete={setLinkIdPendingDelete} />
-        ))}
+        {links
+          .filter((link) => matchesSearch(search, link.name, link.url))
+          .map((link) => (
+            <LinkItem key={link.id} link={link} updateLink={updateLink} onDelete={setLinkIdPendingDelete} />
+          ))}
       </Box>
 
       <ConfirmDialog

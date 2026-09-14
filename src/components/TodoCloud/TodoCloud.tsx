@@ -4,7 +4,13 @@ import { NotTodayList } from "./NotTodayList";
 import { TodoItem } from "./TodoItem";
 import { Box, Card } from "@mui/material";
 import { LoadingComponent } from "../Layout/LoadingComponent";
-import { getNotTodayTodos, getTodosSortedByName, isTodoNotNow, markTodoNow } from "../../utils/todos";
+import {
+  getNotTodayTodos,
+  getTodosSortedByName,
+  isTodoNotNow,
+  markTodoNow,
+  normalizeTodoText,
+} from "../../utils/todos";
 import { Snoozed } from "./Snoozed";
 
 const SNOOZE_DURATION_MS = 60 * 60 * 1000;
@@ -39,17 +45,25 @@ type Props = {
   todos: Todo[];
   isLoadingTodos: boolean;
   isSortedByName: boolean;
+  search: string;
   tags: TodoTag[];
   updateTodo: (todo: Todo) => void;
 };
 
-export const TodoCloud: React.FC<Props> = ({ todos, isLoadingTodos, isSortedByName, tags, updateTodo }) => {
+export const TodoCloud: React.FC<Props> = ({ todos, isLoadingTodos, isSortedByName, search, tags, updateTodo }) => {
   const [currentTime, setCurrentTime] = useState(() => Date.now());
   const [snoozedTodoExpirations, setSnoozedTodoExpirations] = useState<Record<string, number>>(
     getStoredSnoozedTodoExpirations,
   );
-  const activeTodos = todos.filter((todo) => !todo.done && !isTodoNotNow(todo) && !todo.notToday);
-  const notTodayTodos = getNotTodayTodos(todos);
+  // The search narrows every strip on this card, not just the cloud, so a hit is
+  // never hidden behind a heading that still shows everything.
+  const normalizedSearch = normalizeTodoText(search);
+  const matchesSearch = (todo: Todo) => !normalizedSearch || normalizeTodoText(todo.text).includes(normalizedSearch);
+
+  const activeTodos = todos.filter(
+    (todo) => !todo.done && !isTodoNotNow(todo) && !todo.notToday && matchesSearch(todo),
+  );
+  const notTodayTodos = getNotTodayTodos(todos).filter(matchesSearch);
   const unsortedCloudTodos = activeTodos.filter((todo) => !isTodoSnoozed(todo.id));
   const cloudTodos = isSortedByName ? getTodosSortedByName(unsortedCloudTodos) : unsortedCloudTodos;
   const snoozedTodos = activeTodos.filter((todo) => isTodoSnoozed(todo.id));
@@ -150,7 +164,9 @@ export const TodoCloud: React.FC<Props> = ({ todos, isLoadingTodos, isSortedByNa
         onDragOver={handleCloudDragOver}
         onDrop={handleCloudDrop}
       >
-        {!isLoadingTodos && activeTodos.length === 0 && <p>No todos yet. Add the first one.</p>}
+        {!isLoadingTodos && activeTodos.length === 0 && (
+          <p>{normalizedSearch ? `Nothing matches "${search.trim()}".` : "No todos yet. Add the first one."}</p>
+        )}
         {cloudTodos.map((todo, index) => (
           <Box key={todo.id} sx={{ display: "inline-flex", overflow: "visible" }}>
             <TodoItem
