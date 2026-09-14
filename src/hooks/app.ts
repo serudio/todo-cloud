@@ -20,6 +20,7 @@ import {
   readBackedUpTodoList,
 } from "../utils/todoListBackup";
 import { getNextMidnightDelay } from "../utils/date";
+import { CLOUD_SORT_STORAGE_KEY } from "../constants/ui";
 
 export function useAppInit() {
   const [todos, setTodos] = useState<Todo[]>([]);
@@ -30,6 +31,10 @@ export function useAppInit() {
   const [showLeftMenu, setShowLeftMenu] = useState(true);
   const [showRightMenu, setShowRightMenu] = useState(true);
   const [showTopMenu, setShowTopMenu] = useState(false);
+  // A view preference, so it lives in localStorage rather than the saved todo list.
+  const [isCloudSortedByName, setIsCloudSortedByName] = useState(
+    () => window.localStorage.getItem(CLOUD_SORT_STORAGE_KEY) === "name",
+  );
 
   const [session, setSession] = useState<Session | null>(null);
   const [isLoadingSession, setIsLoadingSession] = useState(true);
@@ -125,6 +130,13 @@ export function useAppInit() {
   const handleLeftMenuClick = () => setShowLeftMenu((prev) => !prev);
   const handleRightMenuClick = () => setShowRightMenu((prev) => !prev);
   const handleTopMenuClick = () => setShowTopMenu((prev) => !prev);
+
+  const handleCloudSortClick = () =>
+    setIsCloudSortedByName((prev) => {
+      window.localStorage.setItem(CLOUD_SORT_STORAGE_KEY, prev ? "stored" : "name");
+
+      return !prev;
+    });
 
   const closeNotification = () => setNotification(null);
 
@@ -373,6 +385,8 @@ export function useAppInit() {
     handleRightMenuClick,
     showTopMenu,
     handleTopMenuClick,
+    isCloudSortedByName,
+    handleCloudSortClick,
 
     todos,
     deletedTodos,

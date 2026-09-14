@@ -64,6 +64,11 @@ export const getDoneTodos = (todos: Todo[]) => {
 export const isTodoNotNow = (todo: Todo) => todo.notNow && !shouldHighlightDueDate(todo.dueDate);
 
 export const getNotNowTodos = (todos: Todo[]) => todos.filter((todo) => !todo.done && isTodoNotNow(todo));
+// Alphabetical by text, ignoring case and accents. Anything else keeps the stored
+// order, which is insertion order: newest or most recently re-added first.
+export const getTodosSortedByName = (todos: Todo[]) =>
+  [...todos].sort((first, second) => first.text.localeCompare(second.text, undefined, { sensitivity: "base" }));
+
 export const getNotTodayTodos = (todos: Todo[]) =>
   todos.filter((todo) => !todo.done && !isTodoNotNow(todo) && todo.notToday);
 

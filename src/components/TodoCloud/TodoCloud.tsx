@@ -4,7 +4,7 @@ import { NotTodayList } from "./NotTodayList";
 import { TodoItem } from "./TodoItem";
 import { Box, Card } from "@mui/material";
 import { LoadingComponent } from "../Layout/LoadingComponent";
-import { getNotTodayTodos, isTodoNotNow, markTodoNow } from "../../utils/todos";
+import { getNotTodayTodos, getTodosSortedByName, isTodoNotNow, markTodoNow } from "../../utils/todos";
 import { Snoozed } from "./Snoozed";
 
 const SNOOZE_DURATION_MS = 60 * 60 * 1000;
@@ -38,18 +38,20 @@ function getStoredSnoozedTodoExpirations() {
 type Props = {
   todos: Todo[];
   isLoadingTodos: boolean;
+  isSortedByName: boolean;
   tags: TodoTag[];
   updateTodo: (todo: Todo) => void;
 };
 
-export const TodoCloud: React.FC<Props> = ({ todos, isLoadingTodos, tags, updateTodo }) => {
+export const TodoCloud: React.FC<Props> = ({ todos, isLoadingTodos, isSortedByName, tags, updateTodo }) => {
   const [currentTime, setCurrentTime] = useState(() => Date.now());
   const [snoozedTodoExpirations, setSnoozedTodoExpirations] = useState<Record<string, number>>(
     getStoredSnoozedTodoExpirations,
   );
   const activeTodos = todos.filter((todo) => !todo.done && !isTodoNotNow(todo) && !todo.notToday);
   const notTodayTodos = getNotTodayTodos(todos);
-  const cloudTodos = activeTodos.filter((todo) => !isTodoSnoozed(todo.id));
+  const unsortedCloudTodos = activeTodos.filter((todo) => !isTodoSnoozed(todo.id));
+  const cloudTodos = isSortedByName ? getTodosSortedByName(unsortedCloudTodos) : unsortedCloudTodos;
   const snoozedTodos = activeTodos.filter((todo) => isTodoSnoozed(todo.id));
 
   useEffect(() => {

@@ -8,6 +8,7 @@ import TocIcon from "@mui/icons-material/Toc";
 import LinkIcon from "@mui/icons-material/Link";
 import BalanceIcon from "@mui/icons-material/Balance";
 import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
+import SortByAlphaIcon from "@mui/icons-material/SortByAlpha";
 
 type Props = {
   isLoadingTodos: boolean;
@@ -17,6 +18,8 @@ type Props = {
   onTopMenuClick: () => void;
   onListsClick: () => void;
   onPointsClick: () => void;
+  isCloudSortedByName: boolean;
+  onCloudSortClick: () => void;
   email?: string;
 };
 
@@ -28,6 +31,8 @@ export const Header: React.FC<Props> = ({
   onTopMenuClick,
   onListsClick,
   onPointsClick,
+  isCloudSortedByName,
+  onCloudSortClick,
   email = "",
 }) => {
   return (
@@ -46,6 +51,18 @@ export const Header: React.FC<Props> = ({
         <Tooltip title="Pros and cons lists">
           <Button variant="text" color="secondary" onClick={onListsClick} sx={{ minWidth: 0 }} aria-label="Open lists">
             <BalanceIcon />
+          </Button>
+        </Tooltip>
+        <Tooltip title={isCloudSortedByName ? "Back to the order tasks were added" : "Sort tasks A–Z"}>
+          <Button
+            variant="text"
+            color={isCloudSortedByName ? "warning" : "secondary"}
+            onClick={onCloudSortClick}
+            sx={{ minWidth: 0 }}
+            aria-pressed={isCloudSortedByName}
+            aria-label="Sort tasks A to Z"
+          >
+            <SortByAlphaIcon />
           </Button>
         </Tooltip>
         <Tooltip title="Reward points">

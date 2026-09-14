@@ -11,3 +11,5 @@ export const MODAL_Z = 10000;
 export const TAG_Z = 1000;
 
 export const DEFAULT_TAG_COLOR = "#e2e2e2";
+
+export const CLOUD_SORT_STORAGE_KEY = "todo-cloud:cloud-sort";

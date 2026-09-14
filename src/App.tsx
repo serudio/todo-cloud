@@ -46,6 +46,8 @@ export default function App() {
     handleRightMenuClick,
     showTopMenu,
     handleTopMenuClick,
+    isCloudSortedByName,
+    handleCloudSortClick,
 
     todos,
     deletedTodos,
@@ -179,9 +181,17 @@ export default function App() {
             onTopMenuClick={handleTopMenuClick}
             onListsClick={() => navigate(listsPath)}
             onPointsClick={() => navigate(pointsPath)}
+            isCloudSortedByName={isCloudSortedByName}
+            onCloudSortClick={handleCloudSortClick}
             email={session.user.email}
           />
-          <TodoCloud todos={todos} updateTodo={updateTodo} isLoadingTodos={isLoadingTodos} tags={tags} />
+          <TodoCloud
+            todos={todos}
+            updateTodo={updateTodo}
+            isLoadingTodos={isLoadingTodos}
+            isSortedByName={isCloudSortedByName}
+            tags={tags}
+          />
         </Box>
 
         <Drawer open={showRightMenu} onClose={handleRightMenuClick} anchor="right" variant="persistent">
