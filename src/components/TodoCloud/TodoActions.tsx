@@ -3,6 +3,7 @@ import { DatePicker } from "../Shared/DatePicker";
 import { NotTodayButton } from "../Shared/NotTodayButton";
 import { TagPicker } from "../Shared/TagPicker";
 import { TodoDetails } from "../Shared/TodoDetails";
+import { TodoLinkButton } from "../Shared/TodoLinkButton";
 import { Button, Card } from "@mui/material";
 import { TASK_ACTIONS_Z } from "../../constants/ui";
 import type { Todo, TodoTag } from "../../types/todo";
@@ -42,6 +43,7 @@ export const TodoActions: React.FC<Props> = ({
 
   const updateNotToday = () => updateTodo(markTodoNotToday(todo));
   const updateDueDate = (dueDate: number | null) => updateTodo({ ...todo, dueDate });
+  const updateLink = (link: string | null) => updateTodo({ ...todo, link });
 
   return (
     <Card
@@ -69,6 +71,7 @@ export const TodoActions: React.FC<Props> = ({
     >
       <TagPicker selectedTagId={todo.tagId} tags={tags} onTagSelect={updateTag} />
       <DatePicker value={todo.dueDate} onChange={updateDueDate} onOpen={() => onSetActionsFocused(true)} />
+      <TodoLinkButton link={todo.link} onChange={updateLink} onOpen={() => onSetActionsFocused(true)} />
       {/* <NotNowButton onClick={() => onMarkTodoNotNow(todo.id)} /> */}
       {!isDayBeforeDueDate && <NotTodayButton onClick={updateNotToday} />}
       <Button

@@ -71,6 +71,7 @@ function parseDeletedTodos(savedItems: string) {
           repeatAtEndOfDay: deletedTodo.repeatAtEndOfDay,
           lastAutoAddedDate: typeof deletedTodo.lastAutoAddedDate === "string" ? deletedTodo.lastAutoAddedDate : null,
           tagId: typeof deletedTodo.tagId === "string" ? deletedTodo.tagId : null,
+          link: typeof deletedTodo.link === "string" && deletedTodo.link.trim() ? deletedTodo.link : null,
           dueDate: typeof deletedTodo.dueDate === "number" ? deletedTodo.dueDate : null,
           notNow: deletedTodo.notNow,
           notToday: deletedTodo.notToday,

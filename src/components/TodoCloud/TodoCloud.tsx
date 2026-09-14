@@ -4,13 +4,8 @@ import { NotTodayList } from "./NotTodayList";
 import { TodoItem } from "./TodoItem";
 import { Box, Card } from "@mui/material";
 import { LoadingComponent } from "../Layout/LoadingComponent";
-import {
-  getNotTodayTodos,
-  getTodosSortedByName,
-  isTodoNotNow,
-  markTodoNow,
-  normalizeTodoText,
-} from "../../utils/todos";
+import { getNotTodayTodos, getTodosSortedByName, isTodoNotNow, markTodoNow } from "../../utils/todos";
+import { isSearching, matchesSearch } from "../../utils/search";
 import { Snoozed } from "./Snoozed";
 
 const SNOOZE_DURATION_MS = 60 * 60 * 1000;
@@ -57,13 +52,10 @@ export const TodoCloud: React.FC<Props> = ({ todos, isLoadingTodos, isSortedByNa
   );
   // The search narrows every strip on this card, not just the cloud, so a hit is
   // never hidden behind a heading that still shows everything.
-  const normalizedSearch = normalizeTodoText(search);
-  const matchesSearch = (todo: Todo) => !normalizedSearch || normalizeTodoText(todo.text).includes(normalizedSearch);
+  const matchesTodo = (todo: Todo) => matchesSearch(search, todo.text, todo.link);
 
-  const activeTodos = todos.filter(
-    (todo) => !todo.done && !isTodoNotNow(todo) && !todo.notToday && matchesSearch(todo),
-  );
-  const notTodayTodos = getNotTodayTodos(todos).filter(matchesSearch);
+  const activeTodos = todos.filter((todo) => !todo.done && !isTodoNotNow(todo) && !todo.notToday && matchesTodo(todo));
+  const notTodayTodos = getNotTodayTodos(todos).filter(matchesTodo);
   const unsortedCloudTodos = activeTodos.filter((todo) => !isTodoSnoozed(todo.id));
   const cloudTodos = isSortedByName ? getTodosSortedByName(unsortedCloudTodos) : unsortedCloudTodos;
   const snoozedTodos = activeTodos.filter((todo) => isTodoSnoozed(todo.id));
@@ -165,7 +157,7 @@ export const TodoCloud: React.FC<Props> = ({ todos, isLoadingTodos, isSortedByNa
         onDrop={handleCloudDrop}
       >
         {!isLoadingTodos && activeTodos.length === 0 && (
-          <p>{normalizedSearch ? `Nothing matches "${search.trim()}".` : "No todos yet. Add the first one."}</p>
+          <p>{isSearching(search) ? `Nothing matches "${search.trim()}".` : "No todos yet. Add the first one."}</p>
         )}
         {cloudTodos.map((todo, index) => (
           <Box key={todo.id} sx={{ display: "inline-flex", overflow: "visible" }}>

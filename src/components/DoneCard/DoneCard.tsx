@@ -14,7 +14,7 @@ type DoneListProps = {
 };
 
 export const DoneCard: React.FC<DoneListProps> = ({ todos, updateTodo, tags, search, onDeleteTodo }) => {
-  const doneTodos = getDoneTodos(todos).filter((todo) => matchesSearch(search, todo.text));
+  const doneTodos = getDoneTodos(todos).filter((todo) => matchesSearch(search, todo.text, todo.link));
 
   return (
     <SectionCard title="Done" expanded={isSearching(search)} sx={{ overflow: "auto" }}>
