@@ -14,10 +14,12 @@ import { AddTask } from "./components/TodoCloud/AddTask.tsx";
 import { LoadingComponent } from "./components/Layout/LoadingComponent.tsx";
 import { useAppInit } from "./hooks/app.ts";
 import { NotificationsToast } from "./components/Layout/NotificationAlert";
-import { listsPath, navigate, useRoute } from "./hooks/route.ts";
+import { listsPath, navigate, pointsPath, useRoute } from "./hooks/route.ts";
 import { ListsPage } from "./components/Lists/ListsPage";
 import { ListPage } from "./components/Lists/ListPage";
 import { ListEditor } from "./components/Lists/ListEditor";
+import { PointsPage } from "./components/Points/PointsPage";
+import { GoalPage } from "./components/Points/GoalPage";
 
 // A page wrapper for routes that are not the todo cloud itself.
 const PageLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => (
@@ -100,6 +102,22 @@ export default function App() {
     );
   }
 
+  if (route.name === "points") {
+    return (
+      <PageLayout>
+        <PointsPage userId={session.user.id} />
+      </PageLayout>
+    );
+  }
+
+  if (route.name === "goal") {
+    return (
+      <PageLayout>
+        <GoalPage userId={session.user.id} goalId={route.goalId} />
+      </PageLayout>
+    );
+  }
+
   return (
     <Box sx={{ bgcolor: "background.body", color: "text.primary" }}>
       {saveError && <p>{saveError}</p>}
@@ -160,6 +178,7 @@ export default function App() {
             onRightMenuClick={handleRightMenuClick}
             onTopMenuClick={handleTopMenuClick}
             onListsClick={() => navigate(listsPath)}
+            onPointsClick={() => navigate(pointsPath)}
             email={session.user.email}
           />
           <TodoCloud todos={todos} updateTodo={updateTodo} isLoadingTodos={isLoadingTodos} tags={tags} />

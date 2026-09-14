@@ -49,6 +49,7 @@ export const NotNowList: React.FC<Props> = ({ todos, updateTodo, tags }) => {
       info="Tasks set aside here stay hidden from the cloud. A task with a due date comes back to the main list the day before it is due."
       onDragOver={handleDragOver}
       onDrop={handleDrop}
+      sx={{ maxHeight: 200 }}
     >
       {!notNowTodos.length && <p>Drag cloud tasks here to hide them for now.</p>}
       {notNowTodos.map((todo) => {

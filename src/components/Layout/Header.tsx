@@ -7,6 +7,7 @@ import ListIcon from "@mui/icons-material/List";
 import TocIcon from "@mui/icons-material/Toc";
 import LinkIcon from "@mui/icons-material/Link";
 import BalanceIcon from "@mui/icons-material/Balance";
+import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 
 type Props = {
   isLoadingTodos: boolean;
@@ -15,6 +16,7 @@ type Props = {
   onRightMenuClick: () => void;
   onTopMenuClick: () => void;
   onListsClick: () => void;
+  onPointsClick: () => void;
   email?: string;
 };
 
@@ -25,6 +27,7 @@ export const Header: React.FC<Props> = ({
   onRightMenuClick,
   onTopMenuClick,
   onListsClick,
+  onPointsClick,
   email = "",
 }) => {
   return (
@@ -43,6 +46,17 @@ export const Header: React.FC<Props> = ({
         <Tooltip title="Pros and cons lists">
           <Button variant="text" color="secondary" onClick={onListsClick} sx={{ minWidth: 0 }} aria-label="Open lists">
             <BalanceIcon />
+          </Button>
+        </Tooltip>
+        <Tooltip title="Reward points">
+          <Button
+            variant="text"
+            color="secondary"
+            onClick={onPointsClick}
+            sx={{ minWidth: 0 }}
+            aria-label="Open rewards"
+          >
+            <EmojiEventsIcon />
           </Button>
         </Tooltip>
         <ThemeSelector />

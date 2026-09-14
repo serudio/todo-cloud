@@ -2,12 +2,19 @@ import { useEffect, useState } from "react";
 
 // Hash routes keep deep links working on GitHub Pages, which has no SPA rewrite.
 export type Route =
-  { name: "todos" } | { name: "lists" } | { name: "list"; listId: string } | { name: "shared"; shareToken: string };
+  | { name: "todos" }
+  | { name: "lists" }
+  | { name: "list"; listId: string }
+  | { name: "shared"; shareToken: string }
+  | { name: "points" }
+  | { name: "goal"; goalId: string };
 
 export const todosPath = "#/";
 export const listsPath = "#/lists";
 export const getListPath = (listId: string) => `#/lists/${listId}`;
 export const getSharedPath = (shareToken: string) => `#/shared/${shareToken}`;
+export const pointsPath = "#/points";
+export const getGoalPath = (goalId: string) => `#/points/${goalId}`;
 
 export function getShareUrl(shareToken: string) {
   const { origin, pathname, search } = window.location;
@@ -20,6 +27,7 @@ export function parseRoute(hash: string): Route {
 
   if (firstSegment === "shared" && secondSegment) return { name: "shared", shareToken: secondSegment };
   if (firstSegment === "lists") return secondSegment ? { name: "list", listId: secondSegment } : { name: "lists" };
+  if (firstSegment === "points") return secondSegment ? { name: "goal", goalId: secondSegment } : { name: "points" };
 
   return { name: "todos" };
 }
