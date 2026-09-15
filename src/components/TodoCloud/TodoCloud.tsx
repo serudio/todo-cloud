@@ -152,6 +152,7 @@ export const TodoCloud: React.FC<Props> = ({ todos, isLoadingTodos, isSortedByNa
           minHeight: 300,
           gap: "18px 14px",
           flex: 1,
+          padding: 1,
         }}
         onDragOver={handleCloudDragOver}
         onDrop={handleCloudDrop}
