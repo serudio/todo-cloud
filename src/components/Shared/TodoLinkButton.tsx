@@ -64,10 +64,6 @@ export const TodoLinkButton: React.FC<Props> = ({ link, onChange, onOpen }) => {
               ? { component: "a" as const, href: link, target: "_blank", rel: "noreferrer" }
               : { onClick: openEditor })}
             onPointerDown={(event) => event.stopPropagation()}
-            sx={{
-              bgcolor: link ? "warning.light" : undefined,
-              "&:hover": { bgcolor: link ? "warning.main" : undefined },
-            }}
           >
             <LinkIcon fontSize="small" />
           </IconButton>

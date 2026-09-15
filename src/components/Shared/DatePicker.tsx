@@ -49,10 +49,6 @@ export const DatePicker: React.FC<Props> = ({ value, onChange, onOpen }) => {
           }}
           onPointerDown={(event) => event.stopPropagation()}
           size="small"
-          sx={{
-            bgcolor: value ? "warning.light" : undefined,
-            "&:hover": { bgcolor: value ? "warning.main" : undefined },
-          }}
         >
           <CalendarMonthIcon fontSize="small" />
         </IconButton>
