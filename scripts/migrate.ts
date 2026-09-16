@@ -46,6 +46,16 @@ await client.query(`
   )
 `);
 
+// Supabase grants anon and authenticated full access to new tables in public, so
+// the ledger is locked down as it is created rather than a migration later. Only
+// this script touches it, and it connects as the owner, which bypasses RLS.
+await client.query(
+  'alter table public.schema_migrations enable row level security',
+);
+await client.query(
+  'revoke all on table public.schema_migrations from anon, authenticated',
+);
+
 const { rows: existingSchemaRows } = await client.query<{
   todo_lists_exists: string | null;
 }>("select to_regclass('public.todo_lists') as todo_lists_exists");
