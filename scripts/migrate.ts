@@ -1,33 +1,32 @@
-import { existsSync, readdirSync, readFileSync } from 'node:fs';
-import { Client } from 'pg';
+import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { Client } from "pg";
 
 function loadDotEnv() {
-  if (!existsSync('.env')) return;
+  if (!existsSync(".env")) return;
 
-  for (const line of readFileSync('.env', 'utf8').split('\n')) {
+  for (const line of readFileSync(".env", "utf8").split("\n")) {
     const trimmedLine = line.trim();
-    if (!trimmedLine || trimmedLine.startsWith('#')) continue;
+    if (!trimmedLine || trimmedLine.startsWith("#")) continue;
 
-    const [name, ...valueParts] = trimmedLine.split('=');
-    const value = valueParts.join('=').trim();
+    const [name, ...valueParts] = trimmedLine.split("=");
+    const value = valueParts.join("=").trim();
 
     if (name && value && !process.env[name]) {
-      process.env[name] = value.replace(/^["']|["']$/g, '');
+      process.env[name] = value.replace(/^["']|["']$/g, "");
     }
   }
 }
 
 loadDotEnv();
 
-const connectionString =
-  process.env.SUPABASE_DB_URL ?? process.env.VITE_SUPABASE_DB_URL;
+const connectionString = process.env.SUPABASE_DB_URL ?? process.env.VITE_SUPABASE_DB_URL;
 
 if (!connectionString) {
-  throw new Error('Missing SUPABASE_DB_URL');
+  throw new Error("Missing SUPABASE_DB_URL");
 }
 
-const migrations = readdirSync('supabase/migrations')
-  .filter((fileName) => fileName.endsWith('.sql'))
+const migrations = readdirSync("supabase/migrations")
+  .filter((fileName) => fileName.endsWith(".sql"))
   .sort();
 
 const client = new Client({
@@ -49,12 +48,8 @@ await client.query(`
 // Supabase grants anon and authenticated full access to new tables in public, so
 // the ledger is locked down as it is created rather than a migration later. Only
 // this script touches it, and it connects as the owner, which bypasses RLS.
-await client.query(
-  'alter table public.schema_migrations enable row level security',
-);
-await client.query(
-  'revoke all on table public.schema_migrations from anon, authenticated',
-);
+await client.query("alter table public.schema_migrations enable row level security");
+await client.query("revoke all on table public.schema_migrations from anon, authenticated");
 
 const { rows: existingSchemaRows } = await client.query<{
   todo_lists_exists: string | null;
@@ -69,31 +64,24 @@ if (existingSchemaRows[0]?.todo_lists_exists) {
 }
 
 for (const migrationFileName of migrations) {
-  const { rowCount } = await client.query(
-    'select 1 from public.schema_migrations where name = $1',
-    [migrationFileName],
-  );
+  const { rowCount } = await client.query("select 1 from public.schema_migrations where name = $1", [
+    migrationFileName,
+  ]);
 
   if (rowCount) {
     console.log(`Skipped ${migrationFileName}`);
     continue;
   }
 
-  const migration = readFileSync(
-    `supabase/migrations/${migrationFileName}`,
-    'utf8',
-  );
+  const migration = readFileSync(`supabase/migrations/${migrationFileName}`, "utf8");
 
-  await client.query('begin');
+  await client.query("begin");
   try {
     await client.query(migration);
-    await client.query(
-      'insert into public.schema_migrations (name) values ($1)',
-      [migrationFileName],
-    );
-    await client.query('commit');
+    await client.query("insert into public.schema_migrations (name) values ($1)", [migrationFileName]);
+    await client.query("commit");
   } catch (error) {
-    await client.query('rollback');
+    await client.query("rollback");
     throw error;
   }
 
@@ -102,4 +90,4 @@ for (const migrationFileName of migrations) {
 
 await client.end();
 
-console.log('Migration applied successfully.');
+console.log("Migration applied successfully.");

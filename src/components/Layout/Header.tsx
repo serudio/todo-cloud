@@ -161,11 +161,6 @@ export const Header: React.FC<Props> = ({
         <Button variant="text" color="secondary" onClick={onLeftMenuClick} sx={{ minWidth: 0 }}>
           <ListIcon />
         </Button>
-        <Tooltip title="Pros and cons lists">
-          <Button variant="text" color="secondary" onClick={onListsClick} sx={{ minWidth: 0 }} aria-label="Open lists">
-            <BalanceIcon />
-          </Button>
-        </Tooltip>
         <Tooltip title={isCloudSortedByName ? "Back to the order tasks were added" : "Sort tasks A–Z"}>
           <Button
             variant="text"
@@ -176,6 +171,11 @@ export const Header: React.FC<Props> = ({
             aria-label="Sort tasks A to Z"
           >
             <SortByAlphaIcon />
+          </Button>
+        </Tooltip>
+        <Tooltip title="Pros and cons lists">
+          <Button variant="text" color="secondary" onClick={onListsClick} sx={{ minWidth: 0 }} aria-label="Open lists">
+            <BalanceIcon />
           </Button>
         </Tooltip>
         <Tooltip title="Reward points (opens a new tab)">
