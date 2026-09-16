@@ -74,6 +74,10 @@ function parseDeletedTodos(savedItems: string) {
           link: typeof deletedTodo.link === "string" && deletedTodo.link.trim() ? deletedTodo.link : null,
           dueDate: typeof deletedTodo.dueDate === "number" ? deletedTodo.dueDate : null,
           notNow: deletedTodo.notNow,
+          snoozedUntil:
+            typeof deletedTodo.snoozedUntil === "number" && Number.isFinite(deletedTodo.snoozedUntil)
+              ? deletedTodo.snoozedUntil
+              : null,
           notToday: deletedTodo.notToday,
           notTodayDate: typeof deletedTodo.notTodayDate === "string" ? deletedTodo.notTodayDate : null,
           deletedAt: typeof deletedTodo.deletedAt === "string" ? deletedTodo.deletedAt : "",

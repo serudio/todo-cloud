@@ -14,7 +14,7 @@ import { AddTask } from "./components/TodoCloud/AddTask.tsx";
 import { LoadingComponent } from "./components/Layout/LoadingComponent.tsx";
 import { useAppInit } from "./hooks/app.ts";
 import { NotificationsToast } from "./components/Layout/NotificationAlert";
-import { listsPath, navigate, pointsPath, useRoute } from "./hooks/route.ts";
+import { listsPath, navigate, useRoute } from "./hooks/route.ts";
 import { useIsMobile } from "./hooks/mobile.ts";
 import { ListsPage } from "./components/Lists/ListsPage";
 import { ListPage } from "./components/Lists/ListPage";
@@ -198,7 +198,6 @@ export default function App() {
             onRightMenuClick={handleRightMenuClick}
             onTopMenuClick={handleTopMenuClick}
             onListsClick={() => navigate(listsPath)}
-            onPointsClick={() => navigate(pointsPath)}
             isCloudSortedByName={isCloudSortedByName}
             onCloudSortClick={handleCloudSortClick}
             search={search}

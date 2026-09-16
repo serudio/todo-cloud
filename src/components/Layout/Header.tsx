@@ -4,6 +4,7 @@ import LogoutIcon from "@mui/icons-material/Logout";
 import { ThemeSelector } from "./ThemeSelector";
 import { signOut } from "../../utils/auth";
 import { HeaderMenu } from "./HeaderMenu";
+import { getAbsoluteUrl, pointsPath } from "../../hooks/route";
 import { useIsMobile } from "../../hooks/mobile";
 import ListIcon from "@mui/icons-material/List";
 import TocIcon from "@mui/icons-material/Toc";
@@ -21,7 +22,6 @@ type Props = {
   onRightMenuClick: () => void;
   onTopMenuClick: () => void;
   onListsClick: () => void;
-  onPointsClick: () => void;
   isCloudSortedByName: boolean;
   onCloudSortClick: () => void;
   search: string;
@@ -36,7 +36,6 @@ export const Header: React.FC<Props> = ({
   onRightMenuClick,
   onTopMenuClick,
   onListsClick,
-  onPointsClick,
   isCloudSortedByName,
   onCloudSortClick,
   search,
@@ -105,7 +104,6 @@ export const Header: React.FC<Props> = ({
           onCloudSortClick={onCloudSortClick}
           onTopMenuClick={onTopMenuClick}
           onListsClick={onListsClick}
-          onPointsClick={onPointsClick}
         />
       </Card>
     );
@@ -180,13 +178,16 @@ export const Header: React.FC<Props> = ({
             <SortByAlphaIcon />
           </Button>
         </Tooltip>
-        <Tooltip title="Reward points">
+        <Tooltip title="Reward points (opens a new tab)">
           <Button
             variant="text"
             color="secondary"
-            onClick={onPointsClick}
+            component="a"
+            href={getAbsoluteUrl(pointsPath)}
+            target="_blank"
+            rel="noreferrer"
             sx={{ minWidth: 0 }}
-            aria-label="Open rewards"
+            aria-label="Open rewards in a new tab"
           >
             <EmojiEventsIcon />
           </Button>

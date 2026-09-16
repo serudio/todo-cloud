@@ -16,11 +16,14 @@ export const getSharedPath = (shareToken: string) => `#/shared/${shareToken}`;
 export const pointsPath = "#/points";
 export const getGoalPath = (goalId: string) => `#/points/${goalId}`;
 
-export function getShareUrl(shareToken: string) {
+// A hash route as a full URL, for links that open in their own tab.
+export function getAbsoluteUrl(hashPath: string) {
   const { origin, pathname, search } = window.location;
 
-  return `${origin}${pathname}${search}${getSharedPath(shareToken)}`;
+  return `${origin}${pathname}${search}${hashPath}`;
 }
+
+export const getShareUrl = (shareToken: string) => getAbsoluteUrl(getSharedPath(shareToken));
 
 export function parseRoute(hash: string): Route {
   const [firstSegment, secondSegment] = hash.replace(/^#\/?/, "").split("/");

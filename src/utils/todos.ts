@@ -2,7 +2,27 @@ import type { CustomLink, Todo, TodoListItems, TodoTag } from "../types/todo";
 import dayjs from "dayjs";
 import { getDateInputValue, getLocalDateKey } from "./date";
 
-export const markTodoNow = (todo: Todo) => ({ ...todo, notNow: false, notToday: false, notTodayDate: null });
+export const SNOOZE_DURATION_MS = 60 * 60 * 1000;
+
+export const markTodoNow = (todo: Todo) => ({
+  ...todo,
+  notNow: false,
+  notToday: false,
+  notTodayDate: null,
+  snoozedUntil: null,
+});
+
+// Snoozing lives on the todo itself, so it is saved with the list and a task
+// snoozed on a phone is still snoozed when the same list is opened elsewhere.
+export const markTodoSnoozed = (todo: Todo, durationMs = SNOOZE_DURATION_MS) => ({
+  ...todo,
+  snoozedUntil: Date.now() + durationMs,
+});
+
+export const markTodoAwake = (todo: Todo) => ({ ...todo, snoozedUntil: null });
+
+export const isTodoSnoozed = (todo: Todo, now = Date.now()) =>
+  typeof todo.snoozedUntil === "number" && todo.snoozedUntil > now;
 export const markTodoNotNow = (todo: Todo) => ({ ...todo, notNow: true, notToday: false, notTodayDate: null });
 export const markTodoNotToday = (todo: Todo) => ({ ...todo, notToday: true, notTodayDate: getLocalDateKey() });
 export const markTodoDone = (todo: Todo) => {
@@ -12,6 +32,7 @@ export const markTodoDone = (todo: Todo) => {
     ...todo,
     done: !todo.done,
     doneAt: newDone ? now : null,
+    snoozedUntil: null,
     notNow: newDone ? todo.notNow : false,
     notToday: newDone ? todo.notToday : false,
     notTodayDate: newDone ? todo.notTodayDate : null,
@@ -25,6 +46,7 @@ export const restoreTodoFromDone = (todo: Todo): Todo => {
     done: false,
     doneAt: null,
     notNow: false,
+    snoozedUntil: null,
     notToday: false,
     notTodayDate: null,
     lastAddedDate: today,
@@ -45,6 +67,7 @@ export const getNewTodo = (todoText: string): Todo => {
     link: null,
     dueDate: null,
     notNow: false,
+    snoozedUntil: null,
     notToday: false,
     notTodayDate: null,
   };
@@ -149,6 +172,8 @@ export function parseTodos(items: unknown): Todo[] {
           link: typeof todo.link === "string" && todo.link.trim() ? todo.link : null,
           dueDate: parseDueDate(todo.dueDate),
           notNow: todo.notNow === true,
+          snoozedUntil:
+            typeof todo.snoozedUntil === "number" && Number.isFinite(todo.snoozedUntil) ? todo.snoozedUntil : null,
           notToday: todo.notToday === true,
           notTodayDate: typeof todo.notTodayDate === "string" ? todo.notTodayDate : null,
         },

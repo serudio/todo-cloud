@@ -8,13 +8,13 @@ import SortByAlphaIcon from "@mui/icons-material/SortByAlpha";
 import LogoutIcon from "@mui/icons-material/Logout";
 import { ThemeSelector } from "./ThemeSelector";
 import { signOut } from "../../utils/auth";
+import { getAbsoluteUrl, pointsPath } from "../../hooks/route";
 
 type Props = {
   isCloudSortedByName: boolean;
   onCloudSortClick: () => void;
   onTopMenuClick: () => void;
   onListsClick: () => void;
-  onPointsClick: () => void;
 };
 
 // On a phone the header cannot hold eight controls and a search box, so everything
@@ -24,7 +24,6 @@ export const HeaderMenu: React.FC<Props> = ({
   onCloudSortClick,
   onTopMenuClick,
   onListsClick,
-  onPointsClick,
 }) => {
   const [anchorElement, setAnchorElement] = useState<HTMLElement | null>(null);
 
@@ -41,7 +40,6 @@ export const HeaderMenu: React.FC<Props> = ({
     },
     { label: "Quick links", icon: <LinkIcon />, onClick: onTopMenuClick },
     { label: "Pros and cons lists", icon: <BalanceIcon />, onClick: onListsClick },
-    { label: "Rewards", icon: <EmojiEventsIcon />, onClick: onPointsClick },
   ];
 
   return (
@@ -57,6 +55,19 @@ export const HeaderMenu: React.FC<Props> = ({
             <ListItemText>{item.label}</ListItemText>
           </MenuItem>
         ))}
+
+        <MenuItem
+          component="a"
+          href={getAbsoluteUrl(pointsPath)}
+          target="_blank"
+          rel="noreferrer"
+          onClick={() => setAnchorElement(null)}
+        >
+          <ListItemIcon>
+            <EmojiEventsIcon />
+          </ListItemIcon>
+          <ListItemText>Rewards</ListItemText>
+        </MenuItem>
 
         <Divider />
 

@@ -7,12 +7,15 @@ import LinkIcon from "@mui/icons-material/Link";
 import RepeatIcon from "@mui/icons-material/Repeat";
 import type { Todo, TodoTag } from "../../types/todo";
 import { DEFAULT_TAG_COLOR } from "../../constants/ui";
-import { shouldHighlightDueDate } from "../../utils/todos";
+import { isStaleTodo, shouldHighlightDueDate } from "../../utils/todos";
+import { StaleBadge } from "../Shared/StaleBadge";
 
 type Props = {
   todo: Todo;
   tags: TodoTag[];
   isSnoozed: boolean;
+  // A snoozed row swipes the same way, but leftwards it wakes rather than snoozes.
+  leftActionLabel?: string;
   onDone: () => void;
   onSnooze: () => void;
   onOpenActions: () => void;
@@ -24,7 +27,15 @@ const COMMIT_DISTANCE = 96;
 // Ignore drags that are mostly vertical, otherwise the list cannot be scrolled.
 const DIRECTION_LOCK = 12;
 
-export const SwipeableTodoRow: React.FC<Props> = ({ todo, tags, isSnoozed, onDone, onSnooze, onOpenActions }) => {
+export const SwipeableTodoRow: React.FC<Props> = ({
+  todo,
+  tags,
+  isSnoozed,
+  leftActionLabel = "snooze",
+  onDone,
+  onSnooze,
+  onOpenActions,
+}) => {
   const [offset, setOffset] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const gestureRef = useRef<{ startX: number; startY: number; isHorizontal: boolean | null } | null>(null);
@@ -116,7 +127,7 @@ export const SwipeableTodoRow: React.FC<Props> = ({ todo, tags, isSnoozed, onDon
         }}
       >
         {offset > 0 ? <CheckIcon /> : <SnoozeIcon />}
-        <Typography variant="body2">{offset > 0 ? "done" : "snooze"}</Typography>
+        <Typography variant="body2">{offset > 0 ? "done" : leftActionLabel}</Typography>
       </Box>
 
       <Box
@@ -144,6 +155,7 @@ export const SwipeableTodoRow: React.FC<Props> = ({ todo, tags, isSnoozed, onDon
       >
         <Typography sx={{ flex: 1, minWidth: 0, wordBreak: "break-word" }}>{todo.text}</Typography>
 
+        {isStaleTodo(todo.lastAddedDate) && <StaleBadge lastAddedDate={todo.lastAddedDate} />}
         {todo.link && <LinkIcon fontSize="small" color="warning" />}
         {todo.repeatAtEndOfDay && <RepeatIcon fontSize="small" color="disabled" />}
         {todo.count > 1 && (

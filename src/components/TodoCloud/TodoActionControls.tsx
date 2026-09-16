@@ -48,7 +48,7 @@ export const TodoActionControls: React.FC<Props> = ({
   const updateLink = (link: string | null) => updateTodo({ ...todo, link });
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "row", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
+    <Box sx={{ display: "flex", flexDirection: "row", alignItems: "center", gap: 1 }}>
       <TagPicker selectedTagId={todo.tagId} tags={tags} onTagSelect={updateTag} />
       <DatePicker value={todo.dueDate} onChange={updateDueDate} onOpen={() => onSetActionsFocused?.(true)} />
       <TodoLinkButton link={todo.link} onChange={updateLink} onOpen={() => onSetActionsFocused?.(true)} />

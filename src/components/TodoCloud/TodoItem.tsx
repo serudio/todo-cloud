@@ -7,6 +7,7 @@ import { DEFAULT_TAG_COLOR, TASK_ACTION_HOVER_Z, TASK_ACTIONS_Z, TASK_Z } from "
 import { getTodoFontSize, getTodoPadding } from "../../utils/ui";
 import { TodoActions } from "./TodoActions";
 import { DueDateChip } from "./DueDateChip";
+import { StaleBadge } from "../Shared/StaleBadge";
 
 type Props = {
   todo: Todo;
@@ -128,6 +129,7 @@ export const TodoItem: React.FC<Props> = ({
         justifyContent: "center",
         zIndex: showActions ? TASK_ACTION_HOVER_Z : TASK_Z,
         scale: showActions ? 1.03 : 1,
+        opacity: isStale && !showActions ? 0.72 : 1,
       }}
     >
       {showActions && (
@@ -171,7 +173,7 @@ export const TodoItem: React.FC<Props> = ({
         />
       )}
       {shouldHighlightDue && <DueDateChip />}
-      {isStale && <span>STALE</span>}
+      {isStale && <StaleBadge lastAddedDate={todo.lastAddedDate} isFloating />}
     </Box>
   );
 };

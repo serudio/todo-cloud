@@ -2,44 +2,24 @@ import { useEffect, useState, type DragEvent } from "react";
 import type { Todo, TodoTag } from "../../types/todo";
 import { NotTodayList } from "./NotTodayList";
 import { TodoItem } from "./TodoItem";
-import { Box, Card } from "@mui/material";
+import { Box, Card, Typography } from "@mui/material";
 import { LoadingComponent } from "../Layout/LoadingComponent";
-import { getNotTodayTodos, getTodosSortedByName, isTodoNotNow, markTodoNow } from "../../utils/todos";
+import {
+  getNotTodayTodos,
+  getTodosSortedByName,
+  isTodoNotNow,
+  isTodoSnoozed,
+  markTodoAwake,
+  markTodoDone,
+  markTodoNow,
+  markTodoSnoozed,
+} from "../../utils/todos";
 import { isSearching, matchesSearch } from "../../utils/search";
 import { Snoozed } from "./Snoozed";
 import { SwipeableTodoRow } from "./SwipeableTodoRow";
 import { TodoActionSheet } from "./TodoActionSheet";
 import { useIsMobile } from "../../hooks/mobile";
-import { markTodoDone } from "../../utils/todos";
 
-const SNOOZE_DURATION_MS = 60 * 60 * 1000;
-const SNOOZED_TODOS_STORAGE_KEY = "todo-cloud:snoozed-todos";
-
-function getStoredSnoozedTodoExpirations() {
-  if (typeof window === "undefined") {
-    return {};
-  }
-
-  try {
-    const storedSnoozedTodos = window.localStorage.getItem(SNOOZED_TODOS_STORAGE_KEY);
-    if (!storedSnoozedTodos) return {};
-
-    const parsedSnoozedTodos = JSON.parse(storedSnoozedTodos) as unknown;
-    if (!parsedSnoozedTodos || typeof parsedSnoozedTodos !== "object" || Array.isArray(parsedSnoozedTodos)) {
-      return {};
-    }
-
-    const now = Date.now();
-    return Object.fromEntries(
-      Object.entries(parsedSnoozedTodos).filter(
-        (entry): entry is [string, number] =>
-          typeof entry[1] === "number" && Number.isFinite(entry[1]) && entry[1] > now,
-      ),
-    );
-  } catch {
-    return {};
-  }
-}
 type Props = {
   todos: Todo[];
   isLoadingTodos: boolean;
@@ -62,65 +42,43 @@ export const TodoCloud: React.FC<Props> = ({
   const isMobile = useIsMobile();
   const [actionsTodoId, setActionsTodoId] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(() => Date.now());
-  const [snoozedTodoExpirations, setSnoozedTodoExpirations] = useState<Record<string, number>>(
-    getStoredSnoozedTodoExpirations,
-  );
   // The search narrows every strip on this card, not just the cloud, so a hit is
   // never hidden behind a heading that still shows everything.
   const matchesTodo = (todo: Todo) => matchesSearch(search, todo.text, todo.link);
 
   const activeTodos = todos.filter((todo) => !todo.done && !isTodoNotNow(todo) && !todo.notToday && matchesTodo(todo));
   const notTodayTodos = getNotTodayTodos(todos).filter(matchesTodo);
-  const unsortedCloudTodos = activeTodos.filter((todo) => !isTodoSnoozed(todo.id));
+  const unsortedCloudTodos = activeTodos.filter((todo) => !isTodoSnoozed(todo, currentTime));
   const cloudTodos = isSortedByName ? getTodosSortedByName(unsortedCloudTodos) : unsortedCloudTodos;
-  const snoozedTodos = activeTodos.filter((todo) => isTodoSnoozed(todo.id));
+  const snoozedTodos = activeTodos.filter((todo) => isTodoSnoozed(todo, currentTime));
 
+  // Re-render when the earliest snooze runs out, so a task reappears on its own.
   useEffect(() => {
-    const nextSnoozeExpiry = Object.values(snoozedTodoExpirations)
-      .filter((expiresAt) => expiresAt > currentTime)
-      .sort((firstExpiry, secondExpiry) => firstExpiry - secondExpiry)[0];
+    const nextExpiry = todos
+      .map((todo) => todo.snoozedUntil)
+      .filter((expiresAt): expiresAt is number => typeof expiresAt === "number" && expiresAt > currentTime)
+      .sort((first, second) => first - second)[0];
 
-    if (!nextSnoozeExpiry) {
-      return;
-    }
+    if (!nextExpiry) return;
 
-    const timeoutId = window.setTimeout(() => setCurrentTime(Date.now()), Math.max(0, nextSnoozeExpiry - currentTime));
+    const timeoutId = window.setTimeout(() => setCurrentTime(Date.now()), Math.max(0, nextExpiry - currentTime));
 
     return () => window.clearTimeout(timeoutId);
-  }, [currentTime, snoozedTodoExpirations]);
-
-  useEffect(() => {
-    const activeExpirations = Object.fromEntries(
-      Object.entries(snoozedTodoExpirations).filter(([, expiresAt]) => expiresAt > currentTime),
-    );
-
-    window.localStorage.setItem(SNOOZED_TODOS_STORAGE_KEY, JSON.stringify(activeExpirations));
-  }, [currentTime, snoozedTodoExpirations]);
-
-  function isTodoSnoozed(todoId: string) {
-    return (snoozedTodoExpirations[todoId] ?? 0) > currentTime;
-  }
+  }, [currentTime, todos]);
 
   function handleToggleSnooze(todoId: string) {
-    const now = Date.now();
-    setCurrentTime(now);
-    setSnoozedTodoExpirations((currentExpirations) => {
-      if ((currentExpirations[todoId] ?? 0) > now) {
-        const nextExpirations = { ...currentExpirations };
-        delete nextExpirations[todoId];
-        return nextExpirations;
-      }
+    const todo = todos.find((currentTodo) => currentTodo.id === todoId);
+    if (!todo) return;
 
-      return { ...currentExpirations, [todoId]: now + SNOOZE_DURATION_MS };
-    });
+    setCurrentTime(Date.now());
+    updateTodo(isTodoSnoozed(todo) ? markTodoAwake(todo) : markTodoSnoozed(todo));
   }
 
   function handleRemoveSnooze(todoId: string) {
-    setSnoozedTodoExpirations((currentExpirations) => {
-      const nextExpirations = { ...currentExpirations };
-      delete nextExpirations[todoId];
-      return nextExpirations;
-    });
+    const todo = todos.find((currentTodo) => currentTodo.id === todoId);
+    if (!todo) return;
+
+    updateTodo(markTodoAwake(todo));
   }
 
   function handleTodoDragStart(event: DragEvent<HTMLElement>, todoId: string) {
@@ -140,13 +98,8 @@ export const TodoCloud: React.FC<Props> = ({
     if (todoId) {
       const newTodo = todos.find((x) => x.id === todoId);
       if (!newTodo) return;
-      setSnoozedTodoExpirations((currentExpirations) => {
-        if (!(todoId in currentExpirations)) return currentExpirations;
 
-        const nextExpirations = { ...currentExpirations };
-        delete nextExpirations[todoId];
-        return nextExpirations;
-      });
+      // markTodoNow also clears any snooze, so a dropped task comes straight back.
       updateTodo(markTodoNow(newTodo));
     }
   }
@@ -154,7 +107,7 @@ export const TodoCloud: React.FC<Props> = ({
   const actionsTodo = todos.find((todo) => todo.id === actionsTodoId) ?? null;
 
   if (isMobile) {
-    const listTodos = isSortedByName ? cloudTodos : activeTodos;
+    const listTodos = cloudTodos;
 
     return (
       <Card sx={{ flex: 1, position: "relative", display: "flex", flexDirection: "column", p: 1, gap: 0.5 }}>
@@ -170,17 +123,37 @@ export const TodoCloud: React.FC<Props> = ({
             key={todo.id}
             todo={todo}
             tags={tags}
-            isSnoozed={isTodoSnoozed(todo.id)}
+            isSnoozed={false}
             onDone={() => updateTodo(markTodoDone(todo))}
             onSnooze={() => handleToggleSnooze(todo.id)}
             onOpenActions={() => setActionsTodoId(todo.id)}
           />
         ))}
 
+        {snoozedTodos.length > 0 && (
+          <>
+            <Typography variant="caption" color="text.secondary" sx={{ mt: 1 }}>
+              snoozed
+            </Typography>
+            {snoozedTodos.map((todo) => (
+              <SwipeableTodoRow
+                key={todo.id}
+                todo={todo}
+                tags={tags}
+                isSnoozed
+                leftActionLabel="wake"
+                onDone={() => updateTodo(markTodoDone(todo))}
+                onSnooze={() => handleRemoveSnooze(todo.id)}
+                onOpenActions={() => setActionsTodoId(todo.id)}
+              />
+            ))}
+          </>
+        )}
+
         <TodoActionSheet
           todo={actionsTodo}
           tags={tags}
-          isSnoozed={Boolean(actionsTodo && isTodoSnoozed(actionsTodo.id))}
+          isSnoozed={Boolean(actionsTodo && isTodoSnoozed(actionsTodo, currentTime))}
           updateTodo={updateTodo}
           onToggleSnooze={handleToggleSnooze}
           onDelete={deleteTodo}

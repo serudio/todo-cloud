@@ -11,6 +11,8 @@ export type Todo = {
   link: string | null;
   dueDate: number | null;
   notNow: boolean;
+  // When set and still in the future the task is hidden from the list for a while.
+  snoozedUntil: number | null;
   notToday: boolean;
   notTodayDate: string | null;
 };
