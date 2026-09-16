@@ -7,6 +7,10 @@ import { LoadingComponent } from "../Layout/LoadingComponent";
 import { getNotTodayTodos, getTodosSortedByName, isTodoNotNow, markTodoNow } from "../../utils/todos";
 import { isSearching, matchesSearch } from "../../utils/search";
 import { Snoozed } from "./Snoozed";
+import { SwipeableTodoRow } from "./SwipeableTodoRow";
+import { TodoActionSheet } from "./TodoActionSheet";
+import { useIsMobile } from "../../hooks/mobile";
+import { markTodoDone } from "../../utils/todos";
 
 const SNOOZE_DURATION_MS = 60 * 60 * 1000;
 const SNOOZED_TODOS_STORAGE_KEY = "todo-cloud:snoozed-todos";
@@ -43,9 +47,20 @@ type Props = {
   search: string;
   tags: TodoTag[];
   updateTodo: (todo: Todo) => void;
+  deleteTodo: (todoId: string) => void;
 };
 
-export const TodoCloud: React.FC<Props> = ({ todos, isLoadingTodos, isSortedByName, search, tags, updateTodo }) => {
+export const TodoCloud: React.FC<Props> = ({
+  todos,
+  isLoadingTodos,
+  isSortedByName,
+  search,
+  tags,
+  updateTodo,
+  deleteTodo,
+}) => {
+  const isMobile = useIsMobile();
+  const [actionsTodoId, setActionsTodoId] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(() => Date.now());
   const [snoozedTodoExpirations, setSnoozedTodoExpirations] = useState<Record<string, number>>(
     getStoredSnoozedTodoExpirations,
@@ -134,6 +149,45 @@ export const TodoCloud: React.FC<Props> = ({ todos, isLoadingTodos, isSortedByNa
       });
       updateTodo(markTodoNow(newTodo));
     }
+  }
+
+  const actionsTodo = todos.find((todo) => todo.id === actionsTodoId) ?? null;
+
+  if (isMobile) {
+    const listTodos = isSortedByName ? cloudTodos : activeTodos;
+
+    return (
+      <Card sx={{ flex: 1, position: "relative", display: "flex", flexDirection: "column", p: 1, gap: 0.5 }}>
+        <LoadingComponent loading={isLoadingTodos} />
+        {!isLoadingTodos && notTodayTodos.length > 0 && <NotTodayList todos={notTodayTodos} updateTodo={updateTodo} />}
+
+        {!isLoadingTodos && listTodos.length === 0 && (
+          <p>{isSearching(search) ? `Nothing matches "${search.trim()}".` : "No todos yet. Add the first one."}</p>
+        )}
+
+        {listTodos.map((todo) => (
+          <SwipeableTodoRow
+            key={todo.id}
+            todo={todo}
+            tags={tags}
+            isSnoozed={isTodoSnoozed(todo.id)}
+            onDone={() => updateTodo(markTodoDone(todo))}
+            onSnooze={() => handleToggleSnooze(todo.id)}
+            onOpenActions={() => setActionsTodoId(todo.id)}
+          />
+        ))}
+
+        <TodoActionSheet
+          todo={actionsTodo}
+          tags={tags}
+          isSnoozed={Boolean(actionsTodo && isTodoSnoozed(actionsTodo.id))}
+          updateTodo={updateTodo}
+          onToggleSnooze={handleToggleSnooze}
+          onDelete={deleteTodo}
+          onClose={() => setActionsTodoId(null)}
+        />
+      </Card>
+    );
   }
 
   return (

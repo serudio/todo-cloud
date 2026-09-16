@@ -3,6 +3,8 @@ import RefreshRoundedIcon from "@mui/icons-material/RefreshRounded";
 import LogoutIcon from "@mui/icons-material/Logout";
 import { ThemeSelector } from "./ThemeSelector";
 import { signOut } from "../../utils/auth";
+import { HeaderMenu } from "./HeaderMenu";
+import { useIsMobile } from "../../hooks/mobile";
 import ListIcon from "@mui/icons-material/List";
 import TocIcon from "@mui/icons-material/Toc";
 import LinkIcon from "@mui/icons-material/Link";
@@ -41,8 +43,86 @@ export const Header: React.FC<Props> = ({
   onSearchChange,
   email = "",
 }) => {
+  const isMobile = useIsMobile();
+
+  if (isMobile) {
+    return (
+      <Card sx={{ display: "flex", alignItems: "center", gap: 0.5, p: 0.5 }}>
+        <Button
+          disabled={isLoadingTodos}
+          variant="text"
+          color="secondary"
+          onClick={onRefresh}
+          sx={{ minWidth: 0, px: 1 }}
+          aria-label="Refresh"
+        >
+          <RefreshRoundedIcon />
+        </Button>
+
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 0.5,
+            px: 1,
+            flex: 1,
+            minWidth: 0,
+            borderRadius: 999,
+            border: 1,
+            borderColor: search ? "warning.main" : "divider",
+          }}
+        >
+          <SearchIcon fontSize="small" color="disabled" />
+          <InputBase
+            value={search}
+            placeholder="search"
+            onChange={(event) => onSearchChange(event.target.value)}
+            onKeyDown={(event) => event.key === "Escape" && onSearchChange("")}
+            slotProps={{ input: { "aria-label": "Search tasks" } }}
+            sx={{ flex: 1, minWidth: 0, fontSize: "0.85rem", "& input": { padding: "2px 0" } }}
+          />
+          {search && (
+            <IconButton size="small" onClick={() => onSearchChange("")} aria-label="Clear search" sx={{ padding: 0 }}>
+              <CloseIcon fontSize="small" />
+            </IconButton>
+          )}
+        </Box>
+
+        <Tooltip title="Tags, links, not now">
+          <IconButton color="secondary" onClick={onLeftMenuClick} aria-label="Tags, links and not now">
+            <ListIcon />
+          </IconButton>
+        </Tooltip>
+
+        <Tooltip title="Done and deleted">
+          <IconButton color="secondary" onClick={onRightMenuClick} aria-label="Done and deleted">
+            <TocIcon />
+          </IconButton>
+        </Tooltip>
+
+        <HeaderMenu
+          isCloudSortedByName={isCloudSortedByName}
+          onCloudSortClick={onCloudSortClick}
+          onTopMenuClick={onTopMenuClick}
+          onListsClick={onListsClick}
+          onPointsClick={onPointsClick}
+        />
+      </Card>
+    );
+  }
+
   return (
-    <Card sx={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between", p: 1 }}>
+    <Card
+      sx={{
+        display: "flex",
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        flexWrap: { xs: "wrap", md: "nowrap" },
+        gap: 0.5,
+        p: 1,
+      }}
+    >
       <Button disabled={isLoadingTodos} variant="text" color="secondary" onClick={onRefresh} sx={{ minWidth: 0 }}>
         <RefreshRoundedIcon />
       </Button>
@@ -56,7 +136,8 @@ export const Header: React.FC<Props> = ({
           borderRadius: 999,
           border: 1,
           borderColor: search ? "warning.main" : "divider",
-          width: 190,
+          width: { xs: "100%", md: 190 },
+          order: { xs: 3, md: 0 },
         }}
       >
         <SearchIcon fontSize="small" color="disabled" />
@@ -75,7 +156,7 @@ export const Header: React.FC<Props> = ({
         )}
       </Box>
 
-      <Box>
+      <Box sx={{ display: "flex", alignItems: "center", flexWrap: "wrap" }}>
         <Button variant="text" color="secondary" onClick={onTopMenuClick} sx={{ minWidth: 0 }}>
           <LinkIcon />
         </Button>
@@ -117,7 +198,13 @@ export const Header: React.FC<Props> = ({
         </Button>
       </Box>
       <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-        <Chip label={email} size="small" color="secondary" variant="outlined" />
+        <Chip
+          label={email}
+          size="small"
+          color="secondary"
+          variant="outlined"
+          sx={{ display: { xs: "none", lg: "flex" } }}
+        />
         <IconButton onClick={signOut} size="small" color="secondary">
           <LogoutIcon fontSize="small" />
         </IconButton>

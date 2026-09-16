@@ -1,14 +1,7 @@
-import { AutoRepeatButton } from "../Shared/AutoRepeatButton";
-import { DatePicker } from "../Shared/DatePicker";
-import { NotTodayButton } from "../Shared/NotTodayButton";
-import { TagPicker } from "../Shared/TagPicker";
-import { TodoDetails } from "../Shared/TodoDetails";
-import { TodoLinkButton } from "../Shared/TodoLinkButton";
-import { Button, Card } from "@mui/material";
+import { Card } from "@mui/material";
 import { TASK_ACTIONS_Z } from "../../constants/ui";
 import type { Todo, TodoTag } from "../../types/todo";
-import { getLocalDateKey } from "../../utils/date";
-import { markTodoNotToday } from "../../utils/todos";
+import { TodoActionControls } from "./TodoActionControls";
 
 type Props = {
   todo: Todo;
@@ -20,31 +13,8 @@ type Props = {
   onSetActionsFocused: (isFocused: boolean) => void;
 };
 
-export const TodoActions: React.FC<Props> = ({
-  todo,
-  tags,
-  isDayBeforeDueDate,
-  isSnoozed,
-  updateTodo,
-  onToggleSnooze,
-  onSetActionsFocused,
-}) => {
-  const updateTag = (tagId: string | null) => updateTodo({ ...todo, tagId });
-
-  const updateAutoRepeat = () => {
-    const today = getLocalDateKey();
-    const newRepeatAtEndOfDay = !todo.repeatAtEndOfDay;
-    updateTodo({
-      ...todo,
-      repeatAtEndOfDay: newRepeatAtEndOfDay,
-      lastAutoAddedDate: newRepeatAtEndOfDay ? today : null,
-    });
-  };
-
-  const updateNotToday = () => updateTodo(markTodoNotToday(todo));
-  const updateDueDate = (dueDate: number | null) => updateTodo({ ...todo, dueDate });
-  const updateLink = (link: string | null) => updateTodo({ ...todo, link });
-
+// The hover card that floats under a cloud tile. Mobile uses TodoActionSheet instead.
+export const TodoActions: React.FC<Props> = ({ onSetActionsFocused, ...controlProps }) => {
   return (
     <Card
       onFocusCapture={() => onSetActionsFocused(true)}
@@ -57,9 +27,6 @@ export const TodoActions: React.FC<Props> = ({
       }}
       sx={{
         display: "flex",
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 1,
         position: "absolute",
         top: "90%",
         left: "50%",
@@ -69,21 +36,7 @@ export const TodoActions: React.FC<Props> = ({
         opacity: 0.9,
       }}
     >
-      <TagPicker selectedTagId={todo.tagId} tags={tags} onTagSelect={updateTag} />
-      <DatePicker value={todo.dueDate} onChange={updateDueDate} onOpen={() => onSetActionsFocused(true)} />
-      <TodoLinkButton link={todo.link} onChange={updateLink} onOpen={() => onSetActionsFocused(true)} />
-      {/* <NotNowButton onClick={() => onMarkTodoNotNow(todo.id)} /> */}
-      {!isDayBeforeDueDate && <NotTodayButton onClick={updateNotToday} />}
-      <Button
-        onClick={onToggleSnooze}
-        size="small"
-        variant={isSnoozed ? "contained" : "text"}
-        sx={{ p: 0, minHeight: 22, minWidth: 0, fontWeight: 700, textTransform: "lowercase" }}
-      >
-        snooze
-      </Button>
-      <AutoRepeatButton checked={todo.repeatAtEndOfDay} onClick={updateAutoRepeat} />
-      <TodoDetails todo={todo} updateTodo={updateTodo} />
+      <TodoActionControls {...controlProps} onSetActionsFocused={onSetActionsFocused} />
     </Card>
   );
 };

@@ -28,8 +28,10 @@ export function useAppInit() {
   const [links, setLinks] = useState<CustomLink[]>([]);
   const [notes, setNotes] = useState("");
   const [notification, setNotification] = useState<string | null>(null);
-  const [showLeftMenu, setShowLeftMenu] = useState(true);
-  const [showRightMenu, setShowRightMenu] = useState(true);
+  // The side panels are overlays on a phone, so they must not start on top of the list.
+  const isWideScreen = typeof window !== "undefined" && window.matchMedia("(min-width: 900px)").matches;
+  const [showLeftMenu, setShowLeftMenu] = useState(isWideScreen);
+  const [showRightMenu, setShowRightMenu] = useState(isWideScreen);
   const [showTopMenu, setShowTopMenu] = useState(false);
   // Search is a transient filter, so unlike the sort it is not remembered.
   const [search, setSearch] = useState("");

@@ -15,6 +15,7 @@ import { LoadingComponent } from "./components/Layout/LoadingComponent.tsx";
 import { useAppInit } from "./hooks/app.ts";
 import { NotificationsToast } from "./components/Layout/NotificationAlert";
 import { listsPath, navigate, pointsPath, useRoute } from "./hooks/route.ts";
+import { useIsMobile } from "./hooks/mobile.ts";
 import { ListsPage } from "./components/Lists/ListsPage";
 import { ListPage } from "./components/Lists/ListPage";
 import { ListEditor } from "./components/Lists/ListEditor";
@@ -32,6 +33,7 @@ const PageLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => (
 
 export default function App() {
   const route = useRoute();
+  const isMobile = useIsMobile();
   const {
     session,
     isLoadingSession,
@@ -138,8 +140,11 @@ export default function App() {
       <Box
         sx={{
           paddingTop: 1,
+          // The add-task bar is fixed to the bottom, so the last task needs room to
+          // scroll clear of it instead of ending up underneath.
+          paddingBottom: { xs: 10, md: 12 },
           minHeight: "calc(100vh - 16px)",
-          width: "min(1300px, calc(100% - 32px))",
+          width: "min(1300px, calc(100% - 16px))",
           display: "flex",
           justifyContent: "center",
           gap: 2,
@@ -149,7 +154,12 @@ export default function App() {
         <Drawer open={showTopMenu} onClose={handleTopMenuClick} anchor="top">
           <LinksCard links={links} updateLinks={updateLinks} setNotification={setNotification} search={search} />
         </Drawer>
-        <Drawer open={showLeftMenu} onClose={handleLeftMenuClick} variant="persistent" anchor="left">
+        <Drawer
+          open={showLeftMenu}
+          onClose={handleLeftMenuClick}
+          variant={isMobile ? "temporary" : "persistent"}
+          anchor="left"
+        >
           <Box
             sx={{
               display: "flex",
@@ -202,10 +212,16 @@ export default function App() {
             isSortedByName={isCloudSortedByName}
             search={search}
             tags={tags}
+            deleteTodo={deleteTodo}
           />
         </Box>
 
-        <Drawer open={showRightMenu} onClose={handleRightMenuClick} anchor="right" variant="persistent">
+        <Drawer
+          open={showRightMenu}
+          onClose={handleRightMenuClick}
+          anchor="right"
+          variant={isMobile ? "temporary" : "persistent"}
+        >
           <Box
             sx={{
               display: "flex",

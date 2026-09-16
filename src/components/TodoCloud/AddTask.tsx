@@ -118,10 +118,10 @@ export const AddTask: React.FC<Props> = ({ isLoadingTodos, todos, updateTodos, s
     <Box
       sx={{
         position: "fixed",
-        bottom: 30,
+        bottom: { xs: 12, md: 30 },
         left: "50%",
         transform: "translateX(-50%)",
-        width: 400,
+        width: "min(400px, calc(100vw - 24px))",
         zIndex: ADD_TODO_Z,
       }}
     >
@@ -135,7 +135,7 @@ export const AddTask: React.FC<Props> = ({ isLoadingTodos, todos, updateTodos, s
           onChange={handleInoutChange}
           onFocus={() => setIsSuggestionsOpen(text.trim().length > 0)}
           onKeyDown={handleInputKeyDown}
-          sx={{ width: 400 }}
+          sx={{ width: "100%" }}
           autoComplete="off"
           size="small"
         />
