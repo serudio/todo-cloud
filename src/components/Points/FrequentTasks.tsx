@@ -1,4 +1,4 @@
-import { Box, Chip, Typography } from "@mui/material";
+import { Avatar, Box, Chip, Typography } from "@mui/material";
 import type { PointEntry } from "../../types/points";
 import { getFrequentTasks } from "../../utils/points";
 
@@ -22,10 +22,19 @@ export const FrequentTasks: React.FC<Props> = ({ entries, onPick }) => {
         {frequentTasks.map((task) => (
           <Chip
             key={task.task}
-            label={`${task.task} +${task.lastPoints}`}
+            label={task.task}
             size="small"
             variant="outlined"
             onClick={() => onPick(task.task, task.lastPoints)}
+            sx={{
+              // maxWidth: 120,
+              height: "auto",
+              "& .MuiChip-label": {
+                display: "block",
+                whiteSpace: "normal",
+              },
+            }}
+            avatar={<Avatar>{task.lastPoints}</Avatar>}
           />
         ))}
       </Box>

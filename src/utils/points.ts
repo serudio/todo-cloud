@@ -79,6 +79,7 @@ export function getTaskTotals(entries: PointEntry[]): TaskTotal[] {
 // The tasks worth a one-tap button: whatever gets logged most often.
 export const getFrequentTasks = (entries: PointEntry[], limit = FREQUENT_TASK_COUNT) =>
   [...getTaskTotals(entries)].sort((first, second) => second.count - first.count).slice(0, limit);
+// [...getTaskTotals(entries)].sort((a, b) => a.task.localeCompare(b.task)).slice(0, limit);
 
 export const getTaskNames = (entries: PointEntry[]) => [...new Set(entries.map((entry) => entry.task))].sort();
 
