@@ -11,7 +11,7 @@ import type {
 import { getLocalDateKey } from "./date";
 
 export const QUICK_POINTS = [1, 2, 5, 10];
-export const FREQUENT_TASK_COUNT = 5;
+export const FREQUENT_TASK_COUNT = 10;
 export const DEFAULT_TARGET_POINTS = 200;
 
 export const getGoalModeLabel = (mode: PointGoalMode) => (mode === "checklist" ? "checklist" : "points log");
