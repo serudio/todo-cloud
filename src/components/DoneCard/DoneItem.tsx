@@ -53,6 +53,7 @@ export const DoneItem: React.FC<Props> = ({ item, tags, updateTodo, onDeleteTodo
             ".MuiChip-label": { padding: "0 4px" },
           }}
           variant="filled"
+          size="small"
         />
       </Tooltip>
       <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>

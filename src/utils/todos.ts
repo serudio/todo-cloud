@@ -7,6 +7,7 @@ export const SNOOZE_DURATION_MS = 60 * 60 * 1000;
 export const markTodoNow = (todo: Todo) => ({
   ...todo,
   notNow: false,
+  notNowDate: null,
   notToday: false,
   notTodayDate: null,
   snoozedUntil: null,
@@ -23,7 +24,13 @@ export const markTodoAwake = (todo: Todo) => ({ ...todo, snoozedUntil: null });
 
 export const isTodoSnoozed = (todo: Todo, now = Date.now()) =>
   typeof todo.snoozedUntil === "number" && todo.snoozedUntil > now;
-export const markTodoNotNow = (todo: Todo) => ({ ...todo, notNow: true, notToday: false, notTodayDate: null });
+export const markTodoNotNow = (todo: Todo) => ({
+  ...todo,
+  notNow: true,
+  notNowDate: getLocalDateKey(),
+  notToday: false,
+  notTodayDate: null,
+});
 export const markTodoNotToday = (todo: Todo) => ({ ...todo, notToday: true, notTodayDate: getLocalDateKey() });
 export const markTodoDone = (todo: Todo) => {
   const now = new Date().toISOString();
@@ -46,6 +53,7 @@ export const restoreTodoFromDone = (todo: Todo): Todo => {
     done: false,
     doneAt: null,
     notNow: false,
+    notNowDate: null,
     snoozedUntil: null,
     notToday: false,
     notTodayDate: null,
@@ -67,6 +75,7 @@ export const getNewTodo = (todoText: string): Todo => {
     link: null,
     dueDate: null,
     notNow: false,
+    notNowDate: null,
     snoozedUntil: null,
     notToday: false,
     notTodayDate: null,
@@ -172,6 +181,7 @@ export function parseTodos(items: unknown): Todo[] {
           link: typeof todo.link === "string" && todo.link.trim() ? todo.link : null,
           dueDate: parseDueDate(todo.dueDate),
           notNow: todo.notNow === true,
+          notNowDate: typeof todo.notNowDate === "string" ? todo.notNowDate : null,
           snoozedUntil:
             typeof todo.snoozedUntil === "number" && Number.isFinite(todo.snoozedUntil) ? todo.snoozedUntil : null,
           notToday: todo.notToday === true,
@@ -408,9 +418,48 @@ function getTodosWithDueNotNowCleared(currentTodos: Todo[]) {
   return hasChanges ? newTodos : null;
 }
 
+// "Not now" lasts until the end of the month it was set in. The reprieve ends on
+// that month's last day, and if the app is not opened again until later the task
+// still comes back, counts reset, rather than being stranded until the next month.
+export function getTodosWithMonthlyNotNowReleased(currentTodos: Todo[], date = new Date()) {
+  const day = dayjs(date);
+  const today = getLocalDateKey(date);
+  const isLastDayOfMonth = day.isSame(day.endOf("month"), "day");
+  let hasChanges = false;
+
+  const newTodos = currentTodos.map((todo) => {
+    if (todo.done || !todo.notNow) return todo;
+
+    // Rows set aside before this rule existed have no day to count from, so they
+    // start their month now instead of all being released at once.
+    if (!todo.notNowDate) {
+      hasChanges = true;
+
+      return { ...todo, notNowDate: today };
+    }
+
+    const setAsideDay = dayjs(todo.notNowDate);
+    const isPastItsMonth = day.isAfter(setAsideDay.endOf("month"), "day");
+    const isItsLastDay = isLastDayOfMonth && setAsideDay.isBefore(day, "day");
+
+    if (!isPastItsMonth && !isItsLastDay) return todo;
+
+    hasChanges = true;
+
+    return { ...markTodoNow(todo), count: 1 };
+  });
+
+  return hasChanges ? newTodos : null;
+}
+
 // Combines all midnight-driven todo changes into one update pass.
 export function getTodosWithDailyUpdates(currentTodos: Todo[]) {
-  const dailyUpdates = [getTodosWithExpiredNotTodayCleared, getTodosWithDueNotNowCleared, getTodosWithEndOfDayRepeats];
+  const dailyUpdates = [
+    getTodosWithExpiredNotTodayCleared,
+    getTodosWithMonthlyNotNowReleased,
+    getTodosWithDueNotNowCleared,
+    getTodosWithEndOfDayRepeats,
+  ];
   const newTodos = dailyUpdates.reduce((todos, applyUpdate) => applyUpdate(todos) ?? todos, currentTodos);
 
   return newTodos === currentTodos ? null : newTodos;

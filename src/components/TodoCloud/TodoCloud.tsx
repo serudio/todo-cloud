@@ -180,6 +180,7 @@ export const TodoCloud: React.FC<Props> = ({
           gap: "18px 14px",
           flex: 1,
           padding: 1,
+          paddingTop: 4,
         }}
         onDragOver={handleCloudDragOver}
         onDrop={handleCloudDrop}

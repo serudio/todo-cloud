@@ -11,6 +11,9 @@ export type Todo = {
   link: string | null;
   dueDate: number | null;
   notNow: boolean;
+  // The day it was set aside, so the monthly release can leave alone anything put
+  // aside on the release day itself.
+  notNowDate: string | null;
   // When set and still in the future the task is hidden from the list for a while.
   snoozedUntil: number | null;
   notToday: boolean;

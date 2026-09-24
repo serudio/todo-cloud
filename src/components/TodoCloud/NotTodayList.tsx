@@ -20,17 +20,23 @@ export const NotTodayList: React.FC<Props> = ({ todos, updateTodo }) => {
         display: "flex",
         alignItems: "center",
         justifyContent: "flex-start",
-        gap: "4px 8px",
+        gap: 0.5,
         position: "absolute",
         top: 8,
         left: 8,
-        width: "100%",
         flexWrap: "wrap",
         zIndex: NOT_TODAY_Z,
       }}
     >
       {todos.map((todo) => (
-        <Chip key={todo.id} onClick={handleClick(todo.id)} size="small" variant="outlined" label={todo.text} />
+        <Chip
+          key={todo.id}
+          onClick={handleClick(todo.id)}
+          size="small"
+          variant="outlined"
+          label={todo.text}
+          sx={{ height: 10, fontSize: 10, lineHeight: 1.2 }}
+        />
       ))}
     </Box>
   );

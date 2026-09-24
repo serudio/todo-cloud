@@ -49,7 +49,7 @@ export const NotNowList: React.FC<Props> = ({ todos, updateTodo, tags, search })
     <SectionCard
       title="Not Now"
       expanded={isSearching(search)}
-      info="Tasks set aside here stay hidden from the cloud. A task with a due date comes back to the main list the day before it is due."
+      info="Tasks set aside here stay hidden until the end of the month, then come back with their count reset. One with a due date comes back the day before it is due."
       onDragOver={handleDragOver}
       onDrop={handleDrop}
     >
