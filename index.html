@@ -9,6 +9,16 @@
       content="Todo Cloud is a simple, fast and free online todo list for organizing your tasks and staying productive."
     />
     <meta name="robots" content="index, follow" />
+    <!--
+      Self-referencing canonical. GitHub Pages serves this app at
+      /todo-cloud/ and 301-redirects /todo-cloud to it, so search
+      engines know both forms; this tag names the real one instead of
+      leaving them to guess. It also consolidates the hash routes
+      (#/lists, #/points), which search engines strip back to this
+      same URL. Keep the trailing slash, and update the domain here
+      if the site ever moves.
+    -->
+    <link rel="canonical" href="https://serudio.github.io/todo-cloud/" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   </head>
   <body>
