@@ -32,7 +32,6 @@ export function useAppInit() {
   const isWideScreen = typeof window !== "undefined" && window.matchMedia("(min-width: 900px)").matches;
   const [showLeftMenu, setShowLeftMenu] = useState(isWideScreen);
   const [showRightMenu, setShowRightMenu] = useState(isWideScreen);
-  const [showTopMenu, setShowTopMenu] = useState(false);
   // Search is a transient filter, so unlike the sort it is not remembered.
   const [search, setSearch] = useState("");
   // A view preference, so it lives in localStorage rather than the saved todo list.
@@ -133,7 +132,6 @@ export function useAppInit() {
 
   const handleLeftMenuClick = () => setShowLeftMenu((prev) => !prev);
   const handleRightMenuClick = () => setShowRightMenu((prev) => !prev);
-  const handleTopMenuClick = () => setShowTopMenu((prev) => !prev);
 
   const handleCloudSortClick = () =>
     setIsCloudSortedByName((prev) => {
@@ -387,8 +385,6 @@ export function useAppInit() {
     handleLeftMenuClick,
     showRightMenu,
     handleRightMenuClick,
-    showTopMenu,
-    handleTopMenuClick,
     isCloudSortedByName,
     handleCloudSortClick,
     search,

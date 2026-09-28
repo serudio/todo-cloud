@@ -46,8 +46,6 @@ export default function App() {
     handleLeftMenuClick,
     showRightMenu,
     handleRightMenuClick,
-    showTopMenu,
-    handleTopMenuClick,
     isCloudSortedByName,
     handleCloudSortClick,
     search,
@@ -151,9 +149,6 @@ export default function App() {
           margin: "0 auto",
         }}
       >
-        <Drawer open={showTopMenu} onClose={handleTopMenuClick} anchor="top">
-          <LinksCard links={links} updateLinks={updateLinks} setNotification={setNotification} search={search} />
-        </Drawer>
         <Drawer
           open={showLeftMenu}
           onClose={handleLeftMenuClick}
@@ -196,8 +191,10 @@ export default function App() {
             onRefresh={refreshTodoList}
             onLeftMenuClick={handleLeftMenuClick}
             onRightMenuClick={handleRightMenuClick}
-            onTopMenuClick={handleTopMenuClick}
             onListsClick={() => navigate(listsPath)}
+            links={links}
+            updateLinks={updateLinks}
+            setNotification={setNotification}
             isCloudSortedByName={isCloudSortedByName}
             onCloudSortClick={handleCloudSortClick}
             search={search}

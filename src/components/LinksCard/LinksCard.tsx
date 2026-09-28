@@ -13,9 +13,10 @@ type LinksPanelProps = {
   updateLinks: (links: CustomLink[]) => void;
   setNotification: (message: string) => void;
   search: string;
+  sx?: React.CSSProperties;
 };
 
-export function LinksCard({ links, updateLinks, setNotification, search }: LinksPanelProps) {
+export function LinksCard({ links, updateLinks, setNotification, search, sx }: LinksPanelProps) {
   const [showForm, setShowForm] = useState(false);
   const [linkIdPendingDelete, setLinkIdPendingDelete] = useState<string | null>(null);
 
@@ -58,7 +59,7 @@ export function LinksCard({ links, updateLinks, setNotification, search }: Links
       title="Links"
       expanded={isSearching(search)}
       onActionButtonClick={() => setShowForm((isOpen) => !isOpen)}
-      sx={{ width: 300, marginLeft: "35%" }}
+      sx={{ ...sx }}
     >
       {/* //todo */}
       {showForm && <LinkCreateForm onSubmit={handleLinkSubmit} />}

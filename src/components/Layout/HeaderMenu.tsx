@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Box, Divider, IconButton, ListItemIcon, ListItemText, Menu, MenuItem } from "@mui/material";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import LinkIcon from "@mui/icons-material/Link";
@@ -9,23 +9,22 @@ import LogoutIcon from "@mui/icons-material/Logout";
 import { ThemeSelector } from "./ThemeSelector";
 import { signOut } from "../../utils/auth";
 import { getAbsoluteUrl, pointsPath } from "../../hooks/route";
+import { LinksPopover, type LinksPopoverProps } from "../LinksCard/LinksPopover";
 
-type Props = {
+type Props = LinksPopoverProps & {
   isCloudSortedByName: boolean;
   onCloudSortClick: () => void;
-  onTopMenuClick: () => void;
   onListsClick: () => void;
 };
 
 // On a phone the header cannot hold eight controls and a search box, so everything
 // that is not search or refresh moves in here.
-export const HeaderMenu: React.FC<Props> = ({
-  isCloudSortedByName,
-  onCloudSortClick,
-  onTopMenuClick,
-  onListsClick,
-}) => {
+export const HeaderMenu: React.FC<Props> = ({ isCloudSortedByName, onCloudSortClick, onListsClick, ...linksProps }) => {
   const [anchorElement, setAnchorElement] = useState<HTMLElement | null>(null);
+  const [isLinksOpen, setIsLinksOpen] = useState(false);
+  // The menu closes before the popover opens, so the popover hangs off this button
+  // rather than off a menu item that is no longer in the document.
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   const closeAfter = (action: () => void) => () => {
     action();
@@ -33,18 +32,18 @@ export const HeaderMenu: React.FC<Props> = ({
   };
 
   const items = [
+    { label: "Quick links", icon: <LinkIcon />, onClick: () => setIsLinksOpen(true) },
     {
       label: isCloudSortedByName ? "Original order" : "Sort A–Z",
       icon: <SortByAlphaIcon />,
       onClick: onCloudSortClick,
     },
-    { label: "Quick links", icon: <LinkIcon />, onClick: onTopMenuClick },
     { label: "Pros and cons lists", icon: <BalanceIcon />, onClick: onListsClick },
   ];
 
   return (
     <>
-      <IconButton color="secondary" aria-label="More" onClick={(event) => setAnchorElement(event.currentTarget)}>
+      <IconButton ref={buttonRef} color="secondary" onClick={(event) => setAnchorElement(event.currentTarget)}>
         <MoreVertIcon />
       </IconButton>
 
@@ -84,6 +83,12 @@ export const HeaderMenu: React.FC<Props> = ({
           <ListItemText>Sign out</ListItemText>
         </MenuItem>
       </Menu>
+
+      <LinksPopover
+        {...linksProps}
+        anchorElement={isLinksOpen ? buttonRef.current : null}
+        onClose={() => setIsLinksOpen(false)}
+      />
     </>
   );
 };

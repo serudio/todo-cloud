@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Box, Button, Card, Chip, IconButton, InputBase, Tooltip } from "@mui/material";
 import RefreshRoundedIcon from "@mui/icons-material/RefreshRounded";
 import LogoutIcon from "@mui/icons-material/Logout";
@@ -6,7 +7,8 @@ import { signOut } from "../../utils/auth";
 import { HeaderMenu } from "./HeaderMenu";
 import { getAbsoluteUrl, pointsPath } from "../../hooks/route";
 import { useIsMobile } from "../../hooks/mobile";
-import ListIcon from "@mui/icons-material/List";
+import { LinksPopover, type LinksPopoverProps } from "../LinksCard/LinksPopover";
+import MenuOpenIcon from "@mui/icons-material/MenuOpen";
 import TocIcon from "@mui/icons-material/Toc";
 import LinkIcon from "@mui/icons-material/Link";
 import BalanceIcon from "@mui/icons-material/Balance";
@@ -15,12 +17,11 @@ import SortByAlphaIcon from "@mui/icons-material/SortByAlpha";
 import SearchIcon from "@mui/icons-material/Search";
 import CloseIcon from "@mui/icons-material/Close";
 
-type Props = {
+type Props = LinksPopoverProps & {
   isLoadingTodos: boolean;
   onRefresh: () => void;
   onLeftMenuClick: () => void;
   onRightMenuClick: () => void;
-  onTopMenuClick: () => void;
   onListsClick: () => void;
   isCloudSortedByName: boolean;
   onCloudSortClick: () => void;
@@ -34,15 +35,16 @@ export const Header: React.FC<Props> = ({
   onRefresh,
   onLeftMenuClick,
   onRightMenuClick,
-  onTopMenuClick,
   onListsClick,
   isCloudSortedByName,
   onCloudSortClick,
   search,
   onSearchChange,
   email = "",
+  ...linksProps
 }) => {
   const isMobile = useIsMobile();
+  const [linksAnchor, setLinksAnchor] = useState<HTMLElement | null>(null);
 
   if (isMobile) {
     return (
@@ -89,7 +91,7 @@ export const Header: React.FC<Props> = ({
 
         <Tooltip title="Tags, links, not now">
           <IconButton color="secondary" onClick={onLeftMenuClick} aria-label="Tags, links and not now">
-            <ListIcon />
+            <MenuOpenIcon />
           </IconButton>
         </Tooltip>
 
@@ -102,8 +104,11 @@ export const Header: React.FC<Props> = ({
         <HeaderMenu
           isCloudSortedByName={isCloudSortedByName}
           onCloudSortClick={onCloudSortClick}
-          onTopMenuClick={onTopMenuClick}
           onListsClick={onListsClick}
+          links={linksProps.links}
+          updateLinks={linksProps.updateLinks}
+          setNotification={linksProps.setNotification}
+          search={search}
         />
       </Card>
     );
@@ -155,20 +160,22 @@ export const Header: React.FC<Props> = ({
       </Box>
 
       <Box sx={{ display: "flex", alignItems: "center", flexWrap: "wrap" }}>
-        <Button variant="text" color="secondary" onClick={onTopMenuClick} sx={{ minWidth: 0 }}>
-          <LinkIcon />
-        </Button>
-        <Button variant="text" color="secondary" onClick={onLeftMenuClick} sx={{ minWidth: 0 }}>
-          <ListIcon />
-        </Button>
+        <Tooltip title="Quick links">
+          <Button onClick={(event) => setLinksAnchor(event.currentTarget)} color="secondary">
+            <LinkIcon />
+          </Button>
+        </Tooltip>
+        <LinksPopover
+          {...linksProps}
+          search={search}
+          anchorElement={linksAnchor}
+          onClose={() => setLinksAnchor(null)}
+        />
         <Tooltip title={isCloudSortedByName ? "Back to the order tasks were added" : "Sort tasks A–Z"}>
           <Button
-            variant="text"
             color={isCloudSortedByName ? "warning" : "secondary"}
             onClick={onCloudSortClick}
-            sx={{ minWidth: 0 }}
             aria-pressed={isCloudSortedByName}
-            aria-label="Sort tasks A to Z"
           >
             <SortByAlphaIcon />
           </Button>
@@ -192,10 +199,18 @@ export const Header: React.FC<Props> = ({
             <EmojiEventsIcon />
           </Button>
         </Tooltip>
+
+        {/* Left Menu */}
+        <Button onClick={onLeftMenuClick} sx={{ transform: "scaleX(-1)" }} color="info">
+          <MenuOpenIcon />
+        </Button>
+
+        {/* ThemeSelector */}
         <ThemeSelector />
 
-        <Button variant="text" color="secondary" onClick={onRightMenuClick} sx={{ minWidth: 0 }}>
-          <TocIcon />
+        {/* Right Menu */}
+        <Button onClick={onRightMenuClick} color="info">
+          <MenuOpenIcon />
         </Button>
       </Box>
       <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
