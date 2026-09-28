@@ -52,6 +52,7 @@ export const NotNowList: React.FC<Props> = ({ todos, updateTodo, tags, search })
       info="Tasks set aside here stay hidden until the end of the month, then come back with their count reset. One with a due date comes back the day before it is due."
       onDragOver={handleDragOver}
       onDrop={handleDrop}
+      collapsed
     >
       <Box sx={{ maxHeight: 200, overflow: "auto" }}>
         {!notNowTodos.length && !isSearching(search) && <p>Drag cloud tasks here to hide them for now.</p>}
