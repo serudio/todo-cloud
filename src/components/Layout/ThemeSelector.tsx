@@ -23,7 +23,7 @@ export const ThemeSelector: React.FC = () => {
       <ToggleButton value="system">
         <SettingsBrightnessIcon fontSize="small" />
       </ToggleButton>
-      <ToggleButton value="dark">
+      <ToggleButton value="dark" disabled={mode !== "dark"}>
         <DarkModeIcon fontSize="small" />
       </ToggleButton>
     </ToggleButtonGroup>
