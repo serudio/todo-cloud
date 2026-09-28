@@ -1,6 +1,6 @@
 import { ToggleButton, ToggleButtonGroup } from "@mui/material";
 import { type ThemeMode, useThemeMode } from "../../theme";
-import SystemSecurityUpdateGoodIcon from "@mui/icons-material/SystemSecurityUpdateGood";
+import SettingsBrightnessIcon from "@mui/icons-material/SettingsBrightness";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
 import LightModeIcon from "@mui/icons-material/LightMode";
 
@@ -22,7 +22,7 @@ export const ThemeSelector: React.FC = () => {
         <LightModeIcon />
       </ToggleButton>
       <ToggleButton value="system">
-        <SystemSecurityUpdateGoodIcon />
+        <SettingsBrightnessIcon />
       </ToggleButton>
       <ToggleButton value="dark">
         <DarkModeIcon />
