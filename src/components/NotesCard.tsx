@@ -30,7 +30,7 @@ export function NotesCard({ notes, setNotes }: NotesPanelProps) {
         fullWidth
         multiline
         minRows={2}
-        maxRows={10}
+        maxRows={15}
         size="small"
         value={value}
         onChange={handleChange}
