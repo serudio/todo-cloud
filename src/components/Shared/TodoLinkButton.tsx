@@ -58,7 +58,7 @@ export const TodoLinkButton: React.FC<Props> = ({ link, onChange, onOpen }) => {
               straight to it and editing moves to the hover action. */}
           <IconButton
             aria-label={link ? `Open ${link}` : "Add a link"}
-            color={link ? "warning" : "default"}
+            color={link ? "info" : "default"}
             size="small"
             {...(link
               ? { component: "a" as const, href: link, target: "_blank", rel: "noreferrer" }
