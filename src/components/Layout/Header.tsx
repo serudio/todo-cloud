@@ -9,7 +9,6 @@ import { getAbsoluteUrl, pointsPath } from "../../hooks/route";
 import { useIsMobile } from "../../hooks/mobile";
 import { LinksPopover, type LinksPopoverProps } from "../LinksCard/LinksPopover";
 import MenuOpenIcon from "@mui/icons-material/MenuOpen";
-import TocIcon from "@mui/icons-material/Toc";
 import LinkIcon from "@mui/icons-material/Link";
 import BalanceIcon from "@mui/icons-material/Balance";
 import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
@@ -173,12 +172,8 @@ export const Header: React.FC<Props> = ({
         />
 
         <Tooltip title={isCloudSortedByName ? "Back to the order tasks were added" : "Sort tasks A–Z"}>
-          <Button
-            color={isCloudSortedByName ? "warning" : "secondary"}
-            onClick={onCloudSortClick}
-            aria-pressed={isCloudSortedByName}
-          >
-            <SortByAlphaIcon />
+          <Button onClick={onCloudSortClick} aria-pressed={isCloudSortedByName}>
+            <SortByAlphaIcon color={isCloudSortedByName ? "warning" : "action"} />
           </Button>
         </Tooltip>
 
