@@ -91,13 +91,13 @@ export const Header: React.FC<Props> = ({
 
         <Tooltip title="Tags, links, not now">
           <IconButton color="secondary" onClick={onLeftMenuClick} aria-label="Tags, links and not now">
-            <MenuOpenIcon />
+            <MenuOpenIcon color="info" />
           </IconButton>
         </Tooltip>
 
         <Tooltip title="Done and deleted">
           <IconButton color="secondary" onClick={onRightMenuClick} aria-label="Done and deleted">
-            <TocIcon />
+            <MenuOpenIcon sx={{ transform: "scaleX(-1)" }} color="info" />
           </IconButton>
         </Tooltip>
 
@@ -203,16 +203,16 @@ export const Header: React.FC<Props> = ({
         </Tooltip>
 
         {/* Left Menu */}
-        <Button onClick={onLeftMenuClick} sx={{ transform: "scaleX(-1)" }} color="info">
-          <MenuOpenIcon />
+        <Button onClick={onLeftMenuClick}>
+          <MenuOpenIcon sx={{ transform: "scaleX(-1)" }} color="info" />
         </Button>
 
         {/* ThemeSelector */}
         <ThemeSelector />
 
         {/* Right Menu */}
-        <Button onClick={onRightMenuClick} color="info">
-          <MenuOpenIcon />
+        <Button onClick={onRightMenuClick}>
+          <MenuOpenIcon color="info" />
         </Button>
       </Box>
       <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>

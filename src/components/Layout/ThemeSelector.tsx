@@ -18,13 +18,13 @@ export const ThemeSelector: React.FC = () => {
       }}
     >
       <ToggleButton value="light">
-        <LightModeIcon fontSize="small" />
+        <LightModeIcon fontSize="small" color={mode !== "light" ? "disabled" : "action"} />
       </ToggleButton>
       <ToggleButton value="system">
-        <SettingsBrightnessIcon fontSize="small" />
+        <SettingsBrightnessIcon fontSize="small" color={mode !== "system" ? "disabled" : "action"} />
       </ToggleButton>
       <ToggleButton value="dark">
-        <DarkModeIcon fontSize="small" color="disabled" />
+        <DarkModeIcon fontSize="small" color={mode !== "dark" ? "disabled" : "action"} />
       </ToggleButton>
     </ToggleButtonGroup>
   );
