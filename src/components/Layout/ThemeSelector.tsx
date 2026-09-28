@@ -11,7 +11,6 @@ export const ThemeSelector: React.FC = () => {
     <ToggleButtonGroup
       exclusive
       size="small"
-      color="secondary"
       value={mode}
       onChange={(_e, value) => {
         if (!value) return;
@@ -19,13 +18,13 @@ export const ThemeSelector: React.FC = () => {
       }}
     >
       <ToggleButton value="light">
-        <LightModeIcon />
+        <LightModeIcon fontSize="small" />
       </ToggleButton>
       <ToggleButton value="system">
-        <SettingsBrightnessIcon />
+        <SettingsBrightnessIcon fontSize="small" />
       </ToggleButton>
       <ToggleButton value="dark">
-        <DarkModeIcon />
+        <DarkModeIcon fontSize="small" />
       </ToggleButton>
     </ToggleButtonGroup>
   );
