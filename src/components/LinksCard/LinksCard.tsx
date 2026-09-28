@@ -14,9 +14,10 @@ type LinksPanelProps = {
   setNotification: (message: string) => void;
   search: string;
   sx?: React.CSSProperties;
+  hideHeader?: boolean;
 };
 
-export function LinksCard({ links, updateLinks, setNotification, search, sx }: LinksPanelProps) {
+export function LinksCard({ links, updateLinks, setNotification, search, sx, hideHeader }: LinksPanelProps) {
   const [showForm, setShowForm] = useState(false);
   const [linkIdPendingDelete, setLinkIdPendingDelete] = useState<string | null>(null);
 
@@ -60,6 +61,8 @@ export function LinksCard({ links, updateLinks, setNotification, search, sx }: L
       expanded={isSearching(search)}
       onActionButtonClick={() => setShowForm((isOpen) => !isOpen)}
       sx={{ ...sx }}
+      color="info"
+      hideHeader={hideHeader}
     >
       {/* //todo */}
       {showForm && <LinkCreateForm onSubmit={handleLinkSubmit} />}

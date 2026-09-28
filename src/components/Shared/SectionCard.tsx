@@ -11,6 +11,8 @@ type Props = React.ComponentProps<typeof Card> & {
   // Overrides the collapsed state without forgetting it, so a search can reveal
   // matches inside a collapsed section and leave it collapsed again afterwards.
   expanded?: boolean;
+  color?: string;
+  hideHeader?: boolean;
 };
 
 export const SectionCard: React.FC<Props> = ({
@@ -21,6 +23,8 @@ export const SectionCard: React.FC<Props> = ({
   collapsed,
   expanded,
   sx,
+  color,
+  hideHeader,
   ...cardProps
 }) => {
   const [isCollapsed, setIsCollapsed] = useState(collapsed);
@@ -28,7 +32,15 @@ export const SectionCard: React.FC<Props> = ({
 
   return (
     <Card {...cardProps} sx={{ p: 1, overflow: "visible", ...sx }}>
-      <SectionHeader title={title} info={info} onClick={handleClick} onActionButtonClick={onActionButtonClick} />
+      {!hideHeader && (
+        <SectionHeader
+          title={title}
+          info={info}
+          onClick={handleClick}
+          onActionButtonClick={onActionButtonClick}
+          color={color}
+        />
+      )}
       {(expanded || !isCollapsed) && children}
     </Card>
   );

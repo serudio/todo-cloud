@@ -7,14 +7,15 @@ type Props = {
   info?: string;
   onClick?: () => void;
   onActionButtonClick?: () => void;
+  color?: string;
 };
-export const SectionHeader: React.FC<Props> = ({ title, info, onClick, onActionButtonClick }) => {
+export const SectionHeader: React.FC<Props> = ({ title, info, onClick, onActionButtonClick, color }) => {
   return (
     <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
       <Typography
         variant="subtitle2"
         onClick={onClick}
-        color="warning"
+        color={color || "warning"}
         sx={{ textTransform: "uppercase", letterSpacing: 2, cursor: "pointer" }}
       >
         {title}

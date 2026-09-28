@@ -56,7 +56,8 @@ export const LinkItem: React.FC<Props> = ({ link, updateLink, onDelete }) => {
             href={link.url}
             target="_blank"
             rel="noreferrer"
-            sx={{ color: "rgb(208, 173, 240)", fontWeight: 500, letterSpacing: 2, fontSize: "0.85rem" }}
+            color="info"
+            sx={{ fontWeight: 500, letterSpacing: 2, fontSize: "0.85rem" }}
           >
             {link.name}
           </Link>

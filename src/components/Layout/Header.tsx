@@ -161,7 +161,7 @@ export const Header: React.FC<Props> = ({
 
       <Box sx={{ display: "flex", alignItems: "center", flexWrap: "wrap" }}>
         <Tooltip title="Quick links">
-          <Button onClick={(event) => setLinksAnchor(event.currentTarget)} color="secondary">
+          <Button onClick={(event) => setLinksAnchor(event.currentTarget)} color="info">
             <LinkIcon />
           </Button>
         </Tooltip>
@@ -171,6 +171,7 @@ export const Header: React.FC<Props> = ({
           anchorElement={linksAnchor}
           onClose={() => setLinksAnchor(null)}
         />
+
         <Tooltip title={isCloudSortedByName ? "Back to the order tasks were added" : "Sort tasks A–Z"}>
           <Button
             color={isCloudSortedByName ? "warning" : "secondary"}
@@ -180,6 +181,7 @@ export const Header: React.FC<Props> = ({
             <SortByAlphaIcon />
           </Button>
         </Tooltip>
+
         <Tooltip title="Pros and cons lists">
           <Button variant="text" color="secondary" onClick={onListsClick} sx={{ minWidth: 0 }} aria-label="Open lists">
             <BalanceIcon />

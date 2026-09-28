@@ -21,11 +21,11 @@ export const LinksPopover: React.FC<Props> = ({ anchorElement, onClose, ...links
     open={Boolean(anchorElement)}
     anchorEl={anchorElement}
     onClose={onClose}
-    anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-    transformOrigin={{ vertical: "top", horizontal: "center" }}
+    anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+    transformOrigin={{ vertical: "top", horizontal: "left" }}
     slotProps={{ paper: { sx: { width: "min(320px, calc(100vw - 24px))" } } }}
     elevation={16}
   >
-    <LinksCard {...linksProps} />
+    <LinksCard hideHeader {...linksProps} />
   </Popover>
 );
