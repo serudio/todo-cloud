@@ -20,7 +20,7 @@ import {
   readBackedUpTodoList,
 } from "../utils/todoListBackup";
 import { getNextMidnightDelay } from "../utils/date";
-import { CLOUD_SORT_STORAGE_KEY } from "../constants/ui";
+import { CLOUD_SORT_STORAGE_KEY, FULL_WIDTH_STORAGE_KEY } from "../constants/ui";
 
 export function useAppInit() {
   const [todos, setTodos] = useState<Todo[]>([]);
@@ -38,6 +38,9 @@ export function useAppInit() {
   const [isCloudSortedByName, setIsCloudSortedByName] = useState(
     () => window.localStorage.getItem(CLOUD_SORT_STORAGE_KEY) === "name",
   );
+  // Also a view preference: the side panels stay as they were underneath, they are
+  // just not shown while the cloud has the whole window.
+  const [isFullWidth, setIsFullWidth] = useState(() => window.localStorage.getItem(FULL_WIDTH_STORAGE_KEY) === "on");
 
   const [session, setSession] = useState<Session | null>(null);
   const [isLoadingSession, setIsLoadingSession] = useState(true);
@@ -132,6 +135,13 @@ export function useAppInit() {
 
   const handleLeftMenuClick = () => setShowLeftMenu((prev) => !prev);
   const handleRightMenuClick = () => setShowRightMenu((prev) => !prev);
+
+  const handleFullWidthClick = () =>
+    setIsFullWidth((prev) => {
+      window.localStorage.setItem(FULL_WIDTH_STORAGE_KEY, prev ? "off" : "on");
+
+      return !prev;
+    });
 
   const handleCloudSortClick = () =>
     setIsCloudSortedByName((prev) => {
@@ -387,6 +397,8 @@ export function useAppInit() {
     handleRightMenuClick,
     isCloudSortedByName,
     handleCloudSortClick,
+    isFullWidth,
+    handleFullWidthClick,
     search,
     setSearch,
 

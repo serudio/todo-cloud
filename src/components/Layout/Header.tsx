@@ -13,6 +13,8 @@ import LinkIcon from "@mui/icons-material/Link";
 import BalanceIcon from "@mui/icons-material/Balance";
 import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 import SortByAlphaIcon from "@mui/icons-material/SortByAlpha";
+import OpenInFullIcon from "@mui/icons-material/OpenInFull";
+import CloseFullscreenIcon from "@mui/icons-material/CloseFullscreen";
 import SearchIcon from "@mui/icons-material/Search";
 import CloseIcon from "@mui/icons-material/Close";
 
@@ -24,6 +26,8 @@ type Props = LinksPopoverProps & {
   onListsClick: () => void;
   isCloudSortedByName: boolean;
   onCloudSortClick: () => void;
+  isFullWidth: boolean;
+  onFullWidthClick: () => void;
   search: string;
   onSearchChange: (search: string) => void;
   email?: string;
@@ -37,6 +41,8 @@ export const Header: React.FC<Props> = ({
   onListsClick,
   isCloudSortedByName,
   onCloudSortClick,
+  isFullWidth,
+  onFullWidthClick,
   search,
   onSearchChange,
   email = "",
@@ -171,6 +177,18 @@ export const Header: React.FC<Props> = ({
           onClose={() => setLinksAnchor(null)}
         />
 
+        <Tooltip title={isFullWidth ? "Show the side panels again" : "Hide the side panels and use the full width"}>
+          <Button
+            variant="text"
+            color={isFullWidth ? "warning" : "secondary"}
+            onClick={onFullWidthClick}
+            sx={{ minWidth: 0 }}
+            aria-pressed={isFullWidth}
+            aria-label="Full width"
+          >
+            {isFullWidth ? <CloseFullscreenIcon /> : <OpenInFullIcon />}
+          </Button>
+        </Tooltip>
         <Tooltip title={isCloudSortedByName ? "Back to the order tasks were added" : "Sort tasks A–Z"}>
           <Button onClick={onCloudSortClick} aria-pressed={isCloudSortedByName}>
             <SortByAlphaIcon color={isCloudSortedByName ? "warning" : "action"} />

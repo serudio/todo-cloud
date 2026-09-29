@@ -48,6 +48,8 @@ export default function App() {
     handleRightMenuClick,
     isCloudSortedByName,
     handleCloudSortClick,
+    isFullWidth,
+    handleFullWidthClick,
     search,
     setSearch,
 
@@ -142,7 +144,7 @@ export default function App() {
           // scroll clear of it instead of ending up underneath.
           paddingBottom: { xs: 10, md: 12 },
           minHeight: "calc(100vh - 16px)",
-          width: "min(1300px, calc(100% - 16px))",
+          width: isFullWidth ? "calc(100% - 16px)" : "min(1300px, calc(100% - 16px))",
           display: "flex",
           justifyContent: "center",
           gap: 2,
@@ -150,7 +152,7 @@ export default function App() {
         }}
       >
         <Drawer
-          open={showLeftMenu}
+          open={showLeftMenu && !isFullWidth}
           onClose={handleLeftMenuClick}
           variant={isMobile ? "temporary" : "persistent"}
           anchor="left"
@@ -183,7 +185,7 @@ export default function App() {
             flexDirection: "column",
             gap: 2,
             flex: 1,
-            maxWidth: 1000,
+            maxWidth: isFullWidth ? "none" : 1000,
           }}
         >
           <Header
@@ -197,6 +199,8 @@ export default function App() {
             setNotification={setNotification}
             isCloudSortedByName={isCloudSortedByName}
             onCloudSortClick={handleCloudSortClick}
+            isFullWidth={isFullWidth}
+            onFullWidthClick={handleFullWidthClick}
             search={search}
             onSearchChange={setSearch}
             email={session.user.email}
@@ -213,7 +217,7 @@ export default function App() {
         </Box>
 
         <Drawer
-          open={showRightMenu}
+          open={showRightMenu && !isFullWidth}
           onClose={handleRightMenuClick}
           anchor="right"
           variant={isMobile ? "temporary" : "persistent"}
