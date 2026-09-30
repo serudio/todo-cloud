@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { CustomLink, Todo, TodoListItems, TodoTag } from "../types/todo";
-import { getTodosWithDailyUpdates, parseTodoListColumns } from "../utils/todos";
+import { getReleasedFromNotNow, getTodosWithDailyUpdates, parseTodoListColumns } from "../utils/todos";
 import type { Session } from "@supabase/supabase-js";
 import {
   clearDeletedTodos,
@@ -99,12 +99,22 @@ export function useAppInit() {
 
     // Applies daily changes and persists them only when something changed.
     function applyDailyTodoUpdates() {
-      const newTodos = getTodosWithDailyUpdates(todosRef.current);
+      const previousTodos = todosRef.current;
+      const newTodos = getTodosWithDailyUpdates(previousTodos);
       if (!newTodos) return;
 
       todosRef.current = newTodos;
       setTodos(newTodos);
       saveTodos(newTodos);
+
+      // Tasks reappearing on their own is surprising without a word about it.
+      const releasedTodos = getReleasedFromNotNow(previousTodos, newTodos);
+
+      if (releasedTodos.length === 1) {
+        setNotification(`"${releasedTodos[0].text}" came back from Not Now.`);
+      } else if (releasedTodos.length > 1) {
+        setNotification(`${releasedTodos.length} tasks came back from Not Now.`);
+      }
     }
 
     applyDailyTodoUpdates();

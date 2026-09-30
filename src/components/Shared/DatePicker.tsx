@@ -64,7 +64,7 @@ export const DatePicker: React.FC<Props> = ({ value, onChange, onOpen }) => {
           <DateCalendar
             value={value ? dayjs(value) : null}
             onChange={handleDueDateChange}
-            displayWeekNumber
+            // displayWeekNumber
             showDaysOutsideCurrentMonth
           />
         </LocalizationProvider>

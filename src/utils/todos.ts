@@ -452,6 +452,15 @@ export function getTodosWithMonthlyNotNowReleased(currentTodos: Todo[], date = n
   return hasChanges ? newTodos : null;
 }
 
+// Which todos the daily pass handed back to the list, so the app can say so. It
+// covers every reason a task stops being set aside: the end of its month, and a
+// due date coming close.
+export function getReleasedFromNotNow(previousTodos: Todo[], newTodos: Todo[]) {
+  const setAsideIds = new Set(previousTodos.filter((todo) => todo.notNow).map((todo) => todo.id));
+
+  return newTodos.filter((todo) => setAsideIds.has(todo.id) && !todo.notNow);
+}
+
 // Combines all midnight-driven todo changes into one update pass.
 export function getTodosWithDailyUpdates(currentTodos: Todo[]) {
   const dailyUpdates = [
