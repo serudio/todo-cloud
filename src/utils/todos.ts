@@ -418,31 +418,19 @@ function getTodosWithDueNotNowCleared(currentTodos: Todo[]) {
   return hasChanges ? newTodos : null;
 }
 
-// "Not now" lasts until the end of the month it was set in. The reprieve ends on
-// that month's last day, and if the app is not opened again until later the task
-// still comes back, counts reset, rather than being stranded until the next month.
+// "Not now" runs to the end of the month: on that month's last day everything set
+// aside comes back to the list with its count reset, and on no other day.
 export function getTodosWithMonthlyNotNowReleased(currentTodos: Todo[], date = new Date()) {
   const day = dayjs(date);
+
+  if (!day.isSame(day.endOf("month"), "day")) return null;
+
   const today = getLocalDateKey(date);
-  const isLastDayOfMonth = day.isSame(day.endOf("month"), "day");
   let hasChanges = false;
 
   const newTodos = currentTodos.map((todo) => {
-    if (todo.done || !todo.notNow) return todo;
-
-    // Rows set aside before this rule existed have no day to count from, so they
-    // start their month now instead of all being released at once.
-    if (!todo.notNowDate) {
-      hasChanges = true;
-
-      return { ...todo, notNowDate: today };
-    }
-
-    const setAsideDay = dayjs(todo.notNowDate);
-    const isPastItsMonth = day.isAfter(setAsideDay.endOf("month"), "day");
-    const isItsLastDay = isLastDayOfMonth && setAsideDay.isBefore(day, "day");
-
-    if (!isPastItsMonth && !isItsLastDay) return todo;
+    // Something set aside today keeps its reprieve until the next month ends.
+    if (todo.done || !todo.notNow || todo.notNowDate === today) return todo;
 
     hasChanges = true;
 
