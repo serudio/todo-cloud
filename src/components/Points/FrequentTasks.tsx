@@ -1,6 +1,7 @@
-import { Avatar, Box, Chip, Typography } from "@mui/material";
+import { Avatar, Box, Chip, Tooltip, Typography } from "@mui/material";
+import CheckIcon from "@mui/icons-material/Check";
 import type { PointEntry } from "../../types/points";
-import { getFrequentTasks } from "../../utils/points";
+import { getFrequentTasks, getTasksUsedOn } from "../../utils/points";
 
 type Props = {
   entries: PointEntry[];
@@ -10,6 +11,7 @@ type Props = {
 // One tap logs the task again for today, at whatever it was worth last time.
 export const FrequentTasks: React.FC<Props> = ({ entries, onPick }) => {
   const frequentTasks = getFrequentTasks(entries);
+  const tasksUsedToday = getTasksUsedOn(entries);
 
   if (!frequentTasks.length) return null;
 
@@ -19,16 +21,29 @@ export const FrequentTasks: React.FC<Props> = ({ entries, onPick }) => {
         most used — adds today
       </Typography>
       <Box sx={{ display: "flex", gap: 0.5, flexWrap: "wrap", mt: 0.5 }}>
-        {frequentTasks.map((task) => (
-          <Chip
-            key={task.task}
-            label={task.task}
-            size="small"
-            variant="outlined"
-            onClick={() => onPick(task.task, task.lastPoints)}
-            avatar={<Avatar>{task.lastPoints}</Avatar>}
-          />
-        ))}
+        {frequentTasks.map((task) => {
+          const isUsedToday = tasksUsedToday.has(task.task);
+
+          return (
+            <Tooltip key={task.task} title={isUsedToday ? "Already added today" : ""}>
+              <Chip
+                // A Chip drops `icon` when it already has an `avatar`, and the avatar
+                // is carrying the points, so the tick goes in the label instead.
+                label={
+                  <Box component="span" sx={{ display: "inline-flex", alignItems: "center", gap: 0.25 }}>
+                    {task.task}
+                    {isUsedToday && <CheckIcon sx={{ fontSize: "0.9rem" }} />}
+                  </Box>
+                }
+                size="small"
+                color={isUsedToday ? "success" : "default"}
+                variant={isUsedToday ? "filled" : "outlined"}
+                onClick={() => onPick(task.task, task.lastPoints)}
+                avatar={<Avatar>{task.lastPoints}</Avatar>}
+              />
+            </Tooltip>
+          );
+        })}
       </Box>
     </Box>
   );

@@ -83,6 +83,11 @@ export const getFrequentTasks = (entries: PointEntry[], limit = FREQUENT_TASK_CO
 
 export const getTaskNames = (entries: PointEntry[]) => [...new Set(entries.map((entry) => entry.task))].sort();
 
+// Which tasks are already logged for a given day, so a one-tap button can show
+// that it has been pressed today without anyone scanning the list below.
+export const getTasksUsedOn = (entries: PointEntry[], date = getLocalDateKey()) =>
+  new Set(entries.filter((entry) => entry.date === date).map((entry) => entry.task));
+
 // One row per day that has entries, carrying both that day's points and the
 // running total, so a bar chart and a cumulative chart can share the same data.
 export function getDayTotals(entries: PointEntry[]): DayTotal[] {
