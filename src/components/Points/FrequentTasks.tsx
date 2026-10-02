@@ -36,8 +36,8 @@ export const FrequentTasks: React.FC<Props> = ({ entries, onPick }) => {
                   </Box>
                 }
                 size="small"
-                color={isUsedToday ? "primary" : "default"}
-                variant="outlined"
+                color={isUsedToday ? "info" : "default"}
+                variant={isUsedToday ? "filled" : "outlined"}
                 onClick={() => onPick(task.task, task.lastPoints)}
                 avatar={<Avatar>{task.lastPoints}</Avatar>}
               />
