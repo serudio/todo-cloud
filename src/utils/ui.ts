@@ -1,4 +1,9 @@
 export const getTodoFontSize = (size: number) => {
+  if (size === 10) return "2.5rem";
+  if (size === 9) return "2.4rem";
+  if (size === 8) return "2.3rem";
+  if (size === 7) return "2.2rem";
+  if (size === 6) return "2.1rem";
   if (size === 5) return "2rem";
   if (size === 4) return "1.5rem";
   if (size === 3) return "1.25rem";
