@@ -7,6 +7,7 @@ import { NotesCard } from "./components/NotesCard.tsx";
 import { NotNowList } from "./components/NotNowList.tsx";
 import { TagsCard } from "./components/Tags/TagsCard";
 import { TodoCloud } from "./components/TodoCloud/TodoCloud";
+import { ResetCountsButton } from "./components/Shared/ResetCountsButton";
 import { isSupabaseConfigured } from "./supabase";
 import { Box, Drawer } from "@mui/material";
 import { Header } from "./components/Layout";
@@ -239,6 +240,7 @@ export default function App() {
               onRemoveDeletedTodo={removeDeletedItem}
               onRestoreDeletedTodo={restoreDeletedItem}
             />
+            <ResetCountsButton todos={todos} updateTodos={updateTodos} />
           </Box>
         </Drawer>
       </Box>

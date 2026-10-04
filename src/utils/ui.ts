@@ -6,6 +6,11 @@ export const getTodoFontSize = (size: number) => {
   return "0.8rem";
 };
 export const getTodoPadding = (size: number) => {
+  if (size === 10) return "21px 21px";
+  if (size === 9) return "20px 20px";
+  if (size === 8) return "19px 19px";
+  if (size === 7) return "18px 18px";
+  if (size === 6) return "17px 17px";
   if (size === 5) return "16px 16px";
   if (size === 4) return "14px 14px";
   if (size === 3) return "12px 12px";

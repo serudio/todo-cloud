@@ -1,6 +1,7 @@
 import type { CustomLink, Todo, TodoListItems, TodoTag } from "../types/todo";
 import dayjs from "dayjs";
 import { getDateInputValue, getLocalDateKey } from "./date";
+import { MAX_ITEM_WEIGHT } from "./lists";
 
 export const SNOOZE_DURATION_MS = 60 * 60 * 1000;
 
@@ -343,7 +344,7 @@ function getLatestDate(firstDate: string | null, secondDate: string | null) {
 }
 
 export function getTodoSize(count: number) {
-  return Math.min(5, Math.max(1, count));
+  return Math.min(MAX_ITEM_WEIGHT, Math.max(1, count));
 }
 
 // Applies one daily repeat to todos marked for end-of-day auto-add.
@@ -438,6 +439,12 @@ export function getTodosWithMonthlyNotNowReleased(currentTodos: Todo[], date = n
   });
 
   return hasChanges ? newTodos : null;
+}
+
+// Puts every task back to the size a brand new one has. Todos that are already
+// there keep their identity, so nothing is saved that did not actually change.
+export function getTodosWithResetCounts(todos: Todo[]) {
+  return todos.map((todo) => (todo.count === 1 ? todo : { ...todo, count: 1 }));
 }
 
 // Which todos the daily pass handed back to the list, so the app can say so. It
