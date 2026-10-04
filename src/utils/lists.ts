@@ -1,6 +1,6 @@
 import type { DecisionItem, DecisionList, DecisionListKind, DecisionListRow, DecisionOption } from "../types/lists";
 
-export const MAX_ITEM_WEIGHT = 5;
+export const MAX_ITEM_WEIGHT = 10;
 export const WEIGHT_STEPS = Array.from({ length: MAX_ITEM_WEIGHT }, (_, index) => index + 1);
 
 // The scale runs from the strongest con to the strongest pro, with no neutral zero.

@@ -91,8 +91,22 @@ export const GoalPage: React.FC<Props> = ({ userId, goalId }) => {
         )}
       </Box>
 
-      <Box sx={{ display: "flex", gap: 2, alignItems: "flex-start", flexWrap: "wrap" }}>
-        <Card sx={{ flex: "1 1 380px", minWidth: 300, p: 1.5 }}>
+      {/* Fills whatever height is left, but never squashes below a usable size. */}
+      <Box
+        sx={{
+          display: "flex",
+          gap: 2,
+          alignItems: "stretch",
+          // A wrapped line sizes to its content and cannot shrink, so the capped
+          // height below only takes effect once the cards stop wrapping.
+          flexWrap: { xs: "wrap", md: "nowrap" },
+          // Fills the window below the name row, and never gets shorter than this,
+          // so a short window scrolls the page instead of crushing the charts.
+          height: { xs: "auto", md: "calc(100vh - 140px)" },
+          minHeight: { xs: "auto", md: 420 },
+        }}
+      >
+        <Card sx={{ flex: "1 1 380px", minWidth: 300, minHeight: 0, p: 1.5, overflow: "auto" }}>
           {isChecklist ? (
             <TaskChecklist tasks={goal.tasks} onChange={changeTasks} onCommit={commitTasks} />
           ) : (
@@ -107,7 +121,18 @@ export const GoalPage: React.FC<Props> = ({ userId, goalId }) => {
           )}
         </Card>
 
-        <Card sx={{ flex: "1 1 380px", minWidth: 300, p: 1.5, display: "flex", flexDirection: "column", gap: 2 }}>
+        <Card
+          sx={{
+            flex: "1 1 380px",
+            minWidth: 300,
+            minHeight: 0,
+            p: 1.5,
+            display: "flex",
+            flexDirection: "column",
+            gap: 2,
+            overflow: "auto",
+          }}
+        >
           <ProgressRing total={progress.total} target={goal.targetPoints} ratio={progress.ratio} />
           <CumulativeChart days={dayTotals} target={goal.targetPoints} />
           <DailyBarsChart days={dayTotals} />
