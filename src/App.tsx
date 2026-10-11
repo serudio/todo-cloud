@@ -26,7 +26,7 @@ import { GoalPage } from "./components/Points/GoalPage";
 // A page wrapper for routes that are not the todo cloud itself.
 const PageLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <Box sx={{ bgcolor: "background.body", color: "text.primary", minHeight: "100vh" }}>
-    <Box sx={{ width: "min(1100px, calc(100% - 32px))", margin: "0 auto", paddingTop: 2, paddingBottom: 4 }}>
+    <Box sx={{ width: "min(1100px, calc(100% - 16px))", margin: "0 auto", paddingTop: 2, paddingBottom: 2 }}>
       {children}
     </Box>
   </Box>

@@ -101,31 +101,22 @@ export const GoalPage: React.FC<Props> = ({ userId, goalId }) => {
           flexWrap: { xs: "wrap", md: "nowrap" },
           // Fills the window below the name row, and never gets shorter than this,
           // so a short window scrolls the page instead of crushing the charts.
-          height: { xs: "auto", md: "calc(100vh - 140px)" },
+          height: { xs: "auto", md: "calc(100vh - 100px)" },
           minHeight: { xs: "auto", md: 420 },
         }}
       >
-        <Card
-          sx={{
-            flex: "1 1 380px",
-            minWidth: 300,
-            minHeight: 0,
-            display: "flex",
-            flexDirection: "column",
-            gap: 1,
-          }}
-        >
+        <Card sx={{ flex: "1 1 380px", minWidth: 300, minHeight: 0, display: "flex", flexDirection: "column", gap: 1 }}>
           {isChecklist ? (
             <TaskChecklist tasks={goal.tasks} onChange={changeTasks} onCommit={commitTasks} />
           ) : (
             <>
-              <Card elevation={0}>
+              <Card elevation={0} sx={{ px: 1 }}>
                 <FrequentTasks entries={goal.entries} onPick={(task, points) => addEntry(task, points, Date.now())} />
               </Card>
-              <Card elevation={0}>
+              <Card elevation={0} sx={{ px: 1 }}>
                 <EntryForm taskNames={allTaskNames} onAdd={addEntry} />
               </Card>
-              <Card sx={{ flex: 1, minHeight: 0, overflow: "auto" }}>
+              <Card sx={{ flex: 1, minHeight: 0, overflow: "auto", px: 1 }}>
                 <EntryList entries={goal.entries} onChange={changeEntries} onCommit={commitEntries} />
               </Card>
             </>
