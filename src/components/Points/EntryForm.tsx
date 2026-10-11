@@ -1,11 +1,11 @@
 import { type FormEvent, useState } from "react";
 import { Autocomplete, Box, Button, TextField } from "@mui/material";
-import { getLocalDateKey } from "../../utils/date";
+import { getLocalDateKey, getTimestampForDateKey } from "../../utils/date";
 import { QUICK_POINTS } from "../../utils/points";
 
 type Props = {
   taskNames: string[];
-  onAdd: (task: string, points: number, date: string) => void;
+  onAdd: (task: string, points: number, date: number) => void;
 };
 
 export const EntryForm: React.FC<Props> = ({ taskNames, onAdd }) => {
@@ -21,7 +21,7 @@ export const EntryForm: React.FC<Props> = ({ taskNames, onAdd }) => {
 
     if (!trimmedTask || !Number.isFinite(parsedPoints) || parsedPoints === 0) return;
 
-    onAdd(trimmedTask, Math.round(parsedPoints), date || getLocalDateKey());
+    onAdd(trimmedTask, Math.round(parsedPoints), getTimestampForDateKey(date));
     setTask("");
   };
 

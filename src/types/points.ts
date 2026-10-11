@@ -1,7 +1,8 @@
 export type PointEntry = {
   id: string;
-  // A local YYYY-MM-DD key, so a day never shifts with the reader's timezone.
-  date: string;
+  // A millisecond timestamp: when the task was actually logged, not just which
+  // day it fell on, so entries sort and group without parsing text.
+  date: number;
   task: string;
   points: number;
 };
@@ -14,7 +15,7 @@ export type PointTask = {
   id: string;
   name: string;
   points: number;
-  doneDate: string | null;
+  doneDate: number | null;
 };
 
 export type PointGoal = {
@@ -45,7 +46,8 @@ export type TaskTotal = {
 };
 
 export type DayTotal = {
-  date: string;
+  // The start of that local day, as a timestamp.
+  date: number;
   points: number;
   total: number;
 };

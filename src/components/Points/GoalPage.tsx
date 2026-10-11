@@ -3,7 +3,6 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import type { PointEntry, PointTask } from "../../types/points";
 import { usePointGoal, usePointGoals } from "../../hooks/points";
 import { navigate, pointsPath } from "../../hooks/route";
-import { getLocalDateKey } from "../../utils/date";
 import {
   getDayTotals,
   getGoalEntries,
@@ -47,7 +46,7 @@ export const GoalPage: React.FC<Props> = ({ userId, goalId }) => {
   const changeTasks = (tasks: PointTask[]) => changeGoal(goal.name, goal.targetPoints, goal.entries, tasks);
   const commitTasks = (tasks: PointTask[]) => commitGoal(goal.name, goal.targetPoints, goal.entries, tasks);
 
-  const addEntry = (task: string, points: number, date: string) =>
+  const addEntry = (task: string, points: number, date: number) =>
     commitEntries([...goal.entries, getNewEntry(task, points, date)]);
 
   return (
@@ -106,17 +105,29 @@ export const GoalPage: React.FC<Props> = ({ userId, goalId }) => {
           minHeight: { xs: "auto", md: 420 },
         }}
       >
-        <Card sx={{ flex: "1 1 380px", minWidth: 300, minHeight: 0, p: 1.5, overflow: "auto" }}>
+        <Card
+          sx={{
+            flex: "1 1 380px",
+            minWidth: 300,
+            minHeight: 0,
+            display: "flex",
+            flexDirection: "column",
+            gap: 1,
+          }}
+        >
           {isChecklist ? (
             <TaskChecklist tasks={goal.tasks} onChange={changeTasks} onCommit={commitTasks} />
           ) : (
             <>
-              <FrequentTasks
-                entries={goal.entries}
-                onPick={(task, points) => addEntry(task, points, getLocalDateKey())}
-              />
-              <EntryForm taskNames={allTaskNames} onAdd={addEntry} />
-              <EntryList entries={goal.entries} onChange={changeEntries} onCommit={commitEntries} />
+              <Card elevation={0}>
+                <FrequentTasks entries={goal.entries} onPick={(task, points) => addEntry(task, points, Date.now())} />
+              </Card>
+              <Card elevation={0}>
+                <EntryForm taskNames={allTaskNames} onAdd={addEntry} />
+              </Card>
+              <Card sx={{ flex: 1, minHeight: 0, overflow: "auto" }}>
+                <EntryList entries={goal.entries} onChange={changeEntries} onCommit={commitEntries} />
+              </Card>
             </>
           )}
         </Card>

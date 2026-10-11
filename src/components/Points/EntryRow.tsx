@@ -1,6 +1,7 @@
 import { Box, IconButton, InputBase } from "@mui/material";
 import ClearIcon from "@mui/icons-material/Clear";
 import type { PointEntry } from "../../types/points";
+import { getDateInputValue, getTimestampWithDateKey } from "../../utils/date";
 import { PointsInput } from "./PointsInput";
 
 type Props = {
@@ -16,8 +17,10 @@ export const EntryRow: React.FC<Props> = ({ entry, onChange, onCommit, onRemove 
       {/* A date input only ever emits a whole date, so this commits as it changes. */}
       <InputBase
         type="date"
-        value={entry.date}
-        onChange={(event) => event.target.value && onCommit({ ...entry, date: event.target.value })}
+        value={getDateInputValue(entry.date)}
+        onChange={(event) =>
+          event.target.value && onCommit({ ...entry, date: getTimestampWithDateKey(entry.date, event.target.value) })
+        }
         slotProps={{ input: { "aria-label": "Date" } }}
         sx={{
           width: 122,

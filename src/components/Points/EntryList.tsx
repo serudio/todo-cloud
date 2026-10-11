@@ -10,13 +10,12 @@ type Props = {
 };
 
 export const EntryList: React.FC<Props> = ({ entries, onChange, onCommit }) => {
-  if (!entries.length) {
+  if (!entries.length)
     return (
       <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
         Nothing logged yet. Add the first finished task above.
       </Typography>
     );
-  }
 
   // Both take the new entry rather than reading it back from state, so an edit that
   // changes and commits in one go is not overwritten by this render's stale copy.

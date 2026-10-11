@@ -16,7 +16,7 @@ export const DEFAULT_TARGET_POINTS = 200;
 
 export const getGoalModeLabel = (mode: PointGoalMode) => (mode === "checklist" ? "checklist" : "points log");
 
-export const getNewEntry = (task: string, points: number, date = getLocalDateKey()): PointEntry => ({
+export const getNewEntry = (task: string, points: number, date = Date.now()): PointEntry => ({
   id: crypto.randomUUID(),
   date,
   task,
@@ -47,7 +47,7 @@ export function getSortedTasks(tasks: PointTask[]): PointTask[] {
   const openTasks = tasks.filter((task) => !task.doneDate);
   const doneTasks = tasks
     .filter((task) => task.doneDate)
-    .sort((first, second) => (second.doneDate ?? "").localeCompare(first.doneDate ?? ""));
+    .sort((first, second) => (second.doneDate ?? 0) - (first.doneDate ?? 0));
 
   return [...openTasks, ...doneTasks];
 }
@@ -56,13 +56,13 @@ export const getTasksTotalPoints = (tasks: PointTask[]) => tasks.reduce((total, 
 
 // Newest first, and stable within a day so a re-render never reshuffles rows.
 export const getSortedEntries = (entries: PointEntry[]) =>
-  [...entries].sort((first, second) => second.date.localeCompare(first.date));
+  [...entries].sort((first, second) => second.date - first.date);
 
 export function getTaskTotals(entries: PointEntry[]): TaskTotal[] {
   const totalsByTask = new Map<string, TaskTotal>();
 
   // Entries are walked oldest first so lastPoints ends up holding the newest value.
-  for (const entry of [...entries].sort((first, second) => first.date.localeCompare(second.date))) {
+  for (const entry of [...entries].sort((first, second) => first.date - second.date)) {
     const existingTotal = totalsByTask.get(entry.task);
 
     totalsByTask.set(entry.task, {
@@ -85,30 +85,37 @@ export const getTaskNames = (entries: PointEntry[]) => [...new Set(entries.map((
 
 // Which tasks are already logged for a given day, so a one-tap button can show
 // that it has been pressed today without anyone scanning the list below.
-export const getTasksUsedOn = (entries: PointEntry[], date = getLocalDateKey()) =>
-  new Set(entries.filter((entry) => entry.date === date).map((entry) => entry.task));
+export const getTasksUsedOn = (entries: PointEntry[], date = Date.now()) => {
+  const dayKey = getLocalDateKey(date);
+
+  return new Set(entries.filter((entry) => getLocalDateKey(entry.date) === dayKey).map((entry) => entry.task));
+};
 
 // One row per day that has entries, carrying both that day's points and the
 // running total, so a bar chart and a cumulative chart can share the same data.
 export function getDayTotals(entries: PointEntry[]): DayTotal[] {
   const pointsByDate = new Map<string, number>();
 
+  // Grouped by the local day a timestamp falls in, so a late evening entry lands
+  // on that evening rather than being pushed around by the timezone.
   for (const entry of entries) {
-    pointsByDate.set(entry.date, (pointsByDate.get(entry.date) ?? 0) + entry.points);
+    const dayKey = getLocalDateKey(entry.date);
+
+    pointsByDate.set(dayKey, (pointsByDate.get(dayKey) ?? 0) + entry.points);
   }
 
   let runningTotal = 0;
 
   return [...pointsByDate.entries()]
     .sort((first, second) => first[0].localeCompare(second[0]))
-    .map(([date, points]) => {
+    .map(([dayKey, points]) => {
       runningTotal += points;
 
-      return { date, points, total: runningTotal };
+      return { date: dayjs(dayKey).startOf("day").valueOf(), points, total: runningTotal };
     });
 }
 
-export const formatDayLabel = (date: string) => dayjs(date).format("MMM D");
+export const formatDayLabel = (date: number) => dayjs(date).format("MMM D");
 
 export function getProgress(entries: PointEntry[], targetPoints: number) {
   const total = getTotalPoints(entries);
@@ -122,6 +129,15 @@ export function getProgress(entries: PointEntry[], targetPoints: number) {
   };
 }
 
+// Entries were first saved as YYYY-MM-DD strings. Those still parse, becoming the
+// start of that local day, and are written back as timestamps on the next save.
+function parseTimestamp(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value !== "string" || !dayjs(value).isValid()) return null;
+
+  return dayjs(value).startOf("day").valueOf();
+}
+
 function parseTasks(tasks: unknown): PointTask[] {
   if (!Array.isArray(tasks)) return [];
 
@@ -132,9 +148,7 @@ function parseTasks(tasks: unknown): PointTask[] {
     if (typeof id !== "string" || typeof name !== "string") return [];
     if (typeof points !== "number" || !Number.isFinite(points)) return [];
 
-    const isDone = typeof doneDate === "string" && dayjs(doneDate).isValid();
-
-    return [{ id, name, points: Math.round(points), doneDate: isDone ? (doneDate as string) : null }];
+    return [{ id, name, points: Math.round(points), doneDate: parseTimestamp(doneDate) }];
   });
 }
 
@@ -146,10 +160,12 @@ function parseEntries(entries: unknown): PointEntry[] {
 
     const { id, date, task, points } = entry as Record<string, unknown>;
     if (typeof id !== "string" || typeof task !== "string") return [];
-    if (typeof date !== "string" || !dayjs(date).isValid()) return [];
     if (typeof points !== "number" || !Number.isFinite(points)) return [];
 
-    return [{ id, date, task, points: Math.round(points) }];
+    const timestamp = parseTimestamp(date);
+    if (timestamp === null) return [];
+
+    return [{ id, date: timestamp, task, points: Math.round(points) }];
   });
 }
 

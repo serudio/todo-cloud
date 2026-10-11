@@ -2,7 +2,6 @@ import { type FormEvent, useState } from "react";
 import { Box, Button, Checkbox, IconButton, InputBase, TextField, Typography } from "@mui/material";
 import ClearIcon from "@mui/icons-material/Clear";
 import type { PointTask } from "../../types/points";
-import { getLocalDateKey } from "../../utils/date";
 import { formatDayLabel, getNewTask, getSortedTasks, QUICK_POINTS } from "../../utils/points";
 import { PointsInput } from "./PointsInput";
 
@@ -32,8 +31,7 @@ export const TaskChecklist: React.FC<Props> = ({ tasks, onChange, onCommit }) =>
   const withTask = (newTask: PointTask) => tasks.map((task) => (task.id === newTask.id ? newTask : task));
 
   // Crossing a task off stamps the day, which is what the charts plot.
-  const toggleTask = (task: PointTask) =>
-    onCommit(withTask({ ...task, doneDate: task.doneDate ? null : getLocalDateKey() }));
+  const toggleTask = (task: PointTask) => onCommit(withTask({ ...task, doneDate: task.doneDate ? null : Date.now() }));
 
   const removeTask = (taskId: string) => onCommit(tasks.filter((task) => task.id !== taskId));
 
