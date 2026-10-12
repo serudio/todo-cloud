@@ -1,7 +1,7 @@
 import { Box, IconButton, InputBase } from "@mui/material";
 import ClearIcon from "@mui/icons-material/Clear";
 import type { PointEntry } from "../../types/points";
-import { getDateInputValue, getTimestampWithDateKey } from "../../utils/date";
+import { getDateInputValue, getTimeValue, getTimestampWithDateKey } from "../../utils/date";
 import { PointsInput } from "./PointsInput";
 
 type Props = {
@@ -23,13 +23,16 @@ export const EntryRow: React.FC<Props> = ({ entry, onChange, onCommit, onRemove 
         }
         slotProps={{ input: { "aria-label": "Date" } }}
         sx={{
-          width: 122,
+          width: 100,
           flexShrink: 0,
           fontSize: "0.75rem",
           color: "text.secondary",
           "& input": { padding: 0 },
         }}
       />
+      <Box sx={{ width: 50, flexShrink: 0, fontSize: "0.75rem", color: "text.secondary", textAlign: "center" }}>
+        {getTimeValue(entry.date)}
+      </Box>
 
       <InputBase
         value={entry.task}

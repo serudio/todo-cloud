@@ -39,3 +39,10 @@ export function getDateInputValue(dateValue: string | number | null) {
 
   return date.isValid() ? date.format("YYYY-MM-DD") : "";
 }
+export function getTimeValue(dateValue: string | number | null) {
+  if (dateValue === null) return "";
+
+  const date = dayjs(dateValue);
+
+  return date.isValid() ? date.format("HH:mm") : "";
+}
