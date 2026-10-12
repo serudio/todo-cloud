@@ -22,7 +22,7 @@ export const EntryList: React.FC<Props> = ({ entries, onChange, onCommit }) => {
   const withEntry = (newEntry: PointEntry) => entries.map((entry) => (entry.id === newEntry.id ? newEntry : entry));
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", mt: 1 }}>
+    <Box sx={{ display: "flex", flexDirection: "column" }}>
       {getSortedEntries(entries).map((entry) => (
         <EntryRow
           key={entry.id}
