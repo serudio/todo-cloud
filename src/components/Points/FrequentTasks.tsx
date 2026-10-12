@@ -1,5 +1,6 @@
-import { Avatar, Box, Chip, Tooltip, Typography } from "@mui/material";
+import { Avatar, Box, Chip, Tooltip } from "@mui/material";
 import CheckIcon from "@mui/icons-material/Check";
+import InfoIcon from "@mui/icons-material/Info";
 import type { PointEntry } from "../../types/points";
 import { getFrequentTasks, getTasksUsedOn } from "../../utils/points";
 
@@ -16,11 +17,11 @@ export const FrequentTasks: React.FC<Props> = ({ entries, onPick }) => {
   if (!frequentTasks.length) return null;
 
   return (
-    <Box sx={{ mb: 1 }}>
-      <Typography variant="caption" color="text.secondary">
-        most used — adds today
-      </Typography>
-      <Box sx={{ display: "flex", gap: 0.5, flexWrap: "wrap", mt: 0.5 }}>
+    <Box sx={{ position: "relative", pr: 2 }}>
+      <Tooltip title="most used — adds today">
+        <InfoIcon sx={{ fontSize: "1rem", position: "absolute", right: 0 }} />
+      </Tooltip>
+      <Box sx={{ display: "flex", gap: 0.5, flexWrap: "wrap" }}>
         {frequentTasks.map((task) => {
           const isUsedToday = tasksUsedToday.has(task.task);
 

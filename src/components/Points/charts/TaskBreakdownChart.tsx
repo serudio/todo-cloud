@@ -15,7 +15,7 @@ export const TaskBreakdownChart: React.FC<Props> = ({ taskTotals }) => {
   const maxPoints = Math.max(...topTasks.map((task) => Math.abs(task.points)), 1);
 
   return (
-    <Box>
+    <Box sx={{ flex: 1 }}>
       <Typography variant="caption" color="text.secondary">
         points by task
       </Typography>

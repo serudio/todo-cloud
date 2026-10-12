@@ -33,7 +33,7 @@ export const EntryForm: React.FC<Props> = ({ taskNames, onAdd }) => {
           size="small"
           value={date}
           onChange={(event) => setDate(event.target.value)}
-          sx={{ width: 150 }}
+          sx={{ width: 140, p: 0, ".MuiInputBase-input.MuiOutlinedInput-input": { py: 0.6 } }}
           slotProps={{ inputLabel: { shrink: true } }}
         />
 
@@ -42,7 +42,7 @@ export const EntryForm: React.FC<Props> = ({ taskNames, onAdd }) => {
           options={taskNames}
           inputValue={task}
           onInputChange={(_event, newValue) => setTask(newValue)}
-          sx={{ flex: 1, minWidth: 160 }}
+          sx={{ flex: 1, minWidth: 160, ".MuiInputBase-root.MuiInputBase-sizeSmall ": { py: 0.25 } }}
           renderInput={(params) => <TextField {...params} size="small" placeholder="what was done" />}
         />
 
@@ -51,7 +51,7 @@ export const EntryForm: React.FC<Props> = ({ taskNames, onAdd }) => {
           size="small"
           value={points}
           onChange={(event) => setPoints(event.target.value)}
-          sx={{ width: 90 }}
+          sx={{ width: 50, input: { py: 0.5 } }}
           slotProps={{ htmlInput: { "aria-label": "Points" } }}
         />
 
@@ -60,14 +60,14 @@ export const EntryForm: React.FC<Props> = ({ taskNames, onAdd }) => {
         </Button>
       </Box>
 
-      <Box sx={{ display: "flex", gap: 0.5, alignItems: "center" }}>
+      <Box sx={{ display: "flex", alignSelf: "flex-end", gap: 0.5, alignItems: "center" }}>
         {QUICK_POINTS.map((quickPoints) => (
           <Button
             key={quickPoints}
             size="small"
             variant={Number(points) === quickPoints ? "contained" : "outlined"}
             onClick={() => setPoints(String(quickPoints))}
-            sx={{ minWidth: 38, px: 0 }}
+            sx={{ minWidth: 30, p: 0 }}
           >
             {quickPoints}
           </Button>
