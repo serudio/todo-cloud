@@ -1,8 +1,8 @@
 import type { DragEvent } from "react";
 import type { Todo, TodoTag } from "../types/todo";
 import { SectionCard } from "./Shared/SectionCard";
-import { Box, Chip } from "@mui/material";
-import { getNotNowTodos, markTodoNotNow, markTodoNow } from "../utils/todos";
+import { Box, Button, Chip } from "@mui/material";
+import { getNotNowTodos, getTodosWithNotNowReleased, markTodoNotNow, markTodoNow } from "../utils/todos";
 import { DEFAULT_TAG_COLOR } from "../constants/ui";
 import { isSearching, matchesSearch } from "../utils/search";
 
@@ -11,9 +11,10 @@ type Props = {
   tags: TodoTag[];
   search: string;
   updateTodo: (todo: Todo) => void;
+  updateTodos: (todos: Todo[]) => void;
 };
 
-export const NotNowList: React.FC<Props> = ({ todos, updateTodo, tags, search }) => {
+export const NotNowList: React.FC<Props> = ({ todos, updateTodo, updateTodos, tags, search }) => {
   const notNowTodos = getNotNowTodos(todos).filter((todo) => matchesSearch(search, todo.text));
 
   function handleDragOver(event: DragEvent<HTMLElement>) {
@@ -37,6 +38,15 @@ export const NotNowList: React.FC<Props> = ({ todos, updateTodo, tags, search })
     event.dataTransfer.effectAllowed = "move";
     event.dataTransfer.setData("text/plain", todoId);
   }
+
+  // Only what is listed moves, so a search narrows the button along with the chips.
+  const handleMoveAllBack = () =>
+    updateTodos(
+      getTodosWithNotNowReleased(
+        todos,
+        notNowTodos.map((todo) => todo.id),
+      ),
+    );
 
   const handleClick = (id: string) => () => {
     const newTodo = todos.find((x) => x.id === id);
@@ -72,6 +82,14 @@ export const NotNowList: React.FC<Props> = ({ todos, updateTodo, tags, search })
           );
         })}
       </Box>
+
+      {notNowTodos.length > 1 && (
+        <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 1 }}>
+          <Button size="small" variant="outlined" onClick={handleMoveAllBack}>
+            move all back
+          </Button>
+        </Box>
+      )}
     </SectionCard>
   );
 };

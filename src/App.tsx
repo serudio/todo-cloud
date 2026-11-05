@@ -175,7 +175,7 @@ export default function App() {
               onDeleteTag={deleteTag}
             />
             <LinksCard links={links} updateLinks={updateLinks} setNotification={setNotification} search={search} />
-            <NotNowList tags={tags} todos={todos} updateTodo={updateTodo} search={search} />
+            <NotNowList tags={tags} todos={todos} updateTodo={updateTodo} updateTodos={updateTodos} search={search} />
             <NotesCard notes={notes} setNotes={updateNotes} />
           </Box>
         </Drawer>

@@ -441,6 +441,14 @@ export function getTodosWithMonthlyNotNowReleased(currentTodos: Todo[], date = n
   return hasChanges ? newTodos : null;
 }
 
+// Sends the given set of set-aside tasks back to the list at once. Counts are left
+// alone, matching what clicking a single one does; only the monthly rule resets them.
+export function getTodosWithNotNowReleased(todos: Todo[], releasedIds: string[]) {
+  const idsToRelease = new Set(releasedIds);
+
+  return todos.map((todo) => (idsToRelease.has(todo.id) && todo.notNow ? markTodoNow(todo) : todo));
+}
+
 // Puts every task back to the size a brand new one has. Todos that are already
 // there keep their identity, so nothing is saved that did not actually change.
 export function getTodosWithResetCounts(todos: Todo[]) {
