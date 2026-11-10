@@ -4,11 +4,13 @@ import MoreVertIcon from "@mui/icons-material/MoreVert";
 import LinkIcon from "@mui/icons-material/Link";
 import BalanceIcon from "@mui/icons-material/Balance";
 import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
+import HomeIcon from "@mui/icons-material/Home";
 import SortByAlphaIcon from "@mui/icons-material/SortByAlpha";
 import LogoutIcon from "@mui/icons-material/Logout";
 import { ThemeSelector } from "./ThemeSelector";
 import { signOut } from "../../utils/auth";
 import { getAbsoluteUrl, pointsPath } from "../../hooks/route";
+import { MAIN_SITE_URL } from "../../constants/ui";
 import { LinksPopover, type LinksPopoverProps } from "../LinksCard/LinksPopover";
 
 type Props = LinksPopoverProps & {
@@ -66,6 +68,19 @@ export const HeaderMenu: React.FC<Props> = ({ isCloudSortedByName, onCloudSortCl
             <EmojiEventsIcon />
           </ListItemIcon>
           <ListItemText>Rewards</ListItemText>
+        </MenuItem>
+
+        <MenuItem
+          component="a"
+          href={MAIN_SITE_URL}
+          target="_blank"
+          rel="noreferrer"
+          onClick={() => setAnchorElement(null)}
+        >
+          <ListItemIcon>
+            <HomeIcon />
+          </ListItemIcon>
+          <ListItemText>Main site</ListItemText>
         </MenuItem>
 
         <Divider />

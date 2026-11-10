@@ -7,11 +7,13 @@ import { signOut } from "../../utils/auth";
 import { HeaderMenu } from "./HeaderMenu";
 import { getAbsoluteUrl, pointsPath } from "../../hooks/route";
 import { useIsMobile } from "../../hooks/mobile";
+import { MAIN_SITE_URL } from "../../constants/ui";
 import { LinksPopover, type LinksPopoverProps } from "../LinksCard/LinksPopover";
 import MenuOpenIcon from "@mui/icons-material/MenuOpen";
 import LinkIcon from "@mui/icons-material/Link";
 import BalanceIcon from "@mui/icons-material/Balance";
 import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
+import HomeIcon from "@mui/icons-material/Home";
 import SortByAlphaIcon from "@mui/icons-material/SortByAlpha";
 import OpenInFullIcon from "@mui/icons-material/OpenInFull";
 import CloseFullscreenIcon from "@mui/icons-material/CloseFullscreen";
@@ -198,6 +200,20 @@ export const Header: React.FC<Props> = ({
         <Tooltip title="Pros and cons lists">
           <Button variant="text" color="secondary" onClick={onListsClick} sx={{ minWidth: 0 }} aria-label="Open lists">
             <BalanceIcon />
+          </Button>
+        </Tooltip>
+        <Tooltip title="serudio.github.io (opens a new tab)">
+          <Button
+            variant="text"
+            color="secondary"
+            component="a"
+            href={MAIN_SITE_URL}
+            target="_blank"
+            rel="noreferrer"
+            sx={{ minWidth: 0 }}
+            aria-label="Open the main site in a new tab"
+          >
+            <HomeIcon />
           </Button>
         </Tooltip>
         <Tooltip title="Reward points (opens a new tab)">
