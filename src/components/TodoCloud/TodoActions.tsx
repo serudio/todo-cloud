@@ -9,6 +9,7 @@ type Props = {
   isDayBeforeDueDate: boolean;
   isSnoozed: boolean;
   updateTodo: (todo: Todo) => void;
+  onToggleWeek: (todoId: string) => void;
   onToggleSnooze: () => void;
   onSetActionsFocused: (isFocused: boolean) => void;
 };

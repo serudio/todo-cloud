@@ -11,6 +11,9 @@ export type Todo = {
   link: string | null;
   dueDate: number | null;
   notNow: boolean;
+  // Waiting in the productive week pile: out of the cloud until there is the
+  // energy to take the whole pile on.
+  productiveWeek: boolean;
   // The day it was set aside, so the monthly release can leave alone anything put
   // aside on the release day itself.
   notNowDate: string | null;

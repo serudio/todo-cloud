@@ -9,6 +9,7 @@ type Props = {
   tags: TodoTag[];
   isSnoozed: boolean;
   updateTodo: (todo: Todo) => void;
+  onToggleWeek: (todoId: string) => void;
   onToggleSnooze: (todoId: string) => void;
   onDelete: (todoId: string) => void;
   onClose: () => void;
@@ -21,6 +22,7 @@ export const TodoActionSheet: React.FC<Props> = ({
   tags,
   isSnoozed,
   updateTodo,
+  onToggleWeek,
   onToggleSnooze,
   onDelete,
   onClose,
@@ -87,6 +89,7 @@ export const TodoActionSheet: React.FC<Props> = ({
             isDayBeforeDueDate={shouldHighlightDueDate(todo.dueDate)}
             isSnoozed={isSnoozed}
             updateTodo={updateTodo}
+            onToggleWeek={onToggleWeek}
             onToggleSnooze={() => onToggleSnooze(todo.id)}
           />
 

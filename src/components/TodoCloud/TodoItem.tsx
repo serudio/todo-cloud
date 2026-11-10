@@ -14,6 +14,7 @@ type Props = {
   updateTodo: (todo: Todo) => void;
   index: number;
   isSnoozed: boolean;
+  onToggleWeek: (todoId: string) => void;
   onToggleSnooze: () => void;
   handleTodoDragStart: (event: React.DragEvent<HTMLElement>, todoId: string) => void;
   tags: TodoTag[];
@@ -24,6 +25,7 @@ export const TodoItem: React.FC<Props> = ({
   updateTodo,
   index,
   isSnoozed,
+  onToggleWeek,
   onToggleSnooze,
   handleTodoDragStart,
   tags,
@@ -168,6 +170,7 @@ export const TodoItem: React.FC<Props> = ({
           updateTodo={updateTodo}
           isDayBeforeDueDate={shouldHighlightDue}
           isSnoozed={isSnoozed}
+          onToggleWeek={onToggleWeek}
           onToggleSnooze={onToggleSnooze}
           onSetActionsFocused={setActionsFocused}
         />

@@ -1,6 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { CustomLink, Todo, TodoListItems, TodoTag } from "../types/todo";
-import { getReleasedFromNotNow, getTodosWithDailyUpdates, parseTodoListColumns } from "../utils/todos";
+import {
+  getReleasedFromNotNow,
+  getTodosWithDailyUpdates,
+  getTodosWithWeekReleased,
+  markTodoForWeek,
+  markTodoOutOfWeek,
+  parseTodoListColumns,
+} from "../utils/todos";
 import type { Session } from "@supabase/supabase-js";
 import {
   clearDeletedTodos,
@@ -359,6 +366,26 @@ export function useAppInit() {
     saveDeletedTodos(session.user.id, newDeletedTodos);
   }
 
+  // Gathering and releasing a single task is an ordinary todo update.
+  const toggleTodoInWeek = useCallback(
+    async (todoId: string) => {
+      const todo = todosRef.current.find((currentTodo) => currentTodo.id === todoId);
+      if (!todo) return;
+
+      await updateTodo(todo.productiveWeek ? markTodoOutOfWeek(todo) : markTodoForWeek(todo));
+    },
+    [updateTodo],
+  );
+
+  // The whole point of the pile: when there is energy for it, it all comes back.
+  const moveWeekToMain = useCallback(async () => {
+    const newTodos = getTodosWithWeekReleased(todosRef.current);
+
+    todosRef.current = newTodos;
+    setTodos(newTodos);
+    await saveTodos(newTodos);
+  }, [saveTodos]);
+
   const updateTags = useCallback(
     async (tags: TodoTag[]) => {
       setTags(tags);
@@ -409,6 +436,8 @@ export function useAppInit() {
     handleCloudSortClick,
     isFullWidth,
     handleFullWidthClick,
+    toggleTodoInWeek,
+    moveWeekToMain,
     search,
     setSearch,
 

@@ -1,4 +1,5 @@
-import { Box, Button } from "@mui/material";
+import { Box, Button, IconButton, Tooltip } from "@mui/material";
+import BoltIcon from "@mui/icons-material/Bolt";
 import { AutoRepeatButton } from "../Shared/AutoRepeatButton";
 import { DatePicker } from "../Shared/DatePicker";
 import { NotTodayButton } from "../Shared/NotTodayButton";
@@ -15,6 +16,7 @@ type Props = {
   isDayBeforeDueDate: boolean;
   isSnoozed: boolean;
   updateTodo: (todo: Todo) => void;
+  onToggleWeek: (todoId: string) => void;
   onToggleSnooze: () => void;
   onSetActionsFocused?: (isFocused: boolean) => void;
 };
@@ -27,6 +29,7 @@ export const TodoActionControls: React.FC<Props> = ({
   isDayBeforeDueDate,
   isSnoozed,
   updateTodo,
+  onToggleWeek,
   onToggleSnooze,
   onSetActionsFocused,
 }) => {
@@ -52,6 +55,16 @@ export const TodoActionControls: React.FC<Props> = ({
       <TagPicker selectedTagId={todo.tagId} tags={tags} onTagSelect={updateTag} />
       <DatePicker value={todo.dueDate} onChange={updateDueDate} onOpen={() => onSetActionsFocused?.(true)} />
       <TodoLinkButton link={todo.link} onChange={updateLink} onOpen={() => onSetActionsFocused?.(true)} />
+      <Tooltip title={todo.productiveWeek ? "Take out of the productive week" : "Gather for a productive week"}>
+        <IconButton
+          size="small"
+          aria-label="Productive week"
+          color={todo.productiveWeek ? "warning" : "default"}
+          onClick={() => onToggleWeek(todo.id)}
+        >
+          <BoltIcon fontSize="small" />
+        </IconButton>
+      </Tooltip>
       {!isDayBeforeDueDate && <NotTodayButton onClick={updateNotToday} />}
       <Button
         onClick={onToggleSnooze}

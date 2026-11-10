@@ -5,6 +5,7 @@ import { DoneCard } from "./components/DoneCard/DoneCard";
 import { LinksCard } from "./components/LinksCard/LinksCard";
 import { NotesCard } from "./components/NotesCard.tsx";
 import { NotNowList } from "./components/NotNowList.tsx";
+import { ProductiveWeekCard } from "./components/ProductiveWeekCard.tsx";
 import { TagsCard } from "./components/Tags/TagsCard";
 import { TodoCloud } from "./components/TodoCloud/TodoCloud";
 import { ResetCountsButton } from "./components/Shared/ResetCountsButton";
@@ -51,6 +52,8 @@ export default function App() {
     handleCloudSortClick,
     isFullWidth,
     handleFullWidthClick,
+    toggleTodoInWeek,
+    moveWeekToMain,
     search,
     setSearch,
 
@@ -175,6 +178,13 @@ export default function App() {
               onDeleteTag={deleteTag}
             />
             <LinksCard links={links} updateLinks={updateLinks} setNotification={setNotification} search={search} />
+            <ProductiveWeekCard
+              todos={todos}
+              tags={tags}
+              search={search}
+              onToggleTodo={toggleTodoInWeek}
+              onMoveAllToMain={moveWeekToMain}
+            />
             <NotNowList tags={tags} todos={todos} updateTodo={updateTodo} updateTodos={updateTodos} search={search} />
             <NotesCard notes={notes} setNotes={updateNotes} />
           </Box>
@@ -213,6 +223,7 @@ export default function App() {
             isSortedByName={isCloudSortedByName}
             search={search}
             tags={tags}
+            onToggleWeek={toggleTodoInWeek}
             deleteTodo={deleteTodo}
           />
         </Box>

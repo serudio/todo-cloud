@@ -26,6 +26,7 @@ type Props = {
   isSortedByName: boolean;
   search: string;
   tags: TodoTag[];
+  onToggleWeek: (todoId: string) => void;
   updateTodo: (todo: Todo) => void;
   deleteTodo: (todoId: string) => void;
 };
@@ -36,6 +37,7 @@ export const TodoCloud: React.FC<Props> = ({
   isSortedByName,
   search,
   tags,
+  onToggleWeek,
   updateTodo,
   deleteTodo,
 }) => {
@@ -46,7 +48,9 @@ export const TodoCloud: React.FC<Props> = ({
   // never hidden behind a heading that still shows everything.
   const matchesTodo = (todo: Todo) => matchesSearch(search, todo.text, todo.link);
 
-  const activeTodos = todos.filter((todo) => !todo.done && !isTodoNotNow(todo) && !todo.notToday && matchesTodo(todo));
+  const activeTodos = todos.filter(
+    (todo) => !todo.done && !isTodoNotNow(todo) && !todo.notToday && !todo.productiveWeek && matchesTodo(todo),
+  );
   const notTodayTodos = getNotTodayTodos(todos).filter(matchesTodo);
   const unsortedCloudTodos = activeTodos.filter((todo) => !isTodoSnoozed(todo, currentTime));
   const cloudTodos = isSortedByName ? getTodosSortedByName(unsortedCloudTodos) : unsortedCloudTodos;
@@ -155,6 +159,7 @@ export const TodoCloud: React.FC<Props> = ({
           tags={tags}
           isSnoozed={Boolean(actionsTodo && isTodoSnoozed(actionsTodo, currentTime))}
           updateTodo={updateTodo}
+          onToggleWeek={onToggleWeek}
           onToggleSnooze={handleToggleSnooze}
           onDelete={deleteTodo}
           onClose={() => setActionsTodoId(null)}
@@ -196,6 +201,7 @@ export const TodoCloud: React.FC<Props> = ({
               index={index}
               isSnoozed={false}
               onToggleSnooze={() => handleToggleSnooze(todo.id)}
+              onToggleWeek={onToggleWeek}
               handleTodoDragStart={handleTodoDragStart}
               tags={tags}
             />

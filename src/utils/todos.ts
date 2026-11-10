@@ -5,6 +5,26 @@ import { MAX_ITEM_WEIGHT } from "./lists";
 
 export const SNOOZE_DURATION_MS = 60 * 60 * 1000;
 
+export const getWeekTodos = (todos: Todo[]) => todos.filter((todo) => todo.productiveWeek);
+
+// Putting a task on the pile takes it out of the cloud, the way setting one aside
+// does, but with the opposite intent: it is queued up rather than pushed away.
+export const markTodoForWeek = (todo: Todo) => ({
+  ...todo,
+  productiveWeek: true,
+  notNow: false,
+  notNowDate: null,
+  notToday: false,
+  notTodayDate: null,
+  snoozedUntil: null,
+});
+
+export const markTodoOutOfWeek = (todo: Todo) => ({ ...todo, productiveWeek: false });
+
+// The whole pile moves back to the cloud at once: that is the point of gathering it.
+export const getTodosWithWeekReleased = (todos: Todo[]) =>
+  todos.map((todo) => (todo.productiveWeek ? markTodoOutOfWeek(todo) : todo));
+
 export const markTodoNow = (todo: Todo) => ({
   ...todo,
   notNow: false,
@@ -54,6 +74,7 @@ export const restoreTodoFromDone = (todo: Todo): Todo => {
     done: false,
     doneAt: null,
     notNow: false,
+    productiveWeek: false,
     notNowDate: null,
     snoozedUntil: null,
     notToday: false,
@@ -76,6 +97,7 @@ export const getNewTodo = (todoText: string): Todo => {
     link: null,
     dueDate: null,
     notNow: false,
+    productiveWeek: false,
     notNowDate: null,
     snoozedUntil: null,
     notToday: false,
@@ -182,6 +204,7 @@ export function parseTodos(items: unknown): Todo[] {
           link: typeof todo.link === "string" && todo.link.trim() ? todo.link : null,
           dueDate: parseDueDate(todo.dueDate),
           notNow: todo.notNow === true,
+          productiveWeek: todo.productiveWeek === true,
           notNowDate: typeof todo.notNowDate === "string" ? todo.notNowDate : null,
           snoozedUntil:
             typeof todo.snoozedUntil === "number" && Number.isFinite(todo.snoozedUntil) ? todo.snoozedUntil : null,
