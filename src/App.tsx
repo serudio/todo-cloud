@@ -224,6 +224,7 @@ export default function App() {
             search={search}
             tags={tags}
             onToggleWeek={toggleTodoInWeek}
+            updateTodos={updateTodos}
             deleteTodo={deleteTodo}
           />
         </Box>

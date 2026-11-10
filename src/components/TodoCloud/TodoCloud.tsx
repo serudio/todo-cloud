@@ -28,6 +28,7 @@ type Props = {
   tags: TodoTag[];
   onToggleWeek: (todoId: string) => void;
   updateTodo: (todo: Todo) => void;
+  updateTodos: (todos: Todo[]) => void;
   deleteTodo: (todoId: string) => void;
 };
 
@@ -39,6 +40,7 @@ export const TodoCloud: React.FC<Props> = ({
   tags,
   onToggleWeek,
   updateTodo,
+  updateTodos,
   deleteTodo,
 }) => {
   const isMobile = useIsMobile();
@@ -116,7 +118,9 @@ export const TodoCloud: React.FC<Props> = ({
     return (
       <Card sx={{ flex: 1, position: "relative", display: "flex", flexDirection: "column", p: 1, gap: 0.5 }}>
         <LoadingComponent loading={isLoadingTodos} />
-        {!isLoadingTodos && notTodayTodos.length > 0 && <NotTodayList todos={notTodayTodos} updateTodo={updateTodo} />}
+        {!isLoadingTodos && notTodayTodos.length > 0 && (
+          <NotTodayList todos={notTodayTodos} allTodos={todos} updateTodo={updateTodo} updateTodos={updateTodos} />
+        )}
 
         {!isLoadingTodos && listTodos.length === 0 && (
           <p>{isSearching(search) ? `Nothing matches "${search.trim()}".` : "No todos yet. Add the first one."}</p>
@@ -169,9 +173,11 @@ export const TodoCloud: React.FC<Props> = ({
   }
 
   return (
-    <Card sx={{ flex: 1, position: "relative", display: "flex" }}>
+    <Card sx={{ flex: 1, position: "relative", display: "flex", flexDirection: "column" }}>
       <LoadingComponent loading={isLoadingTodos} />
-      {!isLoadingTodos && notTodayTodos.length > 0 && <NotTodayList todos={notTodayTodos} updateTodo={updateTodo} />}
+      {!isLoadingTodos && notTodayTodos.length > 0 && (
+        <NotTodayList todos={notTodayTodos} allTodos={todos} updateTodo={updateTodo} updateTodos={updateTodos} />
+      )}
       {!isLoadingTodos && snoozedTodos.length > 0 && <Snoozed todos={snoozedTodos} updateTodo={handleRemoveSnooze} />}
       <Box
         sx={{

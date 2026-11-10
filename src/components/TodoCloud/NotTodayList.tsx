@@ -1,33 +1,51 @@
-import { Box, Chip } from "@mui/material";
+import { Box, Chip, Typography } from "@mui/material";
 import type { Todo } from "../../types/todo";
-import { NOT_TODAY_Z } from "../../constants/ui";
-import { markTodoNow } from "../../utils/todos";
+import { getTodosWithNotTodayReleased, markTodoNow } from "../../utils/todos";
 
 type Props = {
+  // Only the tasks hidden for today; the full list is needed to save them back.
   todos: Todo[];
+  allTodos: Todo[];
   updateTodo: (todo: Todo) => void;
+  updateTodos: (todos: Todo[]) => void;
 };
 
-export const NotTodayList: React.FC<Props> = ({ todos, updateTodo }) => {
+// A band across the top of the card rather than chips floating over the tiles:
+// these tasks are still here, but they are not part of today's cloud.
+export const NotTodayList: React.FC<Props> = ({ todos, allTodos, updateTodo, updateTodos }) => {
   const handleClick = (id: string) => () => {
     const newTodo = todos.find((x) => x.id === id);
     if (!newTodo) return;
+
     updateTodo(markTodoNow(newTodo));
   };
+
+  const handleBringAllBack = () =>
+    updateTodos(
+      getTodosWithNotTodayReleased(
+        allTodos,
+        todos.map((todo) => todo.id),
+      ),
+    );
+
   return (
     <Box
       sx={{
         display: "flex",
         alignItems: "center",
-        justifyContent: "flex-start",
         gap: 0.5,
-        position: "absolute",
-        top: 8,
-        left: 8,
         flexWrap: "wrap",
-        zIndex: NOT_TODAY_Z,
+        px: 1,
+        py: 0.5,
+        borderBottom: 1,
+        borderColor: "divider",
+        backgroundColor: "action.hover",
       }}
     >
+      <Typography variant="caption" color="text.secondary" sx={{ mr: 0.5, flexShrink: 0 }}>
+        not today
+      </Typography>
+
       {todos.map((todo) => (
         <Chip
           key={todo.id}
@@ -35,9 +53,20 @@ export const NotTodayList: React.FC<Props> = ({ todos, updateTodo }) => {
           size="small"
           variant="outlined"
           label={todo.text}
-          sx={{ height: 10, fontSize: 10, lineHeight: 1.2 }}
+          sx={{ height: 18, fontSize: 11 }}
         />
       ))}
+
+      {todos.length > 1 && (
+        <Chip
+          onClick={handleBringAllBack}
+          size="small"
+          color="warning"
+          variant="filled"
+          label="all back"
+          sx={{ height: 18, fontSize: 11, ml: "auto" }}
+        />
+      )}
     </Box>
   );
 };
