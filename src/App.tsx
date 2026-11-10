@@ -6,7 +6,7 @@ import { LinksCard } from "./components/LinksCard/LinksCard";
 import { NotesCard } from "./components/NotesCard.tsx";
 import { NotNowList } from "./components/NotNowList.tsx";
 import { ProductiveWeekCard } from "./components/ProductiveWeekCard.tsx";
-import { TagsCard } from "./components/Tags/TagsCard";
+import { SettingsPage } from "./components/SettingsPage.tsx";
 import { TodoCloud } from "./components/TodoCloud/TodoCloud";
 import { ResetCountsButton } from "./components/Shared/ResetCountsButton";
 import { isSupabaseConfigured } from "./supabase";
@@ -16,7 +16,8 @@ import { AddTask } from "./components/TodoCloud/AddTask.tsx";
 import { LoadingComponent } from "./components/Layout/LoadingComponent.tsx";
 import { useAppInit } from "./hooks/app.ts";
 import { NotificationsToast } from "./components/Layout/NotificationAlert";
-import { listsPath, navigate, useRoute } from "./hooks/route.ts";
+import { listsPath, navigate, settingsPath, useRoute } from "./hooks/route.ts";
+import { useSectionSettings } from "./hooks/settings.ts";
 import { useIsMobile } from "./hooks/mobile.ts";
 import { ListsPage } from "./components/Lists/ListsPage";
 import { ListPage } from "./components/Lists/ListPage";
@@ -36,6 +37,7 @@ const PageLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => (
 export default function App() {
   const route = useRoute();
   const isMobile = useIsMobile();
+  const { sections, toggleSection } = useSectionSettings();
   const {
     session,
     isLoadingSession,
@@ -112,6 +114,21 @@ export default function App() {
     );
   }
 
+  if (route.name === "settings") {
+    return (
+      <PageLayout>
+        <SettingsPage
+          sections={sections}
+          onToggleSection={toggleSection}
+          tags={tags}
+          updateTags={updateTags}
+          onDeleteTag={deleteTag}
+          setNotification={setNotification}
+        />
+      </PageLayout>
+    );
+  }
+
   if (route.name === "points") {
     return (
       <PageLayout>
@@ -170,23 +187,22 @@ export default function App() {
               p: 1,
             }}
           >
-            <TagsCard
-              tags={tags}
-              updateTags={updateTags}
-              setNotification={setNotification}
-              search={search}
-              onDeleteTag={deleteTag}
-            />
-            <LinksCard links={links} updateLinks={updateLinks} setNotification={setNotification} search={search} />
-            <ProductiveWeekCard
-              todos={todos}
-              tags={tags}
-              search={search}
-              onToggleTodo={toggleTodoInWeek}
-              onMoveAllToMain={moveWeekToMain}
-            />
-            <NotNowList tags={tags} todos={todos} updateTodo={updateTodo} updateTodos={updateTodos} search={search} />
-            <NotesCard notes={notes} setNotes={updateNotes} />
+            {sections.links && (
+              <LinksCard links={links} updateLinks={updateLinks} setNotification={setNotification} search={search} />
+            )}
+            {sections.productiveWeek && (
+              <ProductiveWeekCard
+                todos={todos}
+                tags={tags}
+                search={search}
+                onToggleTodo={toggleTodoInWeek}
+                onMoveAllToMain={moveWeekToMain}
+              />
+            )}
+            {sections.notNow && (
+              <NotNowList tags={tags} todos={todos} updateTodo={updateTodo} updateTodos={updateTodos} search={search} />
+            )}
+            {sections.notes && <NotesCard notes={notes} setNotes={updateNotes} />}
           </Box>
         </Drawer>
 
@@ -205,6 +221,7 @@ export default function App() {
             onLeftMenuClick={handleLeftMenuClick}
             onRightMenuClick={handleRightMenuClick}
             onListsClick={() => navigate(listsPath)}
+            onSettingsClick={() => navigate(settingsPath)}
             links={links}
             updateLinks={updateLinks}
             setNotification={setNotification}
@@ -244,14 +261,18 @@ export default function App() {
               p: 1,
             }}
           >
-            <DoneCard todos={todos} updateTodo={updateTodo} tags={tags} search={search} onDeleteTodo={deleteTodo} />
-            <DeletedCard
-              deletedTodos={deletedTodos}
-              search={search}
-              onClear={clearDeletedItems}
-              onRemoveDeletedTodo={removeDeletedItem}
-              onRestoreDeletedTodo={restoreDeletedItem}
-            />
+            {sections.done && (
+              <DoneCard todos={todos} updateTodo={updateTodo} tags={tags} search={search} onDeleteTodo={deleteTodo} />
+            )}
+            {sections.deleted && (
+              <DeletedCard
+                deletedTodos={deletedTodos}
+                search={search}
+                onClear={clearDeletedItems}
+                onRemoveDeletedTodo={removeDeletedItem}
+                onRestoreDeletedTodo={restoreDeletedItem}
+              />
+            )}
             <ResetCountsButton todos={todos} updateTodos={updateTodos} />
           </Box>
         </Drawer>

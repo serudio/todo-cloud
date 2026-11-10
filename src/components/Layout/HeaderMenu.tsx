@@ -5,6 +5,7 @@ import LinkIcon from "@mui/icons-material/Link";
 import BalanceIcon from "@mui/icons-material/Balance";
 import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 import HomeIcon from "@mui/icons-material/Home";
+import SettingsIcon from "@mui/icons-material/Settings";
 import SortByAlphaIcon from "@mui/icons-material/SortByAlpha";
 import LogoutIcon from "@mui/icons-material/Logout";
 import { ThemeSelector } from "./ThemeSelector";
@@ -17,11 +18,18 @@ type Props = LinksPopoverProps & {
   isCloudSortedByName: boolean;
   onCloudSortClick: () => void;
   onListsClick: () => void;
+  onSettingsClick: () => void;
 };
 
 // On a phone the header cannot hold eight controls and a search box, so everything
 // that is not search or refresh moves in here.
-export const HeaderMenu: React.FC<Props> = ({ isCloudSortedByName, onCloudSortClick, onListsClick, ...linksProps }) => {
+export const HeaderMenu: React.FC<Props> = ({
+  isCloudSortedByName,
+  onCloudSortClick,
+  onListsClick,
+  onSettingsClick,
+  ...linksProps
+}) => {
   const [anchorElement, setAnchorElement] = useState<HTMLElement | null>(null);
   const [isLinksOpen, setIsLinksOpen] = useState(false);
   // The menu closes before the popover opens, so the popover hangs off this button
@@ -41,6 +49,7 @@ export const HeaderMenu: React.FC<Props> = ({ isCloudSortedByName, onCloudSortCl
       onClick: onCloudSortClick,
     },
     { label: "Pros and cons lists", icon: <BalanceIcon />, onClick: onListsClick },
+    { label: "Settings", icon: <SettingsIcon />, onClick: onSettingsClick },
   ];
 
   return (

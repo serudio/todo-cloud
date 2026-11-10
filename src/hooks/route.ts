@@ -9,13 +9,15 @@ export type Route =
   | { name: "list"; listId: string }
   | { name: "shared"; shareToken: string }
   | { name: "points" }
-  | { name: "goal"; goalId: string };
+  | { name: "goal"; goalId: string }
+  | { name: "settings" };
 
 export const todosPath = "/";
 export const listsPath = "/lists";
 export const getListPath = (listId: string) => `/lists/${listId}`;
 export const getSharedPath = (shareToken: string) => `/shared/${shareToken}`;
 export const pointsPath = "/points";
+export const settingsPath = "/settings";
 export const getGoalPath = (goalId: string) => `/points/${goalId}`;
 
 // "/todo-cloud" when deployed under the repository name, "" in development.
@@ -38,6 +40,7 @@ export function parseRoute(location: Location = window.location): Route {
   if (firstSegment === "shared" && secondSegment) return { name: "shared", shareToken: secondSegment };
   if (firstSegment === "lists") return secondSegment ? { name: "list", listId: secondSegment } : { name: "lists" };
   if (firstSegment === "points") return secondSegment ? { name: "goal", goalId: secondSegment } : { name: "points" };
+  if (firstSegment === "settings") return { name: "settings" };
 
   return { name: "todos" };
 }

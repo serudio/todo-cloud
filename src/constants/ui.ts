@@ -14,5 +14,6 @@ export const DEFAULT_TAG_COLOR = "#e2e2e2";
 
 export const MAIN_SITE_URL = "https://serudio.github.io/";
 
+export const SECTION_SETTINGS_STORAGE_KEY = "todo-cloud:sections";
 export const CLOUD_SORT_STORAGE_KEY = "todo-cloud:cloud-sort";
 export const FULL_WIDTH_STORAGE_KEY = "todo-cloud:full-width";

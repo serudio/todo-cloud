@@ -14,6 +14,7 @@ import LinkIcon from "@mui/icons-material/Link";
 import BalanceIcon from "@mui/icons-material/Balance";
 import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 import HomeIcon from "@mui/icons-material/Home";
+import SettingsIcon from "@mui/icons-material/Settings";
 import SortByAlphaIcon from "@mui/icons-material/SortByAlpha";
 import OpenInFullIcon from "@mui/icons-material/OpenInFull";
 import CloseFullscreenIcon from "@mui/icons-material/CloseFullscreen";
@@ -26,6 +27,7 @@ type Props = LinksPopoverProps & {
   onLeftMenuClick: () => void;
   onRightMenuClick: () => void;
   onListsClick: () => void;
+  onSettingsClick: () => void;
   isCloudSortedByName: boolean;
   onCloudSortClick: () => void;
   isFullWidth: boolean;
@@ -41,6 +43,7 @@ export const Header: React.FC<Props> = ({
   onLeftMenuClick,
   onRightMenuClick,
   onListsClick,
+  onSettingsClick,
   isCloudSortedByName,
   onCloudSortClick,
   isFullWidth,
@@ -112,6 +115,7 @@ export const Header: React.FC<Props> = ({
           isCloudSortedByName={isCloudSortedByName}
           onCloudSortClick={onCloudSortClick}
           onListsClick={onListsClick}
+          onSettingsClick={onSettingsClick}
           links={linksProps.links}
           updateLinks={linksProps.updateLinks}
           setNotification={linksProps.setNotification}
@@ -200,6 +204,17 @@ export const Header: React.FC<Props> = ({
         <Tooltip title="Pros and cons lists">
           <Button variant="text" color="secondary" onClick={onListsClick} sx={{ minWidth: 0 }} aria-label="Open lists">
             <BalanceIcon />
+          </Button>
+        </Tooltip>
+        <Tooltip title="Settings">
+          <Button
+            variant="text"
+            color="secondary"
+            onClick={onSettingsClick}
+            sx={{ minWidth: 0 }}
+            aria-label="Open settings"
+          >
+            <SettingsIcon />
           </Button>
         </Tooltip>
         <Tooltip title="serudio.github.io (opens a new tab)">
