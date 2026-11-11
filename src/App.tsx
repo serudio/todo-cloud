@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { SetupRequired } from "./components/AppState/SetupRequired";
 import { AuthCard } from "./components/AuthCard";
 import { DeletedCard } from "./components/DeletedCard/DeletedCard";
@@ -6,7 +7,7 @@ import { LinksCard } from "./components/LinksCard/LinksCard";
 import { NotesCard } from "./components/NotesCard.tsx";
 import { NotNowList } from "./components/NotNowList.tsx";
 import { ProductiveWeekCard } from "./components/ProductiveWeekCard.tsx";
-import { SettingsPage } from "./components/SettingsPage.tsx";
+import { SettingsDialog } from "./components/SettingsDialog.tsx";
 import { TodoCloud } from "./components/TodoCloud/TodoCloud";
 import { ResetCountsButton } from "./components/Shared/ResetCountsButton";
 import { isSupabaseConfigured } from "./supabase";
@@ -16,7 +17,7 @@ import { AddTask } from "./components/TodoCloud/AddTask.tsx";
 import { LoadingComponent } from "./components/Layout/LoadingComponent.tsx";
 import { useAppInit } from "./hooks/app.ts";
 import { NotificationsToast } from "./components/Layout/NotificationAlert";
-import { listsPath, navigate, settingsPath, useRoute } from "./hooks/route.ts";
+import { listsPath, navigate, useRoute } from "./hooks/route.ts";
 import { useSectionSettings } from "./hooks/settings.ts";
 import { useIsMobile } from "./hooks/mobile.ts";
 import { ListsPage } from "./components/Lists/ListsPage";
@@ -38,6 +39,9 @@ export default function App() {
   const route = useRoute();
   const isMobile = useIsMobile();
   const { sections, toggleSection } = useSectionSettings();
+  // Not a route: settings only change how the page behind them looks, and
+  // leaving that page to flip a switch hid the thing being switched.
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const {
     session,
     isLoadingSession,
@@ -114,21 +118,6 @@ export default function App() {
     );
   }
 
-  if (route.name === "settings") {
-    return (
-      <PageLayout>
-        <SettingsPage
-          sections={sections}
-          onToggleSection={toggleSection}
-          tags={tags}
-          updateTags={updateTags}
-          onDeleteTag={deleteTag}
-          setNotification={setNotification}
-        />
-      </PageLayout>
-    );
-  }
-
   if (route.name === "points") {
     return (
       <PageLayout>
@@ -150,6 +139,17 @@ export default function App() {
       {saveError && <p>{saveError}</p>}
 
       <NotificationsToast notification={notification} onClose={closeNotification} />
+
+      <SettingsDialog
+        open={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        sections={sections}
+        onToggleSection={toggleSection}
+        tags={tags}
+        updateTags={updateTags}
+        onDeleteTag={deleteTag}
+        setNotification={setNotification}
+      />
 
       <AddTask
         todos={todos}
@@ -221,7 +221,7 @@ export default function App() {
             onLeftMenuClick={handleLeftMenuClick}
             onRightMenuClick={handleRightMenuClick}
             onListsClick={() => navigate(listsPath)}
-            onSettingsClick={() => navigate(settingsPath)}
+            onSettingsClick={() => setIsSettingsOpen(true)}
             links={links}
             updateLinks={updateLinks}
             setNotification={setNotification}
