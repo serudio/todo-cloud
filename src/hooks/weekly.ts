@@ -8,7 +8,11 @@ import {
 } from "../utils/db/weeklyActivities";
 import {
   DEFAULT_WEEKLY_TARGET,
+  markWeeklyAwake,
   markWeeklyDone,
+  markWeeklyNotToday,
+  markWeeklyNow,
+  markWeeklySnoozed,
   parseWeeklyActivity,
   pruneDoneDates,
   sortWeeklyActivities,
@@ -89,13 +93,20 @@ export function useWeeklyActivities(userId: string | undefined) {
 
       if (isUnchanged) return;
 
-      const newActivity = { ...changed, doneDates };
+      // Counting one off is the opposite of putting it off, so it comes back
+      // into the cloud: a quota that was snoozed an hour ago and has just been
+      // done should not still be hiding.
+      const newActivity = { ...changed, doneDates, snoozedUntil: null, notTodayDate: null };
 
       putActivities(
         activitiesRef.current.map((activity) => (activity.id === activityId ? newActivity : activity)),
       );
 
-      const { error: saveError } = await updateWeeklyActivity(activityId, { doneDates });
+      const { error: saveError } = await updateWeeklyActivity(activityId, {
+        doneDates,
+        snoozedUntil: null,
+        notTodayDate: null,
+      });
 
       if (saveError) {
         setError(saveError.message);
@@ -113,6 +124,64 @@ export function useWeeklyActivities(userId: string | undefined) {
   const undoOne = useCallback(
     (activityId: string) => applyChange(activityId, (activity) => undoWeeklyDone(activity)),
     [applyChange],
+  );
+
+  /**
+   * Pushes one out of the cloud for a while, or pulls it back.
+   *
+   * Separate from applyChange because it writes different columns: the counts
+   * are the point of this table and must never be carried along by a snooze.
+   */
+  const applyDeferral = useCallback(
+    async (activityId: string, change: (activity: WeeklyActivity) => WeeklyActivity) => {
+      const currentActivity = activitiesRef.current.find((activity) => activity.id === activityId);
+
+      if (!currentActivity) return;
+
+      const newActivity = change(currentActivity);
+
+      if (
+        newActivity.snoozedUntil === currentActivity.snoozedUntil &&
+        newActivity.notTodayDate === currentActivity.notTodayDate
+      ) {
+        return;
+      }
+
+      putActivities(
+        activitiesRef.current.map((activity) => (activity.id === activityId ? newActivity : activity)),
+      );
+
+      const { error: saveError } = await updateWeeklyActivity(activityId, {
+        snoozedUntil: newActivity.snoozedUntil,
+        notTodayDate: newActivity.notTodayDate,
+      });
+
+      if (saveError) {
+        setError(saveError.message);
+        await loadActivities();
+      }
+    },
+    [loadActivities, putActivities],
+  );
+
+  const snoozeOne = useCallback(
+    (activityId: string) => applyDeferral(activityId, (activity) => markWeeklySnoozed(activity)),
+    [applyDeferral],
+  );
+
+  const wakeOne = useCallback(
+    (activityId: string) => applyDeferral(activityId, (activity) => markWeeklyAwake(activity)),
+    [applyDeferral],
+  );
+
+  const notTodayOne = useCallback(
+    (activityId: string) => applyDeferral(activityId, (activity) => markWeeklyNotToday(activity)),
+    [applyDeferral],
+  );
+
+  const bringBackOne = useCallback(
+    (activityId: string) => applyDeferral(activityId, (activity) => markWeeklyNow(activity)),
+    [applyDeferral],
   );
 
   // Typing only touches local state; a commit is what reaches the database, the
@@ -191,6 +260,10 @@ export function useWeeklyActivities(userId: string | undefined) {
     commitActivity,
     countOne,
     undoOne,
+    snoozeOne,
+    wakeOne,
+    notTodayOne,
+    bringBackOne,
     removeActivity,
     reloadActivities: loadActivities,
   };

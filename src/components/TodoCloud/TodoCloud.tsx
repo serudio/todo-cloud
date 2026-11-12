@@ -20,7 +20,13 @@ import { Snoozed } from "./Snoozed";
 import { SwipeableTodoRow } from "./SwipeableTodoRow";
 import { TodoActionSheet } from "./TodoActionSheet";
 import { useIsMobile } from "../../hooks/mobile";
-import { isWeeklyDone, sortWeeklyActivities } from "../../utils/weekly";
+import {
+  isWeeklyDone,
+  isWeeklyDoneToday,
+  isWeeklyNotToday,
+  isWeeklySnoozed,
+  sortWeeklyActivities,
+} from "../../utils/weekly";
 import { WeeklyCloudItem } from "./WeeklyCloudItem";
 
 type Props = {
@@ -33,6 +39,10 @@ type Props = {
   /** The week's quotas, which share the cloud with the tasks until they are met. */
   weeklyActivities: WeeklyActivity[];
   onCountWeekly: (activityId: string) => void;
+  onSnoozeWeekly: (activityId: string) => void;
+  onWakeWeekly: (activityId: string) => void;
+  onNotTodayWeekly: (activityId: string) => void;
+  onBringWeeklyBack: (activityId: string) => void;
   updateTodo: (todo: Todo) => void;
   updateTodos: (todos: Todo[]) => void;
   deleteTodo: (todoId: string) => void;
@@ -47,6 +57,10 @@ export const TodoCloud: React.FC<Props> = ({
   onToggleWeek,
   weeklyActivities,
   onCountWeekly,
+  onSnoozeWeekly,
+  onWakeWeekly,
+  onNotTodayWeekly,
+  onBringWeeklyBack,
   updateTodo,
   updateTodos,
   deleteTodo,
@@ -71,14 +85,30 @@ export const TodoCloud: React.FC<Props> = ({
   // the one that means something — a quota the week is done with drops out,
   // and comes back on Monday, because the counts are read from the week they
   // fall in: nothing has to run at midnight on Sunday for it to reappear.
-  const cloudWeekly = sortWeeklyActivities(weeklyActivities).filter(
-    (activity) => !isWeeklyDone(activity, currentTime) && matchesSearch(search, activity.name),
+  // The cloud is what is still owed today, so a quota leaves it the moment it
+  // has been counted once — for the rest of the day if the week still wants
+  // more, and until Monday if that was the last one. Both come back on their
+  // own: the counts are read from the day and week they fall in.
+  const owedWeekly = sortWeeklyActivities(weeklyActivities).filter(
+    (activity) =>
+      !isWeeklyDone(activity, currentTime) &&
+      !isWeeklyDoneToday(activity, currentTime) &&
+      matchesSearch(search, activity.name),
+  );
+  const notTodayWeekly = owedWeekly.filter((activity) => isWeeklyNotToday(activity));
+  const snoozedWeekly = owedWeekly.filter(
+    (activity) => !isWeeklyNotToday(activity) && isWeeklySnoozed(activity, currentTime),
+  );
+  const cloudWeekly = owedWeekly.filter(
+    (activity) => !isWeeklyNotToday(activity) && !isWeeklySnoozed(activity, currentTime),
   );
 
   // Re-render when the earliest snooze runs out, so a task reappears on its own.
   useEffect(() => {
-    const nextExpiry = todos
-      .map((todo) => todo.snoozedUntil)
+    const nextExpiry = [
+      ...todos.map((todo) => todo.snoozedUntil),
+      ...weeklyActivities.map((activity) => activity.snoozedUntil),
+    ]
       .filter((expiresAt): expiresAt is number => typeof expiresAt === "number" && expiresAt > currentTime)
       .sort((first, second) => first - second)[0];
 
@@ -87,7 +117,7 @@ export const TodoCloud: React.FC<Props> = ({
     const timeoutId = window.setTimeout(() => setCurrentTime(Date.now()), Math.max(0, nextExpiry - currentTime));
 
     return () => window.clearTimeout(timeoutId);
-  }, [currentTime, todos]);
+  }, [currentTime, todos, weeklyActivities]);
 
   function handleToggleSnooze(todoId: string) {
     const todo = todos.find((currentTodo) => currentTodo.id === todoId);
@@ -135,11 +165,18 @@ export const TodoCloud: React.FC<Props> = ({
     return (
       <Card sx={{ flex: 1, position: "relative", display: "flex", flexDirection: "column", p: 1, gap: 0.5 }}>
         <LoadingComponent loading={isLoadingTodos} />
-        {!isLoadingTodos && notTodayTodos.length > 0 && (
-          <NotTodayList todos={notTodayTodos} allTodos={todos} updateTodo={updateTodo} updateTodos={updateTodos} />
+        {!isLoadingTodos && (notTodayTodos.length > 0 || notTodayWeekly.length > 0) && (
+          <NotTodayList
+            todos={notTodayTodos}
+            allTodos={todos}
+            updateTodo={updateTodo}
+            updateTodos={updateTodos}
+            weeklyActivities={notTodayWeekly}
+            onBringWeeklyBack={onBringWeeklyBack}
+          />
         )}
 
-        {!isLoadingTodos && listTodos.length === 0 && cloudWeekly.length === 0 && (
+        {!isLoadingTodos && listTodos.length === 0 && cloudWeekly.length === 0 && snoozedWeekly.length === 0 && (
           <p>{isSearching(search) ? `Nothing matches "${search.trim()}".` : "No todos yet. Add the first one."}</p>
         )}
 
@@ -149,7 +186,10 @@ export const TodoCloud: React.FC<Props> = ({
             activity={activity}
             index={index}
             isRow
+            isSnoozed={false}
             onCount={() => onCountWeekly(activity.id)}
+            onSnooze={() => onSnoozeWeekly(activity.id)}
+            onNotToday={() => onNotTodayWeekly(activity.id)}
           />
         ))}
 
@@ -165,11 +205,23 @@ export const TodoCloud: React.FC<Props> = ({
           />
         ))}
 
-        {snoozedTodos.length > 0 && (
+        {(snoozedTodos.length > 0 || snoozedWeekly.length > 0) && (
           <>
             <Typography variant="caption" color="text.secondary" sx={{ mt: 1 }}>
               snoozed
             </Typography>
+            {snoozedWeekly.map((activity, index) => (
+              <WeeklyCloudItem
+                key={activity.id}
+                activity={activity}
+                index={index}
+                isRow
+                isSnoozed
+                onCount={() => onCountWeekly(activity.id)}
+                onSnooze={() => onWakeWeekly(activity.id)}
+                onNotToday={() => onNotTodayWeekly(activity.id)}
+              />
+            ))}
             {snoozedTodos.map((todo) => (
               <SwipeableTodoRow
                 key={todo.id}
@@ -202,10 +254,24 @@ export const TodoCloud: React.FC<Props> = ({
   return (
     <Card sx={{ flex: 1, position: "relative", display: "flex", flexDirection: "column" }}>
       <LoadingComponent loading={isLoadingTodos} />
-      {!isLoadingTodos && notTodayTodos.length > 0 && (
-        <NotTodayList todos={notTodayTodos} allTodos={todos} updateTodo={updateTodo} updateTodos={updateTodos} />
+      {!isLoadingTodos && (notTodayTodos.length > 0 || notTodayWeekly.length > 0) && (
+        <NotTodayList
+          todos={notTodayTodos}
+          allTodos={todos}
+          updateTodo={updateTodo}
+          updateTodos={updateTodos}
+          weeklyActivities={notTodayWeekly}
+          onBringWeeklyBack={onBringWeeklyBack}
+        />
       )}
-      {!isLoadingTodos && snoozedTodos.length > 0 && <Snoozed todos={snoozedTodos} updateTodo={handleRemoveSnooze} />}
+      {!isLoadingTodos && (snoozedTodos.length > 0 || snoozedWeekly.length > 0) && (
+        <Snoozed
+          todos={snoozedTodos}
+          updateTodo={handleRemoveSnooze}
+          weeklyActivities={snoozedWeekly}
+          onWakeWeekly={onWakeWeekly}
+        />
+      )}
       <Box
         sx={{
           display: "flex",
@@ -228,7 +294,14 @@ export const TodoCloud: React.FC<Props> = ({
         )}
         {cloudWeekly.map((activity, index) => (
           <Box key={activity.id} sx={{ display: "inline-flex", overflow: "visible" }}>
-            <WeeklyCloudItem activity={activity} index={index} onCount={() => onCountWeekly(activity.id)} />
+            <WeeklyCloudItem
+              activity={activity}
+              index={index}
+              isSnoozed={false}
+              onCount={() => onCountWeekly(activity.id)}
+              onSnooze={() => onSnoozeWeekly(activity.id)}
+              onNotToday={() => onNotTodayWeekly(activity.id)}
+            />
           </Box>
         ))}
 

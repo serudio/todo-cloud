@@ -1,7 +1,7 @@
 import { supabase } from "../../supabase";
 import type { WeeklyActivityRow } from "../../types/weekly";
 
-const ACTIVITY_COLUMNS = "id, name, target, done_dates, sort_order";
+const ACTIVITY_COLUMNS = "id, name, target, done_dates, sort_order, snoozed_until, not_today_date";
 
 function getSupabaseClient() {
   if (!supabase) {
@@ -31,12 +31,20 @@ export async function createWeeklyActivity(userId: string, name: string, target:
 
 export async function updateWeeklyActivity(
   activityId: string,
-  input: { name?: string; target?: number; doneDates?: number[] },
+  input: {
+    name?: string;
+    target?: number;
+    doneDates?: number[];
+    snoozedUntil?: number | null;
+    notTodayDate?: string | null;
+  },
 ) {
   const patch: Record<string, unknown> = {};
   if (input.name !== undefined) patch.name = input.name;
   if (input.target !== undefined) patch.target = input.target;
   if (input.doneDates !== undefined) patch.done_dates = input.doneDates;
+  if (input.snoozedUntil !== undefined) patch.snoozed_until = input.snoozedUntil;
+  if (input.notTodayDate !== undefined) patch.not_today_date = input.notTodayDate;
 
   return getSupabaseClient().from("weekly_activities").update(patch).eq("id", activityId);
 }

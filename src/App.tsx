@@ -277,6 +277,10 @@ export default function App() {
             onToggleWeek={toggleTodoInWeek}
             weeklyActivities={sections.weekly ? weekly.activities : []}
             onCountWeekly={weekly.countOne}
+            onSnoozeWeekly={weekly.snoozeOne}
+            onWakeWeekly={weekly.wakeOne}
+            onNotTodayWeekly={weekly.notTodayOne}
+            onBringWeeklyBack={weekly.bringBackOne}
             updateTodos={updateTodos}
             deleteTodo={deleteTodo}
           />

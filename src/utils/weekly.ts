@@ -1,5 +1,7 @@
 import dayjs from "dayjs";
 import type { WeeklyActivity, WeeklyActivityRow, WeeklyWeek } from "../types/weekly";
+import { getLocalDateKey } from "./date";
+import { SNOOZE_DURATION_MS } from "./todos";
 
 export const DEFAULT_WEEKLY_TARGET = 3;
 
@@ -94,6 +96,40 @@ export function undoWeeklyDone(activity: WeeklyActivity, now: number = Date.now(
 }
 
 /**
+ * Out of the cloud for a while, and back on its own.
+ *
+ * The same two answers a task has, stored the same way: an hour's snooze is a
+ * timestamp that passes, and "not today" is the date it was said on, so
+ * tomorrow is a different date and the quota is back. The week's own page
+ * ignores both — what is owed this week is owed whether or not it is wanted
+ * this afternoon.
+ */
+export const markWeeklySnoozed = (activity: WeeklyActivity, durationMs = SNOOZE_DURATION_MS): WeeklyActivity => ({
+  ...activity,
+  snoozedUntil: Date.now() + durationMs,
+});
+
+export const markWeeklyAwake = (activity: WeeklyActivity): WeeklyActivity => ({ ...activity, snoozedUntil: null });
+
+export const markWeeklyNotToday = (activity: WeeklyActivity): WeeklyActivity => ({
+  ...activity,
+  notTodayDate: getLocalDateKey(),
+  snoozedUntil: null,
+});
+
+export const markWeeklyNow = (activity: WeeklyActivity): WeeklyActivity => ({
+  ...activity,
+  notTodayDate: null,
+  snoozedUntil: null,
+});
+
+export const isWeeklySnoozed = (activity: WeeklyActivity, now: number = Date.now()) =>
+  typeof activity.snoozedUntil === "number" && activity.snoozedUntil > now;
+
+export const isWeeklyNotToday = (activity: WeeklyActivity, today: string = getLocalDateKey()) =>
+  activity.notTodayDate === today;
+
+/**
  * Where the whole week stands.
  *
  * Each activity counts for at most its own target, so reading twice as much as
@@ -156,6 +192,8 @@ export const getNewWeeklyActivity = (sortOrder: number): Omit<WeeklyActivity, "i
   target: DEFAULT_WEEKLY_TARGET,
   doneDates: [],
   sortOrder,
+  snoozedUntil: null,
+  notTodayDate: null,
 });
 
 // A target typed into the box: whole, at least one, and not a number that would
@@ -179,6 +217,8 @@ export function parseWeeklyActivity(row: WeeklyActivityRow): WeeklyActivity {
     target: typeof row.target === "number" ? clampTarget(row.target) : 1,
     doneDates: [...doneDates].sort((first, second) => first - second),
     sortOrder: typeof row.sort_order === "number" ? row.sort_order : 0,
+    snoozedUntil: typeof row.snoozed_until === "number" ? row.snoozed_until : null,
+    notTodayDate: typeof row.not_today_date === "string" ? row.not_today_date : null,
   };
 }
 
