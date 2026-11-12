@@ -58,7 +58,7 @@ export const WeeklyChips: React.FC<Props> = ({ activities, search, onCountOne })
               color={isDone ? "success" : "default"}
               icon={isDone ? <CheckIcon /> : undefined}
               label={`${activity.name || "untitled"} ${done}/${activity.target}`}
-              sx={{ height: 22, fontSize: 12 }}
+              sx={{ height: 22, fontSize: 12, letterSpacing: 1.2 }}
             />
           </Tooltip>
         );

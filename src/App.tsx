@@ -15,12 +15,14 @@ import { ResetCountsButton } from "./components/Shared/ResetCountsButton";
 import { isSupabaseConfigured } from "./supabase";
 import { Box, Drawer } from "@mui/material";
 import { Header } from "./components/Layout";
+import { PanelHandle } from "./components/Layout/PanelHandle";
 import { AddTask } from "./components/TodoCloud/AddTask.tsx";
 import { LoadingComponent } from "./components/Layout/LoadingComponent.tsx";
 import { useAppInit } from "./hooks/app.ts";
 import { NotificationsToast } from "./components/Layout/NotificationAlert";
 import { listsPath, navigate, useRoute, weeklyPath } from "./hooks/route.ts";
 import { useSectionSettings } from "./hooks/settings.ts";
+import { SIDE_PANEL_WIDTH } from "./constants/ui.ts";
 import { useIsMobile } from "./hooks/mobile.ts";
 import { ListsPage } from "./components/Lists/ListsPage";
 import { ListPage } from "./components/Lists/ListPage";
@@ -200,7 +202,7 @@ export default function App() {
               display: "flex",
               flexDirection: "column",
               gap: 2,
-              width: 250,
+              width: SIDE_PANEL_WIDTH,
               p: 1,
             }}
           >
@@ -222,6 +224,12 @@ export default function App() {
             {sections.notes && <NotesCard notes={notes} setNotes={updateNotes} />}
           </Box>
         </Drawer>
+
+        {/* Not shown in full width: there is no panel there to close, and the
+            seam would be a line against nothing. */}
+        {!isFullWidth && (
+          <PanelHandle side="left" isOpen={showLeftMenu} onToggle={handleLeftMenuClick} />
+        )}
 
         <Box
           sx={{
@@ -265,6 +273,10 @@ export default function App() {
           />
         </Box>
 
+        {!isFullWidth && (
+          <PanelHandle side="right" isOpen={showRightMenu} onToggle={handleRightMenuClick} />
+        )}
+
         <Drawer
           open={showRightMenu && !isFullWidth}
           onClose={handleRightMenuClick}
@@ -276,7 +288,7 @@ export default function App() {
               display: "flex",
               flexDirection: "column",
               gap: 2,
-              width: 250,
+              width: SIDE_PANEL_WIDTH,
               p: 1,
             }}
           >

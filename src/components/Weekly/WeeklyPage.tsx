@@ -1,22 +1,16 @@
 import { useState } from "react";
-import { Alert, Box, Button, Card, IconButton, Tooltip, Typography } from "@mui/material";
+import { Alert, Box, Button, IconButton, Tooltip, Typography } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import AddIcon from "@mui/icons-material/Add";
 import SettingsIcon from "@mui/icons-material/Settings";
 import type { WeeklyActivity } from "../../types/weekly";
 import { useWeeklyActivities } from "../../hooks/weekly";
 import { navigate, todosPath } from "../../hooks/route";
-import {
-  formatWeekRange,
-  getDaysLeftInWeek,
-  getWeekStart,
-  getWeekTotals,
-  sortWeeklyByRemaining,
-} from "../../utils/weekly";
+import { formatWeekRange, getDaysLeftInWeek, getWeekStart, sortWeeklyByRemaining } from "../../utils/weekly";
 import { LoadingComponent } from "../Layout/LoadingComponent";
 import { ConfirmDialog } from "../Shared/ConfirmDialog";
 import { WeeklyActivityCard } from "./WeeklyActivityCard";
-import { WeeklyProgressCells } from "./WeeklyProgressCells";
+import { WeeklyTotalsCard } from "./WeeklyTotalsCard";
 
 type Props = {
   userId: string;
@@ -37,7 +31,6 @@ export const WeeklyPage: React.FC<Props> = ({ userId, onSettingsClick }) => {
   const [activityPendingDelete, setActivityPendingDelete] = useState<WeeklyActivity | null>(null);
 
   const daysLeft = getDaysLeftInWeek();
-  const totals = getWeekTotals(activities);
   const shownActivities = sortWeeklyByRemaining(activities);
 
   const handleDeleteConfirm = () => {
@@ -80,17 +73,7 @@ export const WeeklyPage: React.FC<Props> = ({ userId, onSettingsClick }) => {
 
       {/* The week as one line, before the things it is made of: whether this
           week is on track is the question the page is opened to answer. */}
-      {activities.length > 0 && (
-        <Card sx={{ p: 1.5, display: "flex", flexDirection: "column", gap: 0.5 }}>
-          <WeeklyProgressCells done={totals.done} target={totals.target} height={14} />
-          <Typography variant="caption" color="text.secondary">
-            {totals.done} of {totals.target} this week
-            {totals.isDone
-              ? " — the whole week is done"
-              : ` · ${totals.target - totals.done} to go, ${daysLeft} ${daysLeft === 1 ? "day" : "days"} left`}
-          </Typography>
-        </Card>
-      )}
+      {activities.length > 0 && <WeeklyTotalsCard activities={activities} daysLeft={daysLeft} />}
 
       {/* A column each on a wide screen rather than one card per band: a line
           of five cells and a name does not need 1100px, and stacked full-width
@@ -109,7 +92,6 @@ export const WeeklyPage: React.FC<Props> = ({ userId, onSettingsClick }) => {
           <WeeklyActivityCard
             key={activity.id}
             activity={activity}
-            daysLeft={daysLeft}
             onChange={(input) => changeActivity(activity.id, input)}
             onCommit={(input) => commitActivity(activity.id, input)}
             onCountOne={() => countOne(activity.id)}

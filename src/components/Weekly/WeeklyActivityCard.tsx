@@ -14,7 +14,6 @@ import {
 
 type Props = {
   activity: WeeklyActivity;
-  daysLeft: number;
   onChange: (input: { name?: string; target?: number }) => void;
   onCommit: (input: { name?: string; target?: number }) => void;
   onCountOne: () => void;
@@ -24,7 +23,6 @@ type Props = {
 
 export const WeeklyActivityCard: React.FC<Props> = ({
   activity,
-  daysLeft,
   onChange,
   onCommit,
   onCountOne,
@@ -80,9 +78,12 @@ export const WeeklyActivityCard: React.FC<Props> = ({
         </Tooltip>
       </Box>
 
-      {/* The whole range rather than a box to type in: a target is set once, it
+      {/* One row: how often, how far along, and the two buttons that change it.
+          The whole range rather than a box to type in — a target is set once, it
           is always a single digit, and seven is every day. */}
-      <Box sx={{ position: "relative", display: "flex", alignItems: "center", gap: 0.25, flexWrap: "wrap" }}>
+      <Box
+        sx={{ position: "relative", display: "flex", alignItems: "center", gap: 0.25, flexWrap: "wrap", rowGap: 0.5 }}
+      >
         <Typography variant="caption" color="text.secondary" sx={{ mr: 0.5 }}>
           times a week
         </Typography>
@@ -99,15 +100,19 @@ export const WeeklyActivityCard: React.FC<Props> = ({
             sx={{ minWidth: 30, "& .MuiChip-label": { px: 0.75 } }}
           />
         ))}
-      </Box>
 
-      <Box sx={{ position: "relative", display: "flex", alignItems: "center", gap: 1 }}>
-        <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography variant="caption" color="text.secondary">
-            {done} of {activity.target}
-            {isDone ? " — done for the week" : ` · ${left} to go, ${daysLeft} ${daysLeft === 1 ? "day" : "days"} left`}
+        {/* Pushes the count and the buttons to the far end of the same row, and
+            lets them drop to a line of their own when there is no room. */}
+        <Box sx={{ flex: 1, minWidth: 8 }} />
+
+        {/* Short enough that the row still holds the buttons: the sentence it
+            is short for is a hover away, and the cells behind the card have
+            already said it without words. */}
+        <Tooltip title={isDone ? "Done for the week" : `${left} still to go this week`}>
+          <Typography variant="caption" color="text.secondary" sx={{ mx: 0.5 }}>
+            {done}/{activity.target}
           </Typography>
-        </Box>
+        </Tooltip>
 
         <Tooltip title="Take the last one back">
           <span>

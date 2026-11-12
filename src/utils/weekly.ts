@@ -48,6 +48,14 @@ export const getDoneThisWeek = (activity: WeeklyActivity, now: number = Date.now
 export const isWeeklyDone = (activity: WeeklyActivity, now: number = Date.now()) =>
   getDoneThisWeek(activity, now) >= activity.target;
 
+/** Already counted once today, whatever is still owed for the rest of the week. */
+export const isWeeklyDoneToday = (activity: WeeklyActivity, now: number = Date.now()) => {
+  const dayStart = dayjs(now).startOf("day").valueOf();
+  const dayEnd = dayjs(dayStart).add(1, "day").valueOf();
+
+  return activity.doneDates.some((doneDate) => doneDate >= dayStart && doneDate < dayEnd);
+};
+
 /**
  * Drops anything older than the weeks worth keeping.
  *
@@ -100,6 +108,31 @@ export function getWeekTotals(activities: WeeklyActivity[], now: number = Date.n
   const target = activities.reduce((total, activity) => total + activity.target, 0);
 
   return { done, target, ratio: target ? done / target : 0, isDone: target > 0 && done >= target };
+}
+
+/**
+ * This week day by day, Monday first: what was counted on each, which one is
+ * today, and which have already gone.
+ *
+ * The week's total says how much is left; this says how it has been spread,
+ * which is the other half of pacing a week — five things on Sunday is not the
+ * same week as one a day.
+ */
+export function getWeekDays(activities: WeeklyActivity[], now: number = Date.now()) {
+  const weekStart = getWeekStart(now);
+  const todayIndex = dayjs(now).startOf("day").diff(dayjs(weekStart), "day");
+
+  return Array.from({ length: 7 }, (_unused, index) => {
+    const dayStart = dayjs(weekStart).add(index, "day").valueOf();
+    const dayEnd = dayjs(dayStart).add(1, "day").valueOf();
+    const done = activities.reduce(
+      (total, activity) =>
+        total + activity.doneDates.filter((doneDate) => doneDate >= dayStart && doneDate < dayEnd).length,
+      0,
+    );
+
+    return { dayStart, done, isToday: index === todayIndex, isPast: index < todayIndex };
+  });
 }
 
 /** The weeks before this one, oldest first, for the history row. */
@@ -155,14 +188,21 @@ export const sortWeeklyActivities = (activities: WeeklyActivity[]) =>
   [...activities].sort((first, second) => first.sortOrder - second.sortOrder);
 
 /**
- * What is still owed first, what is finished last.
+ * What is still owed today first, then what today is already done with, then
+ * what the whole week is done with.
  *
- * Within each group the order they were added holds, so a list does not
- * reshuffle itself as the week goes on — something only ever moves when it is
- * actually finished.
+ * Something counted today is not finished, but it is not this afternoon's
+ * problem either, so it steps aside without going all the way down to where
+ * the finished things live. Within each group the order they were added holds,
+ * so the list only moves when something has actually happened.
  */
+const getWeeklyRank = (activity: WeeklyActivity, now: number) => {
+  if (isWeeklyDone(activity, now)) return 2;
+
+  return isWeeklyDoneToday(activity, now) ? 1 : 0;
+};
+
 export const sortWeeklyByRemaining = (activities: WeeklyActivity[], now: number = Date.now()) =>
   [...activities].sort(
-    (first, second) =>
-      Number(isWeeklyDone(first, now)) - Number(isWeeklyDone(second, now)) || first.sortOrder - second.sortOrder,
+    (first, second) => getWeeklyRank(first, now) - getWeeklyRank(second, now) || first.sortOrder - second.sortOrder,
   );
