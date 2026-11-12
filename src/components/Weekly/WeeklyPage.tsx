@@ -4,7 +4,7 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import AddIcon from "@mui/icons-material/Add";
 import SettingsIcon from "@mui/icons-material/Settings";
 import type { WeeklyActivity } from "../../types/weekly";
-import { useWeeklyActivities } from "../../hooks/weekly";
+import type { WeeklyActivities } from "../../hooks/weekly";
 import { navigate, todosPath } from "../../hooks/route";
 import { formatWeekRange, getDaysLeftInWeek, getWeekStart, sortWeeklyByRemaining } from "../../utils/weekly";
 import { LoadingComponent } from "../Layout/LoadingComponent";
@@ -13,7 +13,9 @@ import { WeeklyActivityCard } from "./WeeklyActivityCard";
 import { WeeklyTotalsCard } from "./WeeklyTotalsCard";
 
 type Props = {
-  userId: string;
+  // Handed down rather than fetched here: the cloud and the strip count
+  // against the same list, and two copies of it would disagree.
+  weekly: WeeklyActivities;
   onSettingsClick: () => void;
 };
 
@@ -25,9 +27,9 @@ type Props = {
  * total of everything missed since March would only make it a worse place to
  * look.
  */
-export const WeeklyPage: React.FC<Props> = ({ userId, onSettingsClick }) => {
+export const WeeklyPage: React.FC<Props> = ({ weekly, onSettingsClick }) => {
   const { activities, isLoading, error, addActivity, changeActivity, commitActivity, countOne, undoOne, removeActivity } =
-    useWeeklyActivities(userId);
+    weekly;
   const [activityPendingDelete, setActivityPendingDelete] = useState<WeeklyActivity | null>(null);
 
   const daysLeft = getDaysLeftInWeek();

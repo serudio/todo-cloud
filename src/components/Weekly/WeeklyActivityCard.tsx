@@ -9,6 +9,7 @@ import {
   getDoneThisWeek,
   getRecentWeeks,
   hasWeeklyHistory,
+  isWeeklyDoneToday,
   WEEKLY_TARGETS,
 } from "../../utils/weekly";
 
@@ -33,9 +34,24 @@ export const WeeklyActivityCard: React.FC<Props> = ({
   const left = Math.max(0, activity.target - done);
   const isDone = left === 0;
   const weeks = getRecentWeeks(activity);
+  const isDoneToday = isWeeklyDoneToday(activity);
 
   return (
-    <Card sx={{ position: "relative", overflow: "hidden", p: 1.5, display: "flex", flexDirection: "column", gap: 1 }}>
+    <Card
+      sx={{
+        position: "relative",
+        overflow: "hidden",
+        p: 1.5,
+        display: "flex",
+        flexDirection: "column",
+        gap: 1,
+        // Something counted today is marked, not just moved: the order says
+        // where it stands in the week, the outline says it has been touched
+        // since this morning.
+        border: 1,
+        borderColor: isDoneToday && !isDone ? "warning.main" : "transparent",
+      }}
+    >
       {/* The card itself is the progress: one column per time it should happen,
           filled as they are done. Behind everything and at a low alpha, so it
           reads as how far along this is without competing with the text on top

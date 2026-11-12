@@ -15,6 +15,8 @@ import {
   undoWeeklyDone,
 } from "../utils/weekly";
 
+export type WeeklyActivities = ReturnType<typeof useWeeklyActivities>;
+
 /**
  * The week's quotas.
  *

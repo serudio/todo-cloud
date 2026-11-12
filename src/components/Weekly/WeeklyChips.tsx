@@ -2,7 +2,7 @@ import { Card, Chip, Tooltip, Typography } from "@mui/material";
 import CheckIcon from "@mui/icons-material/Check";
 import type { WeeklyActivity } from "../../types/weekly";
 import { navigate, weeklyPath } from "../../hooks/route";
-import { getDaysLeftInWeek, getDoneThisWeek, sortWeeklyByRemaining } from "../../utils/weekly";
+import { getDaysLeftInWeek, getDoneThisWeek, isWeeklyDoneToday, sortWeeklyByRemaining } from "../../utils/weekly";
 import { matchesSearch } from "../../utils/search";
 
 type Props = {
@@ -45,17 +45,24 @@ export const WeeklyChips: React.FC<Props> = ({ activities, search, onCountOne })
       {shownActivities.map((activity) => {
         const done = getDoneThisWeek(activity);
         const isDone = done >= activity.target;
+        // Counted today: still owed this week, but already dealt with once
+        // since this morning, which is the thing being asked at a glance.
+        const isDoneToday = isWeeklyDoneToday(activity);
 
         return (
           <Tooltip
             key={activity.id}
-            title={isDone ? "Done for the week — tap to count another" : `Tap to count one · ${daysLeft} days left`}
+            title={
+              isDone
+                ? "Done for the week — tap to count another"
+                : `${isDoneToday ? "Counted today · " : ""}Tap to count one · ${daysLeft} days left`
+            }
           >
             <Chip
               onClick={() => onCountOne(activity.id)}
               size="small"
               variant={isDone ? "filled" : "outlined"}
-              color={isDone ? "success" : "default"}
+              color={isDone ? "success" : isDoneToday ? "warning" : "default"}
               icon={isDone ? <CheckIcon /> : undefined}
               label={`${activity.name || "untitled"} ${done}/${activity.target}`}
               sx={{ height: 22, fontSize: 12, letterSpacing: 1.2 }}

@@ -10,7 +10,7 @@ import { ProductiveWeekCard } from "./components/ProductiveWeekCard.tsx";
 import { SettingsDialog } from "./components/SettingsDialog.tsx";
 import { TodoCloud } from "./components/TodoCloud/TodoCloud";
 import { WeeklyPage } from "./components/Weekly/WeeklyPage";
-import { WeeklyStrip } from "./components/Weekly/WeeklyStrip";
+import { WeeklyChips } from "./components/Weekly/WeeklyChips";
 import { ResetCountsButton } from "./components/Shared/ResetCountsButton";
 import { isSupabaseConfigured } from "./supabase";
 import { Box, Drawer } from "@mui/material";
@@ -22,6 +22,7 @@ import { useAppInit } from "./hooks/app.ts";
 import { NotificationsToast } from "./components/Layout/NotificationAlert";
 import { listsPath, navigate, useRoute, weeklyPath } from "./hooks/route.ts";
 import { useSectionSettings } from "./hooks/settings.ts";
+import { useWeeklyActivities } from "./hooks/weekly.ts";
 import { SIDE_PANEL_WIDTH } from "./constants/ui.ts";
 import { useIsMobile } from "./hooks/mobile.ts";
 import { ListsPage } from "./components/Lists/ListsPage";
@@ -107,6 +108,10 @@ export default function App() {
     />
   );
 
+  // One instance for the whole app: the strip, the cloud and the week's own
+  // page count against the same list, so a tap in one shows in the others.
+  const weekly = useWeeklyActivities(session?.user.id);
+
   if (!isSupabaseConfigured) return <SetupRequired />;
 
   // Share links open without an account, so this route comes before the auth gate.
@@ -140,7 +145,7 @@ export default function App() {
   if (route.name === "weekly") {
     return (
       <PageLayout>
-        <WeeklyPage userId={session.user.id} onSettingsClick={() => setIsSettingsOpen(true)} />
+        <WeeklyPage weekly={weekly} onSettingsClick={() => setIsSettingsOpen(true)} />
         {settingsDialog}
       </PageLayout>
     );
@@ -259,7 +264,9 @@ export default function App() {
             onSearchChange={setSearch}
             email={session.user.email}
           />
-          {sections.weekly && <WeeklyStrip userId={session.user.id} search={search} />}
+          {sections.weekly && !weekly.isLoading && (
+            <WeeklyChips activities={weekly.activities} search={search} onCountOne={weekly.countOne} />
+          )}
           <TodoCloud
             todos={todos}
             updateTodo={updateTodo}
@@ -268,6 +275,8 @@ export default function App() {
             search={search}
             tags={tags}
             onToggleWeek={toggleTodoInWeek}
+            weeklyActivities={sections.weekly ? weekly.activities : []}
+            onCountWeekly={weekly.countOne}
             updateTodos={updateTodos}
             deleteTodo={deleteTodo}
           />
