@@ -2,7 +2,7 @@ import { Card, Chip, Tooltip, Typography } from "@mui/material";
 import CheckIcon from "@mui/icons-material/Check";
 import type { WeeklyActivity } from "../../types/weekly";
 import { navigate, weeklyPath } from "../../hooks/route";
-import { getDaysLeftInWeek, getDoneThisWeek } from "../../utils/weekly";
+import { getDaysLeftInWeek, getDoneThisWeek, sortWeeklyByRemaining } from "../../utils/weekly";
 import { matchesSearch } from "../../utils/search";
 
 type Props = {
@@ -20,7 +20,9 @@ type Props = {
  */
 export const WeeklyChips: React.FC<Props> = ({ activities, search, onCountOne }) => {
   const daysLeft = getDaysLeftInWeek();
-  const shownActivities = activities.filter((activity) => matchesSearch(search, activity.name));
+  const shownActivities = sortWeeklyByRemaining(activities).filter((activity) =>
+    matchesSearch(search, activity.name),
+  );
 
   // Nothing set up, or nothing matching what is being searched for: the strip
   // is a reminder, and an empty reminder is just a bar taking up room.

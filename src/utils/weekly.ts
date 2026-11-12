@@ -2,7 +2,13 @@ import dayjs from "dayjs";
 import type { WeeklyActivity, WeeklyActivityRow, WeeklyWeek } from "../types/weekly";
 
 export const DEFAULT_WEEKLY_TARGET = 3;
-export const MAX_WEEKLY_TARGET = 99;
+
+// Seven is every day, which is as often as a week can ask for. The picker is
+// the whole range rather than a box to type a number into: a target is chosen
+// once and is always a single digit, so a row of seven is quicker than typing
+// and cannot land on a number that means nothing.
+export const WEEKLY_TARGETS = [1, 2, 3, 4, 5, 6, 7];
+export const MAX_WEEKLY_TARGET = WEEKLY_TARGETS[WEEKLY_TARGETS.length - 1];
 
 // How much history is worth keeping: enough to see whether a habit is holding,
 // not so much that the row grows forever.
@@ -79,6 +85,23 @@ export function undoWeeklyDone(activity: WeeklyActivity, now: number = Date.now(
   };
 }
 
+/**
+ * Where the whole week stands.
+ *
+ * Each activity counts for at most its own target, so reading twice as much as
+ * planned cannot quietly stand in for the yoga that never happened — the bar
+ * is "how much of the week is done", not "how much was done this week".
+ */
+export function getWeekTotals(activities: WeeklyActivity[], now: number = Date.now()) {
+  const done = activities.reduce(
+    (total, activity) => total + Math.min(getDoneThisWeek(activity, now), activity.target),
+    0,
+  );
+  const target = activities.reduce((total, activity) => total + activity.target, 0);
+
+  return { done, target, ratio: target ? done / target : 0, isDone: target > 0 && done >= target };
+}
+
 /** The weeks before this one, oldest first, for the history row. */
 export function getRecentWeeks(activity: WeeklyActivity, weeks = SHOWN_WEEKS, now: number = Date.now()): WeeklyWeek[] {
   return Array.from({ length: weeks }, (_unused, index) => {
@@ -130,3 +153,16 @@ export function parseWeeklyActivity(row: WeeklyActivityRow): WeeklyActivity {
 // order they are meant to be read in.
 export const sortWeeklyActivities = (activities: WeeklyActivity[]) =>
   [...activities].sort((first, second) => first.sortOrder - second.sortOrder);
+
+/**
+ * What is still owed first, what is finished last.
+ *
+ * Within each group the order they were added holds, so a list does not
+ * reshuffle itself as the week goes on — something only ever moves when it is
+ * actually finished.
+ */
+export const sortWeeklyByRemaining = (activities: WeeklyActivity[], now: number = Date.now()) =>
+  [...activities].sort(
+    (first, second) =>
+      Number(isWeeklyDone(first, now)) - Number(isWeeklyDone(second, now)) || first.sortOrder - second.sortOrder,
+  );

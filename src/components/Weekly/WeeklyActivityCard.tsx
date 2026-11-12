@@ -1,15 +1,15 @@
-import { Box, Card, IconButton, InputBase, LinearProgress, TextField, Tooltip, Typography } from "@mui/material";
+import { Box, Card, Chip, IconButton, InputBase, Tooltip, Typography } from "@mui/material";
+import { alpha } from "@mui/material/styles";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutlineOutlined";
 import type { WeeklyActivity } from "../../types/weekly";
 import {
-  clampTarget,
   formatWeekRange,
   getDoneThisWeek,
   getRecentWeeks,
   hasWeeklyHistory,
-  MAX_WEEKLY_TARGET,
+  WEEKLY_TARGETS,
 } from "../../utils/weekly";
 
 type Props = {
@@ -37,8 +37,32 @@ export const WeeklyActivityCard: React.FC<Props> = ({
   const weeks = getRecentWeeks(activity);
 
   return (
-    <Card sx={{ p: 1.5, display: "flex", flexDirection: "column", gap: 1 }}>
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+    <Card sx={{ position: "relative", overflow: "hidden", p: 1.5, display: "flex", flexDirection: "column", gap: 1 }}>
+      {/* The card itself is the progress: one column per time it should happen,
+          filled as they are done. Behind everything and at a low alpha, so it
+          reads as how far along this is without competing with the text on top
+          of it. */}
+      <Box
+        aria-hidden
+        sx={{ position: "absolute", inset: 0, display: "flex", pointerEvents: "none" }}
+      >
+        {Array.from({ length: activity.target }, (_unused, index) => (
+          <Box
+            key={index}
+            sx={{
+              flex: 1,
+              borderRight: index === activity.target - 1 ? 0 : 1,
+              borderColor: "divider",
+              bgcolor: (theme) =>
+                index < Math.min(done, activity.target)
+                  ? alpha(theme.palette[isDone ? "success" : "warning"].main, 0.16)
+                  : "transparent",
+            }}
+          />
+        ))}
+      </Box>
+
+      <Box sx={{ position: "relative", display: "flex", alignItems: "center", gap: 1 }}>
         <InputBase
           value={activity.name}
           placeholder="what, and how often"
@@ -47,19 +71,6 @@ export const WeeklyActivityCard: React.FC<Props> = ({
           sx={{ flex: 1, minWidth: 0, fontSize: "1.05rem" }}
         />
 
-        <Tooltip title="Times a week">
-          <TextField
-            type="number"
-            size="small"
-            label="a week"
-            value={activity.target}
-            onChange={(event) => onChange({ target: clampTarget(Number(event.target.value)) })}
-            onBlur={() => onCommit({ target: activity.target })}
-            slotProps={{ htmlInput: { min: 1, max: MAX_WEEKLY_TARGET, "aria-label": "Times a week" } }}
-            sx={{ width: 92 }}
-          />
-        </Tooltip>
-
         <Tooltip title="Remove this">
           <IconButton size="small" onClick={onDelete} aria-label={`Remove ${activity.name || "this"}`}>
             <DeleteOutlineIcon fontSize="small" />
@@ -67,16 +78,29 @@ export const WeeklyActivityCard: React.FC<Props> = ({
         </Tooltip>
       </Box>
 
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-        <Box sx={{ flex: 1, minWidth: 0 }}>
-          <LinearProgress
-            variant="determinate"
-            // Past the target the bar is simply full: extra reading is not a
-            // reason to show a broken-looking bar.
-            value={Math.min(100, (done / activity.target) * 100)}
-            color={isDone ? "success" : "warning"}
-            sx={{ height: 8, borderRadius: 4 }}
+      {/* The whole range rather than a box to type in: a target is set once, it
+          is always a single digit, and seven is every day. */}
+      <Box sx={{ position: "relative", display: "flex", alignItems: "center", gap: 0.25, flexWrap: "wrap" }}>
+        <Typography variant="caption" color="text.secondary" sx={{ mr: 0.5 }}>
+          times a week
+        </Typography>
+        {WEEKLY_TARGETS.map((target) => (
+          <Chip
+            key={target}
+            label={target}
+            size="small"
+            onClick={() => onCommit({ target })}
+            variant={target === activity.target ? "filled" : "outlined"}
+            color={target === activity.target ? "warning" : "default"}
+            aria-pressed={target === activity.target}
+            // Narrow enough that all seven and the label hold one line on a phone.
+            sx={{ minWidth: 30, "& .MuiChip-label": { px: 0.75 } }}
           />
+        ))}
+      </Box>
+
+      <Box sx={{ position: "relative", display: "flex", alignItems: "center", gap: 1 }}>
+        <Box sx={{ flex: 1, minWidth: 0 }}>
           <Typography variant="caption" color="text.secondary">
             {done} of {activity.target}
             {isDone ? " — done for the week" : ` · ${left} to go, ${daysLeft} ${daysLeft === 1 ? "day" : "days"} left`}
@@ -111,7 +135,7 @@ export const WeeklyActivityCard: React.FC<Props> = ({
       {/* Only once there is a past to show: a row of empty weeks on something
           started yesterday reads as failure rather than as no data. */}
       {hasWeeklyHistory(activity) && (
-        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, flexWrap: "wrap" }}>
+        <Box sx={{ position: "relative", display: "flex", alignItems: "center", gap: 0.5, flexWrap: "wrap" }}>
           <Typography variant="caption" color="text.secondary" sx={{ mr: 0.5 }}>
             before
           </Typography>

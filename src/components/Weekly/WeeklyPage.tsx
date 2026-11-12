@@ -1,14 +1,21 @@
 import { useState } from "react";
-import { Alert, Box, Button, Typography } from "@mui/material";
+import { Alert, Box, Button, Card, Typography } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import AddIcon from "@mui/icons-material/Add";
 import type { WeeklyActivity } from "../../types/weekly";
 import { useWeeklyActivities } from "../../hooks/weekly";
 import { navigate, todosPath } from "../../hooks/route";
-import { formatWeekRange, getDaysLeftInWeek, getWeekStart } from "../../utils/weekly";
+import {
+  formatWeekRange,
+  getDaysLeftInWeek,
+  getWeekStart,
+  getWeekTotals,
+  sortWeeklyByRemaining,
+} from "../../utils/weekly";
 import { LoadingComponent } from "../Layout/LoadingComponent";
 import { ConfirmDialog } from "../Shared/ConfirmDialog";
 import { WeeklyActivityCard } from "./WeeklyActivityCard";
+import { WeeklyProgressCells } from "./WeeklyProgressCells";
 
 type Props = {
   userId: string;
@@ -28,6 +35,8 @@ export const WeeklyPage: React.FC<Props> = ({ userId }) => {
   const [activityPendingDelete, setActivityPendingDelete] = useState<WeeklyActivity | null>(null);
 
   const daysLeft = getDaysLeftInWeek();
+  const totals = getWeekTotals(activities);
+  const shownActivities = sortWeeklyByRemaining(activities);
 
   const handleDeleteConfirm = () => {
     if (activityPendingDelete) removeActivity(activityPendingDelete.id);
@@ -60,8 +69,34 @@ export const WeeklyPage: React.FC<Props> = ({ userId }) => {
         </Typography>
       )}
 
-      <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-        {activities.map((activity) => (
+      {/* The week as one line, before the things it is made of: whether this
+          week is on track is the question the page is opened to answer. */}
+      {activities.length > 0 && (
+        <Card sx={{ p: 1.5, display: "flex", flexDirection: "column", gap: 0.5 }}>
+          <WeeklyProgressCells done={totals.done} target={totals.target} height={14} />
+          <Typography variant="caption" color="text.secondary">
+            {totals.done} of {totals.target} this week
+            {totals.isDone
+              ? " — the whole week is done"
+              : ` · ${totals.target - totals.done} to go, ${daysLeft} ${daysLeft === 1 ? "day" : "days"} left`}
+          </Typography>
+        </Card>
+      )}
+
+      {/* A column each on a wide screen rather than one card per band: a line
+          of five cells and a name does not need 1100px, and stacked full-width
+          rows push the week off the bottom of the screen. */}
+      <Box
+        sx={{
+          display: "grid",
+          // minmax(0, …) rather than 1fr: a column floored at its content's
+          // width would be pushed wider than a phone by the row of targets.
+          gridTemplateColumns: { xs: "minmax(0, 1fr)", md: "repeat(2, minmax(0, 1fr))" },
+          alignItems: "start",
+          gap: 1,
+        }}
+      >
+        {shownActivities.map((activity) => (
           <WeeklyActivityCard
             key={activity.id}
             activity={activity}
