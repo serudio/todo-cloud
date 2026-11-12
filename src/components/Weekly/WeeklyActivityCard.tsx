@@ -68,7 +68,9 @@ export const WeeklyActivityCard: React.FC<Props> = ({
           placeholder="what, and how often"
           onChange={(event) => onChange({ name: event.target.value })}
           onBlur={() => onCommit({ name: activity.name })}
-          sx={{ flex: 1, minWidth: 0, fontSize: "1.05rem" }}
+          // The name is what the card is; everything else on it is a number or
+          // a control, so it can carry the size and the spacing on its own.
+          sx={{ flex: 1, minWidth: 0, fontSize: "1.25rem", letterSpacing: 1.2 }}
         />
 
         <Tooltip title="Remove this">

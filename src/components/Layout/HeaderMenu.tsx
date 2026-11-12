@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Box, Divider, IconButton, ListItemIcon, ListItemText, Menu, MenuItem } from "@mui/material";
+import { Divider, IconButton, ListItemIcon, ListItemText, Menu, MenuItem } from "@mui/material";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import LinkIcon from "@mui/icons-material/Link";
 import BalanceIcon from "@mui/icons-material/Balance";
@@ -9,7 +9,6 @@ import SettingsIcon from "@mui/icons-material/Settings";
 import SortByAlphaIcon from "@mui/icons-material/SortByAlpha";
 import EventRepeatIcon from "@mui/icons-material/EventRepeat";
 import LogoutIcon from "@mui/icons-material/Logout";
-import { ThemeSelector } from "./ThemeSelector";
 import { signOut } from "../../utils/auth";
 import { getAbsoluteUrl, pointsPath } from "../../hooks/route";
 import { MAIN_SITE_URL } from "../../constants/ui";
@@ -95,12 +94,6 @@ export const HeaderMenu: React.FC<Props> = ({
           </ListItemIcon>
           <ListItemText>Main site</ListItemText>
         </MenuItem>
-
-        <Divider />
-
-        <Box sx={{ px: 2, py: 1 }}>
-          <ThemeSelector />
-        </Box>
 
         <Divider />
 

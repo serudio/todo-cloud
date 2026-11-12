@@ -13,6 +13,7 @@ import type { TodoTag } from "../types/todo";
 import { SECTIONS, type SectionKey, type SectionSettings } from "../hooks/settings";
 import { useIsMobile } from "../hooks/mobile";
 import { TagsCard } from "./Tags/TagsCard";
+import { ThemeSelector } from "./Layout/ThemeSelector";
 
 type Props = {
   open: boolean;
@@ -57,6 +58,19 @@ export const SettingsDialog: React.FC<Props> = ({
       </DialogTitle>
 
       <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+        {/* First, because it is the one setting here that changes everything at
+            once and the one most likely to be what the dialog was opened for. */}
+        <Box>
+          <Typography variant="subtitle2" sx={{ mb: 1 }}>
+            Theme
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+            Light, dark, or whatever this device is set to. Kept on this device.
+          </Typography>
+
+          <ThemeSelector />
+        </Box>
+
         <Box>
           <Typography variant="subtitle2" sx={{ mb: 1 }}>
             Sections

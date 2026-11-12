@@ -90,6 +90,21 @@ export default function App() {
     closeNotification,
   } = useAppInit();
 
+  // One dialog shared by the pages that offer it, rather than one per page:
+  // the theme is in here now, so anywhere you can sit and read should have it.
+  const settingsDialog = (
+    <SettingsDialog
+      open={isSettingsOpen}
+      onClose={() => setIsSettingsOpen(false)}
+      sections={sections}
+      onToggleSection={toggleSection}
+      tags={tags}
+      updateTags={updateTags}
+      onDeleteTag={deleteTag}
+      setNotification={setNotification}
+    />
+  );
+
   if (!isSupabaseConfigured) return <SetupRequired />;
 
   // Share links open without an account, so this route comes before the auth gate.
@@ -123,7 +138,8 @@ export default function App() {
   if (route.name === "weekly") {
     return (
       <PageLayout>
-        <WeeklyPage userId={session.user.id} />
+        <WeeklyPage userId={session.user.id} onSettingsClick={() => setIsSettingsOpen(true)} />
+        {settingsDialog}
       </PageLayout>
     );
   }
@@ -150,16 +166,7 @@ export default function App() {
 
       <NotificationsToast notification={notification} onClose={closeNotification} />
 
-      <SettingsDialog
-        open={isSettingsOpen}
-        onClose={() => setIsSettingsOpen(false)}
-        sections={sections}
-        onToggleSection={toggleSection}
-        tags={tags}
-        updateTags={updateTags}
-        onDeleteTag={deleteTag}
-        setNotification={setNotification}
-      />
+      {settingsDialog}
 
       <AddTask
         todos={todos}

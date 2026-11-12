@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { Alert, Box, Button, Card, Typography } from "@mui/material";
+import { Alert, Box, Button, Card, IconButton, Tooltip, Typography } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import AddIcon from "@mui/icons-material/Add";
+import SettingsIcon from "@mui/icons-material/Settings";
 import type { WeeklyActivity } from "../../types/weekly";
 import { useWeeklyActivities } from "../../hooks/weekly";
 import { navigate, todosPath } from "../../hooks/route";
@@ -19,6 +20,7 @@ import { WeeklyProgressCells } from "./WeeklyProgressCells";
 
 type Props = {
   userId: string;
+  onSettingsClick: () => void;
 };
 
 /**
@@ -29,7 +31,7 @@ type Props = {
  * total of everything missed since March would only make it a worse place to
  * look.
  */
-export const WeeklyPage: React.FC<Props> = ({ userId }) => {
+export const WeeklyPage: React.FC<Props> = ({ userId, onSettingsClick }) => {
   const { activities, isLoading, error, addActivity, changeActivity, commitActivity, countOne, undoOne, removeActivity } =
     useWeeklyActivities(userId);
   const [activityPendingDelete, setActivityPendingDelete] = useState<WeeklyActivity | null>(null);
@@ -58,6 +60,13 @@ export const WeeklyPage: React.FC<Props> = ({ userId }) => {
         <Button size="small" onClick={addActivity} startIcon={<AddIcon />}>
           add
         </Button>
+        {/* The theme lives in settings now, and this page is somewhere you can
+            end up and stay — so it needs the same way in as the cloud has. */}
+        <Tooltip title="Settings">
+          <IconButton size="small" color="secondary" onClick={onSettingsClick} aria-label="Open settings">
+            <SettingsIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
       </Box>
 
       {error && <Alert severity="error">{error}</Alert>}

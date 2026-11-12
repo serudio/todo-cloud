@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Box, Button, Card, Chip, IconButton, InputBase, Tooltip } from "@mui/material";
 import RefreshRoundedIcon from "@mui/icons-material/RefreshRounded";
 import LogoutIcon from "@mui/icons-material/Logout";
-import { ThemeSelector } from "./ThemeSelector";
 import { signOut } from "../../utils/auth";
 import { HeaderMenu } from "./HeaderMenu";
 import { getAbsoluteUrl, pointsPath } from "../../hooks/route";
@@ -265,9 +264,6 @@ export const Header: React.FC<Props> = ({
         <Button onClick={onLeftMenuClick}>
           <MenuOpenIcon sx={{ transform: "scaleX(-1)" }} color="info" />
         </Button>
-
-        {/* ThemeSelector */}
-        <ThemeSelector />
 
         {/* Right Menu */}
         <Button onClick={onRightMenuClick}>
