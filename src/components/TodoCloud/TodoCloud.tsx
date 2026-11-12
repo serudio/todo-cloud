@@ -29,6 +29,13 @@ import {
 } from "../../utils/weekly";
 import { WeeklyCloudItem } from "./WeeklyCloudItem";
 
+// What the cloud lays out: the tasks, and the quotas that share it with them.
+type CloudEntry =
+  | { kind: "todo"; todo: Todo; key: string }
+  | { kind: "weekly"; activity: WeeklyActivity; key: string };
+
+const getEntryLabel = (entry: CloudEntry) => (entry.kind === "todo" ? entry.todo.text : entry.activity.name);
+
 type Props = {
   todos: Todo[];
   isLoadingTodos: boolean;
@@ -102,6 +109,20 @@ export const TodoCloud: React.FC<Props> = ({
   const cloudWeekly = owedWeekly.filter(
     (activity) => !isWeeklyNotToday(activity) && !isWeeklySnoozed(activity, currentTime),
   );
+
+  // One cloud, one list: a quota tilts in the same run as the tasks around it
+  // and sorts with them when the cloud is sorted, rather than sitting in a
+  // block of its own at the front.
+  const cloudEntries: CloudEntry[] = [
+    ...cloudWeekly.map((activity) => ({ kind: "weekly" as const, activity, key: `weekly-${activity.id}` })),
+    ...cloudTodos.map((todo) => ({ kind: "todo" as const, todo, key: todo.id })),
+  ];
+
+  if (isSortedByName) {
+    cloudEntries.sort((first, second) =>
+      getEntryLabel(first).localeCompare(getEntryLabel(second), undefined, { sensitivity: "base" }),
+    );
+  }
 
   // Re-render when the earliest snooze runs out, so a task reappears on its own.
   useEffect(() => {
@@ -292,31 +313,29 @@ export const TodoCloud: React.FC<Props> = ({
         {!isLoadingTodos && activeTodos.length === 0 && cloudWeekly.length === 0 && (
           <p>{isSearching(search) ? `Nothing matches "${search.trim()}".` : "No todos yet. Add the first one."}</p>
         )}
-        {cloudWeekly.map((activity, index) => (
-          <Box key={activity.id} sx={{ display: "inline-flex", overflow: "visible" }}>
-            <WeeklyCloudItem
-              activity={activity}
-              index={index}
-              isSnoozed={false}
-              onCount={() => onCountWeekly(activity.id)}
-              onSnooze={() => onSnoozeWeekly(activity.id)}
-              onNotToday={() => onNotTodayWeekly(activity.id)}
-            />
-          </Box>
-        ))}
-
-        {cloudTodos.map((todo, index) => (
-          <Box key={todo.id} sx={{ display: "inline-flex", overflow: "visible" }}>
-            <TodoItem
-              todo={todo}
-              updateTodo={updateTodo}
-              index={index}
-              isSnoozed={false}
-              onToggleSnooze={() => handleToggleSnooze(todo.id)}
-              onToggleWeek={onToggleWeek}
-              handleTodoDragStart={handleTodoDragStart}
-              tags={tags}
-            />
+        {cloudEntries.map((entry, index) => (
+          <Box key={entry.key} sx={{ display: "inline-flex", overflow: "visible" }}>
+            {entry.kind === "todo" ? (
+              <TodoItem
+                todo={entry.todo}
+                updateTodo={updateTodo}
+                index={index}
+                isSnoozed={false}
+                onToggleSnooze={() => handleToggleSnooze(entry.todo.id)}
+                onToggleWeek={onToggleWeek}
+                handleTodoDragStart={handleTodoDragStart}
+                tags={tags}
+              />
+            ) : (
+              <WeeklyCloudItem
+                activity={entry.activity}
+                index={index}
+                isSnoozed={false}
+                onCount={() => onCountWeekly(entry.activity.id)}
+                onSnooze={() => onSnoozeWeekly(entry.activity.id)}
+                onNotToday={() => onNotTodayWeekly(entry.activity.id)}
+              />
+            )}
           </Box>
         ))}
       </Box>
