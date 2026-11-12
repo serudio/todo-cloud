@@ -16,6 +16,7 @@ import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 import HomeIcon from "@mui/icons-material/Home";
 import SettingsIcon from "@mui/icons-material/Settings";
 import SortByAlphaIcon from "@mui/icons-material/SortByAlpha";
+import EventRepeatIcon from "@mui/icons-material/EventRepeat";
 import OpenInFullIcon from "@mui/icons-material/OpenInFull";
 import CloseFullscreenIcon from "@mui/icons-material/CloseFullscreen";
 import SearchIcon from "@mui/icons-material/Search";
@@ -27,6 +28,7 @@ type Props = LinksPopoverProps & {
   onLeftMenuClick: () => void;
   onRightMenuClick: () => void;
   onListsClick: () => void;
+  onWeeklyClick: () => void;
   onSettingsClick: () => void;
   isCloudSortedByName: boolean;
   onCloudSortClick: () => void;
@@ -43,6 +45,7 @@ export const Header: React.FC<Props> = ({
   onLeftMenuClick,
   onRightMenuClick,
   onListsClick,
+  onWeeklyClick,
   onSettingsClick,
   isCloudSortedByName,
   onCloudSortClick,
@@ -115,6 +118,7 @@ export const Header: React.FC<Props> = ({
           isCloudSortedByName={isCloudSortedByName}
           onCloudSortClick={onCloudSortClick}
           onListsClick={onListsClick}
+          onWeeklyClick={onWeeklyClick}
           onSettingsClick={onSettingsClick}
           links={linksProps.links}
           updateLinks={linksProps.updateLinks}
@@ -204,6 +208,17 @@ export const Header: React.FC<Props> = ({
         <Tooltip title="Pros and cons lists">
           <Button variant="text" color="secondary" onClick={onListsClick} sx={{ minWidth: 0 }} aria-label="Open lists">
             <BalanceIcon />
+          </Button>
+        </Tooltip>
+        <Tooltip title="This week's counts">
+          <Button
+            variant="text"
+            color="secondary"
+            onClick={onWeeklyClick}
+            sx={{ minWidth: 0 }}
+            aria-label="Open the week"
+          >
+            <EventRepeatIcon />
           </Button>
         </Tooltip>
         <Tooltip title="Settings">

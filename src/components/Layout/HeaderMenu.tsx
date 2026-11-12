@@ -7,6 +7,7 @@ import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 import HomeIcon from "@mui/icons-material/Home";
 import SettingsIcon from "@mui/icons-material/Settings";
 import SortByAlphaIcon from "@mui/icons-material/SortByAlpha";
+import EventRepeatIcon from "@mui/icons-material/EventRepeat";
 import LogoutIcon from "@mui/icons-material/Logout";
 import { ThemeSelector } from "./ThemeSelector";
 import { signOut } from "../../utils/auth";
@@ -18,6 +19,7 @@ type Props = LinksPopoverProps & {
   isCloudSortedByName: boolean;
   onCloudSortClick: () => void;
   onListsClick: () => void;
+  onWeeklyClick: () => void;
   onSettingsClick: () => void;
 };
 
@@ -27,6 +29,7 @@ export const HeaderMenu: React.FC<Props> = ({
   isCloudSortedByName,
   onCloudSortClick,
   onListsClick,
+  onWeeklyClick,
   onSettingsClick,
   ...linksProps
 }) => {
@@ -48,6 +51,7 @@ export const HeaderMenu: React.FC<Props> = ({
       icon: <SortByAlphaIcon />,
       onClick: onCloudSortClick,
     },
+    { label: "Weekly", icon: <EventRepeatIcon />, onClick: onWeeklyClick },
     { label: "Pros and cons lists", icon: <BalanceIcon />, onClick: onListsClick },
     { label: "Settings", icon: <SettingsIcon />, onClick: onSettingsClick },
   ];

@@ -9,6 +9,8 @@ import { NotNowList } from "./components/NotNowList.tsx";
 import { ProductiveWeekCard } from "./components/ProductiveWeekCard.tsx";
 import { SettingsDialog } from "./components/SettingsDialog.tsx";
 import { TodoCloud } from "./components/TodoCloud/TodoCloud";
+import { WeeklyPage } from "./components/Weekly/WeeklyPage";
+import { WeeklyStrip } from "./components/Weekly/WeeklyStrip";
 import { ResetCountsButton } from "./components/Shared/ResetCountsButton";
 import { isSupabaseConfigured } from "./supabase";
 import { Box, Drawer } from "@mui/material";
@@ -17,7 +19,7 @@ import { AddTask } from "./components/TodoCloud/AddTask.tsx";
 import { LoadingComponent } from "./components/Layout/LoadingComponent.tsx";
 import { useAppInit } from "./hooks/app.ts";
 import { NotificationsToast } from "./components/Layout/NotificationAlert";
-import { listsPath, navigate, useRoute } from "./hooks/route.ts";
+import { listsPath, navigate, useRoute, weeklyPath } from "./hooks/route.ts";
 import { useSectionSettings } from "./hooks/settings.ts";
 import { useIsMobile } from "./hooks/mobile.ts";
 import { ListsPage } from "./components/Lists/ListsPage";
@@ -114,6 +116,14 @@ export default function App() {
     return (
       <PageLayout>
         <ListPage userId={session.user.id} listId={route.listId} />
+      </PageLayout>
+    );
+  }
+
+  if (route.name === "weekly") {
+    return (
+      <PageLayout>
+        <WeeklyPage userId={session.user.id} />
       </PageLayout>
     );
   }
@@ -221,6 +231,7 @@ export default function App() {
             onLeftMenuClick={handleLeftMenuClick}
             onRightMenuClick={handleRightMenuClick}
             onListsClick={() => navigate(listsPath)}
+            onWeeklyClick={() => navigate(weeklyPath)}
             onSettingsClick={() => setIsSettingsOpen(true)}
             links={links}
             updateLinks={updateLinks}
@@ -233,6 +244,7 @@ export default function App() {
             onSearchChange={setSearch}
             email={session.user.email}
           />
+          {sections.weekly && <WeeklyStrip userId={session.user.id} search={search} />}
           <TodoCloud
             todos={todos}
             updateTodo={updateTodo}
