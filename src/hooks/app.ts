@@ -304,19 +304,49 @@ export function useAppInit() {
 
   const updateTodos = useCallback(
     async (newTodos: Todo[]) => {
+      // Assigned here rather than waiting for the effect after the render: two
+      // taps inside one frame both read this, and the second has to see what
+      // the first did or it writes the list back without it.
+      todosRef.current = newTodos;
       setTodos(newTodos);
       await saveTodos(newTodos);
     },
-    [todos, setTodos, saveTodos],
+    [setTodos, saveTodos],
   );
 
   const updateTodo = useCallback(
     async (newTodo: Todo) => {
-      const newTodos = todos.map((todo) => (todo.id === newTodo.id ? newTodo : todo));
-      setTodos(newTodos);
-      await saveTodos(newTodos);
+      await updateTodos(todosRef.current.map((todo) => (todo.id === newTodo.id ? newTodo : todo)));
     },
-    [todos, setTodos, saveTodos],
+    [updateTodos],
+  );
+
+  /**
+   * Changes one task from what it is now rather than from what a render is
+   * holding.
+   *
+   * Counting a weekly task off is the reason this exists: it happens fast,
+   * often twice in a row, and each tap has to start from the result of the one
+   * before it.
+   */
+  const applyToTodo = useCallback(
+    async (todoId: string, change: (todo: Todo) => Todo) => {
+      const currentTodo = todosRef.current.find((todo) => todo.id === todoId);
+
+      if (!currentTodo) return;
+
+      const newTodo = change(currentTodo);
+
+      if (newTodo === currentTodo) return;
+
+      await updateTodos(todosRef.current.map((todo) => (todo.id === todoId ? newTodo : todo)));
+    },
+    [updateTodos],
+  );
+
+  const addTodo = useCallback(
+    async (newTodo: Todo) => updateTodos([...todosRef.current, newTodo]),
+    [updateTodos],
   );
 
   // Moves a todo out of the saved list and into the local deleted history.
@@ -446,6 +476,8 @@ export function useAppInit() {
     deleteTodo,
     updateTodo,
     updateTodos,
+    applyToTodo,
+    addTodo,
     clearDeletedItems,
     removeDeletedItem,
     restoreDeletedItem,

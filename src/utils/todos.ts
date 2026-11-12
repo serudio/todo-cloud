@@ -2,6 +2,7 @@ import type { CustomLink, Todo, TodoListItems, TodoTag } from "../types/todo";
 import dayjs from "dayjs";
 import { getDateInputValue, getLocalDateKey } from "./date";
 import { MAX_ITEM_WEIGHT } from "./lists";
+import { MAX_WEEKLY_TARGET } from "../constants/weekly";
 
 export const SNOOZE_DURATION_MS = 60 * 60 * 1000;
 
@@ -102,6 +103,8 @@ export const getNewTodo = (todoText: string): Todo => {
     snoozedUntil: null,
     notToday: false,
     notTodayDate: null,
+    weeklyTarget: null,
+    weeklyDoneDates: [],
   };
 };
 
@@ -210,6 +213,8 @@ export function parseTodos(items: unknown): Todo[] {
             typeof todo.snoozedUntil === "number" && Number.isFinite(todo.snoozedUntil) ? todo.snoozedUntil : null,
           notToday: todo.notToday === true,
           notTodayDate: typeof todo.notTodayDate === "string" ? todo.notTodayDate : null,
+          weeklyTarget: parseWeeklyTarget(todo.weeklyTarget),
+          weeklyDoneDates: parseWeeklyDoneDates(todo.weeklyDoneDates),
         },
       ];
     }
@@ -312,7 +317,9 @@ function mergeDuplicateTodos(todos: Todo[]) {
   const todosByText = new Map<string, Todo>();
 
   for (const todo of todos) {
-    const normalizedText = normalizeTodoText(todo.text);
+    // A quota keeps its own key: a task and a weekly task can share a name, and
+    // folding them together would throw away a week of counts.
+    const normalizedText = todo.weeklyTarget === null ? normalizeTodoText(todo.text) : `weekly:${todo.id}`;
     const existingTodo = todosByText.get(normalizedText);
 
     if (!existingTodo) {
@@ -341,6 +348,22 @@ function mergeDuplicateTodos(todos: Todo[]) {
   }
 
   return [...todosByText.values()];
+}
+
+// A target typed into an older version, or nothing at all: anything that is not
+// a usable number of times a week leaves the task an ordinary one.
+function parseWeeklyTarget(target: unknown) {
+  if (typeof target !== "number" || !Number.isFinite(target)) return null;
+
+  return Math.min(MAX_WEEKLY_TARGET, Math.max(1, Math.round(target)));
+}
+
+function parseWeeklyDoneDates(doneDates: unknown) {
+  if (!Array.isArray(doneDates)) return [];
+
+  return doneDates
+    .filter((doneDate): doneDate is number => typeof doneDate === "number" && Number.isFinite(doneDate))
+    .sort((first, second) => first - second);
 }
 
 function parseDueDate(dueDate: unknown) {

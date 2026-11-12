@@ -3,38 +3,40 @@ import { alpha } from "@mui/material/styles";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutlineOutlined";
-import type { WeeklyActivity } from "../../types/weekly";
+import type { Todo } from "../../types/todo";
 import {
   formatWeekRange,
   getDoneThisWeek,
   getRecentWeeks,
+  getWeeklyTarget,
   hasWeeklyHistory,
   isWeeklyDoneToday,
   WEEKLY_TARGETS,
 } from "../../utils/weekly";
 
 type Props = {
-  activity: WeeklyActivity;
-  onChange: (input: { name?: string; target?: number }) => void;
-  onCommit: (input: { name?: string; target?: number }) => void;
+  todo: Todo;
+  onChange: (input: { text?: string; weeklyTarget?: number }) => void;
+  onCommit: (input: { text?: string; weeklyTarget?: number }) => void;
   onCountOne: () => void;
   onUndoOne: () => void;
   onDelete: () => void;
 };
 
 export const WeeklyActivityCard: React.FC<Props> = ({
-  activity,
+  todo,
   onChange,
   onCommit,
   onCountOne,
   onUndoOne,
   onDelete,
 }) => {
-  const done = getDoneThisWeek(activity);
-  const left = Math.max(0, activity.target - done);
+  const done = getDoneThisWeek(todo);
+  const target = getWeeklyTarget(todo);
+  const left = Math.max(0, target - done);
   const isDone = left === 0;
-  const weeks = getRecentWeeks(activity);
-  const isDoneToday = isWeeklyDoneToday(activity);
+  const weeks = getRecentWeeks(todo);
+  const isDoneToday = isWeeklyDoneToday(todo);
 
   return (
     <Card
@@ -60,15 +62,15 @@ export const WeeklyActivityCard: React.FC<Props> = ({
         aria-hidden
         sx={{ position: "absolute", inset: 0, display: "flex", pointerEvents: "none" }}
       >
-        {Array.from({ length: activity.target }, (_unused, index) => (
+        {Array.from({ length: target }, (_unused, index) => (
           <Box
             key={index}
             sx={{
               flex: 1,
-              borderRight: index === activity.target - 1 ? 0 : 1,
+              borderRight: index === target - 1 ? 0 : 1,
               borderColor: "divider",
               bgcolor: (theme) =>
-                index < Math.min(done, activity.target)
+                index < Math.min(done, target)
                   ? alpha(theme.palette[isDone ? "success" : "warning"].main, 0.16)
                   : "transparent",
             }}
@@ -78,17 +80,17 @@ export const WeeklyActivityCard: React.FC<Props> = ({
 
       <Box sx={{ position: "relative", display: "flex", alignItems: "center", gap: 1 }}>
         <InputBase
-          value={activity.name}
+          value={todo.text}
           placeholder="what, and how often"
-          onChange={(event) => onChange({ name: event.target.value })}
-          onBlur={() => onCommit({ name: activity.name })}
+          onChange={(event) => onChange({ text: event.target.value })}
+          onBlur={() => onCommit({ text: todo.text })}
           // The name is what the card is; everything else on it is a number or
           // a control, so it can carry the size and the spacing on its own.
           sx={{ flex: 1, minWidth: 0, fontSize: "1.25rem", letterSpacing: 1.2 }}
         />
 
         <Tooltip title="Remove this">
-          <IconButton size="small" onClick={onDelete} aria-label={`Remove ${activity.name || "this"}`}>
+          <IconButton size="small" onClick={onDelete} aria-label={`Remove ${todo.text || "this"}`}>
             <DeleteOutlineIcon fontSize="small" />
           </IconButton>
         </Tooltip>
@@ -103,24 +105,24 @@ export const WeeklyActivityCard: React.FC<Props> = ({
         <Typography variant="caption" color="text.secondary" sx={{ mr: 0.5 }}>
           times a week
         </Typography>
-        {WEEKLY_TARGETS.map((target) => {
-          const isTarget = target === activity.target;
+        {WEEKLY_TARGETS.map((chipTarget) => {
+          const isTarget = chipTarget === target;
           // The numbers already counted off, marked where they are read: the
           // fourth of five is the fourth chip, not a bar somewhere else.
           // Dimmer than the target, which still has to be the loudest thing in
           // the row — it is the one a click changes.
-          const isCounted = !isTarget && target <= Math.min(done, activity.target);
+          const isCounted = !isTarget && chipTarget <= Math.min(done, target);
 
           return (
             <Chip
-              key={target}
-              label={target}
+              key={chipTarget}
+              label={chipTarget}
               size="small"
-              onClick={() => onCommit({ target })}
+              onClick={() => onCommit({ weeklyTarget: chipTarget })}
               variant={isTarget || isCounted ? "filled" : "outlined"}
               color={isTarget ? (isDone ? "success" : "warning") : "default"}
               aria-pressed={isTarget}
-              aria-label={isCounted ? `${target} times a week — ${target} of them done` : `${target} times a week`}
+              aria-label={`${chipTarget} times a week`}
               // Narrow enough that all seven and the label hold one line on a phone.
               sx={{
                 minWidth: 30,
@@ -144,7 +146,7 @@ export const WeeklyActivityCard: React.FC<Props> = ({
             already said it without words. */}
         <Tooltip title={isDone ? "Done for the week" : `${left} still to go this week`}>
           <Typography variant="caption" color="text.secondary" sx={{ mx: 0.5 }}>
-            {done}/{activity.target}
+            {done}/{target}
           </Typography>
         </Tooltip>
 
@@ -154,7 +156,7 @@ export const WeeklyActivityCard: React.FC<Props> = ({
               size="small"
               onClick={onUndoOne}
               disabled={done === 0}
-              aria-label={`Take one back from ${activity.name || "this"}`}
+              aria-label={`Take one back from ${todo.text || "this"}`}
             >
               <RemoveIcon fontSize="small" />
             </IconButton>
@@ -165,7 +167,7 @@ export const WeeklyActivityCard: React.FC<Props> = ({
           <IconButton
             onClick={onCountOne}
             color={isDone ? "success" : "warning"}
-            aria-label={`Count one for ${activity.name || "this"}`}
+            aria-label={`Count one for ${todo.text || "this"}`}
             sx={{ border: 1, borderColor: "divider" }}
           >
             <AddIcon />
@@ -175,7 +177,7 @@ export const WeeklyActivityCard: React.FC<Props> = ({
 
       {/* Only once there is a past to show: a row of empty weeks on something
           started yesterday reads as failure rather than as no data. */}
-      {hasWeeklyHistory(activity) && (
+      {hasWeeklyHistory(todo) && (
         <Box sx={{ position: "relative", display: "flex", alignItems: "center", gap: 0.5, flexWrap: "wrap" }}>
           <Typography variant="caption" color="text.secondary" sx={{ mr: 0.5 }}>
             before

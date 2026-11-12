@@ -21,6 +21,12 @@ export type Todo = {
   snoozedUntil: number | null;
   notToday: boolean;
   notTodayDate: string | null;
+  // A task the week wants a number of times rather than once: how many times,
+  // and one timestamp per time it has been done. Null on an ordinary task.
+  // The count for any week is read back out of those timestamps, so no reset
+  // has to run on Monday.
+  weeklyTarget: number | null;
+  weeklyDoneDates: number[];
 };
 
 export type TodoTag = {

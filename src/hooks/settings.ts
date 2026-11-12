@@ -5,7 +5,7 @@ export type SectionKey = "weekly" | "links" | "productiveWeek" | "notNow" | "not
 
 // The order here is the order they appear in settings.
 export const SECTIONS: { key: SectionKey; label: string; description: string }[] = [
-  { key: "weekly", label: "Weekly", description: "This week's counts, above the cloud and in it" },
+  { key: "weekly", label: "Weekly", description: "This week's counts, in a strip above the cloud" },
   { key: "links", label: "Links", description: "Quick links, in the left panel" },
   { key: "productiveWeek", label: "Productive Week", description: "The pile of tasks waiting for a push" },
   { key: "notNow", label: "Not Now", description: "Tasks set aside until the end of the month" },

@@ -22,7 +22,7 @@ import { useAppInit } from "./hooks/app.ts";
 import { NotificationsToast } from "./components/Layout/NotificationAlert";
 import { listsPath, navigate, useRoute, weeklyPath } from "./hooks/route.ts";
 import { useSectionSettings } from "./hooks/settings.ts";
-import { useWeeklyActivities } from "./hooks/weekly.ts";
+import { markWeeklyDone } from "./utils/weekly.ts";
 import { SIDE_PANEL_WIDTH } from "./constants/ui.ts";
 import { useIsMobile } from "./hooks/mobile.ts";
 import { ListsPage } from "./components/Lists/ListsPage";
@@ -73,6 +73,8 @@ export default function App() {
     deleteTodo,
     updateTodo,
     updateTodos,
+    applyToTodo,
+    addTodo,
     clearDeletedItems,
     removeDeletedItem,
     restoreDeletedItem,
@@ -108,10 +110,6 @@ export default function App() {
     />
   );
 
-  // One instance for the whole app: the strip, the cloud and the week's own
-  // page count against the same list, so a tap in one shows in the others.
-  const weekly = useWeeklyActivities(session?.user.id);
-
   if (!isSupabaseConfigured) return <SetupRequired />;
 
   // Share links open without an account, so this route comes before the auth gate.
@@ -145,7 +143,14 @@ export default function App() {
   if (route.name === "weekly") {
     return (
       <PageLayout>
-        <WeeklyPage weekly={weekly} onSettingsClick={() => setIsSettingsOpen(true)} />
+        <WeeklyPage
+          todos={todos}
+          isLoadingTodos={isLoadingTodos}
+          applyToTodo={applyToTodo}
+          addTodo={addTodo}
+          deleteTodo={deleteTodo}
+          onSettingsClick={() => setIsSettingsOpen(true)}
+        />
         {settingsDialog}
       </PageLayout>
     );
@@ -264,8 +269,12 @@ export default function App() {
             onSearchChange={setSearch}
             email={session.user.email}
           />
-          {sections.weekly && !weekly.isLoading && (
-            <WeeklyChips activities={weekly.activities} search={search} onCountOne={weekly.countOne} />
+          {sections.weekly && (
+            <WeeklyChips
+              todos={todos}
+              search={search}
+              onCountOne={(todoId) => applyToTodo(todoId, (todo) => markWeeklyDone(todo))}
+            />
           )}
           <TodoCloud
             todos={todos}
@@ -275,12 +284,7 @@ export default function App() {
             search={search}
             tags={tags}
             onToggleWeek={toggleTodoInWeek}
-            weeklyActivities={sections.weekly ? weekly.activities : []}
-            onCountWeekly={weekly.countOne}
-            onSnoozeWeekly={weekly.snoozeOne}
-            onWakeWeekly={weekly.wakeOne}
-            onNotTodayWeekly={weekly.notTodayOne}
-            onBringWeeklyBack={weekly.bringBackOne}
+            onCountWeekly={(todoId) => applyToTodo(todoId, (todo) => markWeeklyDone(todo))}
             updateTodos={updateTodos}
             deleteTodo={deleteTodo}
           />

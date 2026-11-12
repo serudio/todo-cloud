@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { Box, Button, Card, Tooltip, Typography } from "@mui/material";
 import EventRepeatIcon from "@mui/icons-material/EventRepeat";
-import type { WeeklyActivity } from "../../types/weekly";
+import type { Todo } from "../../types/todo";
 import { alpha } from "@mui/material/styles";
-import { getDoneThisWeek } from "../../utils/weekly";
+import { getDoneThisWeek, getWeeklyTarget } from "../../utils/weekly";
 import { NotTodayButton } from "../Shared/NotTodayButton";
 import { TASK_ACTIONS_Z, TASK_ACTION_HOVER_Z, TASK_Z } from "../../constants/ui";
 
 type Props = {
-  activity: WeeklyActivity;
+  todo: Todo;
   /** Its place in the cloud's run of tilts, counted across the tasks as well. */
   index: number;
   isSnoozed: boolean;
@@ -28,7 +28,7 @@ type Props = {
  * finishing it, which is enough to clear it for the day.
  */
 export const WeeklyCloudItem: React.FC<Props> = ({
-  activity,
+  todo,
   index,
   isSnoozed,
   onCount,
@@ -37,8 +37,9 @@ export const WeeklyCloudItem: React.FC<Props> = ({
   isRow = false,
 }) => {
   const [hovered, setHovered] = useState(false);
-  const done = getDoneThisWeek(activity);
-  const name = activity.name || "untitled";
+  const done = getDoneThisWeek(todo);
+  const target = getWeeklyTarget(todo);
+  const name = todo.text || "untitled";
 
   const actions = (
     <>
@@ -79,7 +80,7 @@ export const WeeklyCloudItem: React.FC<Props> = ({
         <EventRepeatIcon fontSize="small" color="warning" />
         <Typography sx={{ flex: 1, minWidth: 0, wordBreak: "break-word" }}>{name}</Typography>
         <Typography variant="caption" color="text.secondary">
-          {done}/{activity.target}
+          {done}/{target}
         </Typography>
         <Box onClick={(event) => event.stopPropagation()} sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           {actions}
@@ -98,7 +99,7 @@ export const WeeklyCloudItem: React.FC<Props> = ({
           default, and this one would otherwise sit exactly on top of the
           actions below and swallow the clicks meant for them. */}
       <Tooltip
-        title={`Weekly · ${done} of ${activity.target} this week · click to count one`}
+        title={`Weekly · ${done} of ${target} this week · click to count one`}
         placement="top"
         disableInteractive
       >
@@ -141,7 +142,7 @@ export const WeeklyCloudItem: React.FC<Props> = ({
           <EventRepeatIcon fontSize="small" color="warning" />
           <Box component="span">{name}</Box>
           <Box component="span" sx={{ fontSize: 12, opacity: 0.75 }}>
-            {done}/{activity.target}
+            {done}/{target}
           </Box>
         </Box>
       </Tooltip>

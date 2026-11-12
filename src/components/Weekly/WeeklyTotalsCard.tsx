@@ -1,12 +1,12 @@
 import { Box, Card, Tooltip, Typography } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import dayjs from "dayjs";
-import type { WeeklyActivity } from "../../types/weekly";
+import type { Todo } from "../../types/todo";
 import { getWeekDays, getWeekTotals } from "../../utils/weekly";
 import { WeeklyProgressCells } from "./WeeklyProgressCells";
 
 type Props = {
-  activities: WeeklyActivity[];
+  todos: Todo[];
   daysLeft: number;
 };
 
@@ -22,9 +22,9 @@ const DAY_INITIALS = ["M", "T", "W", "T", "F", "S", "S"];
  * been spread — five things on Sunday is not the same week as one a day — and
  * the second says how much is left.
  */
-export const WeeklyTotalsCard: React.FC<Props> = ({ activities, daysLeft }) => {
-  const totals = getWeekTotals(activities);
-  const weekDays = getWeekDays(activities);
+export const WeeklyTotalsCard: React.FC<Props> = ({ todos, daysLeft }) => {
+  const totals = getWeekTotals(todos);
+  const weekDays = getWeekDays(todos);
 
   return (
     <Card

@@ -1,21 +1,34 @@
 import { useState } from "react";
-import { Alert, Box, Button, IconButton, Tooltip, Typography } from "@mui/material";
+import { Box, Button, IconButton, Tooltip, Typography } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import AddIcon from "@mui/icons-material/Add";
 import SettingsIcon from "@mui/icons-material/Settings";
-import type { WeeklyActivity } from "../../types/weekly";
-import type { WeeklyActivities } from "../../hooks/weekly";
+import type { Todo } from "../../types/todo";
 import { navigate, todosPath } from "../../hooks/route";
-import { formatWeekRange, getDaysLeftInWeek, getWeekStart, sortWeeklyByRemaining } from "../../utils/weekly";
+import {
+  DEFAULT_WEEKLY_TARGET,
+  formatWeekRange,
+  getDaysLeftInWeek,
+  getNewWeeklyTodo,
+  getWeeklyTodos,
+  getWeekStart,
+  markWeeklyDone,
+  sortWeeklyByRemaining,
+  undoWeeklyDone,
+} from "../../utils/weekly";
 import { LoadingComponent } from "../Layout/LoadingComponent";
 import { ConfirmDialog } from "../Shared/ConfirmDialog";
 import { WeeklyActivityCard } from "./WeeklyActivityCard";
 import { WeeklyTotalsCard } from "./WeeklyTotalsCard";
 
 type Props = {
-  // Handed down rather than fetched here: the cloud and the strip count
-  // against the same list, and two copies of it would disagree.
-  weekly: WeeklyActivities;
+  // The whole list, because a weekly task is a task: it is in there with the
+  // rest of them, and the cloud is counting against the same rows.
+  todos: Todo[];
+  isLoadingTodos: boolean;
+  applyToTodo: (todoId: string, change: (todo: Todo) => Todo) => void;
+  addTodo: (todo: Todo) => void;
+  deleteTodo: (todoId: string) => void;
   onSettingsClick: () => void;
 };
 
@@ -27,17 +40,48 @@ type Props = {
  * total of everything missed since March would only make it a worse place to
  * look.
  */
-export const WeeklyPage: React.FC<Props> = ({ weekly, onSettingsClick }) => {
-  const { activities, isLoading, error, addActivity, changeActivity, commitActivity, countOne, undoOne, removeActivity } =
-    weekly;
-  const [activityPendingDelete, setActivityPendingDelete] = useState<WeeklyActivity | null>(null);
+export const WeeklyPage: React.FC<Props> = ({
+  todos,
+  isLoadingTodos,
+  applyToTodo,
+  addTodo,
+  deleteTodo,
+  onSettingsClick,
+}) => {
+  const [todoPendingDelete, setTodoPendingDelete] = useState<Todo | null>(null);
+  // Typing is local until it is committed, so every keystroke is not a write of
+  // the whole list; the text in hand wins over the one that came back.
+  const [drafts, setDrafts] = useState<Record<string, string>>({});
 
   const daysLeft = getDaysLeftInWeek();
-  const shownActivities = sortWeeklyByRemaining(activities);
+  const weeklyTodos = getWeeklyTodos(todos).map((todo) =>
+    drafts[todo.id] === undefined ? todo : { ...todo, text: drafts[todo.id] },
+  );
+  const shownTodos = sortWeeklyByRemaining(weeklyTodos);
 
   const handleDeleteConfirm = () => {
-    if (activityPendingDelete) removeActivity(activityPendingDelete.id);
-    setActivityPendingDelete(null);
+    if (todoPendingDelete) deleteTodo(todoPendingDelete.id);
+    setTodoPendingDelete(null);
+  };
+
+  const handleChange = (todoId: string, input: { text?: string; weeklyTarget?: number }) => {
+    if (input.text !== undefined) setDrafts((previous) => ({ ...previous, [todoId]: input.text as string }));
+  };
+
+  const handleCommit = (todoId: string, input: { text?: string; weeklyTarget?: number }) => {
+    applyToTodo(todoId, (todo) => ({
+      ...todo,
+      ...(input.text === undefined ? {} : { text: input.text.trim() }),
+      ...(input.weeklyTarget === undefined ? {} : { weeklyTarget: input.weeklyTarget }),
+    }));
+
+    if (input.text === undefined) return;
+
+    setDrafts((previous) => {
+      const { [todoId]: _removed, ...rest } = previous;
+
+      return rest;
+    });
   };
 
   return (
@@ -52,7 +96,7 @@ export const WeeklyPage: React.FC<Props> = ({ weekly, onSettingsClick }) => {
         <Typography variant="caption" color="text.secondary" sx={{ mr: "auto" }}>
           {formatWeekRange(getWeekStart())} · {daysLeft} {daysLeft === 1 ? "day" : "days"} left
         </Typography>
-        <Button size="small" onClick={addActivity} startIcon={<AddIcon />}>
+        <Button size="small" onClick={() => addTodo(getNewWeeklyTodo(DEFAULT_WEEKLY_TARGET))} startIcon={<AddIcon />}>
           add
         </Button>
         {/* The theme lives in settings now, and this page is somewhere you can
@@ -64,10 +108,9 @@ export const WeeklyPage: React.FC<Props> = ({ weekly, onSettingsClick }) => {
         </Tooltip>
       </Box>
 
-      {error && <Alert severity="error">{error}</Alert>}
-      {isLoading && <LoadingComponent loading />}
+      {isLoadingTodos && <LoadingComponent loading />}
 
-      {!isLoading && !activities.length && (
+      {!isLoadingTodos && !weeklyTodos.length && (
         <Typography>
           Things you owe the week rather than a day — read five times, yoga twice. Counts start again every Monday.
         </Typography>
@@ -75,7 +118,7 @@ export const WeeklyPage: React.FC<Props> = ({ weekly, onSettingsClick }) => {
 
       {/* The week as one line, before the things it is made of: whether this
           week is on track is the question the page is opened to answer. */}
-      {activities.length > 0 && <WeeklyTotalsCard activities={activities} daysLeft={daysLeft} />}
+      {weeklyTodos.length > 0 && <WeeklyTotalsCard todos={weeklyTodos} daysLeft={daysLeft} />}
 
       {/* A column each on a wide screen rather than one card per band: a line
           of five cells and a name does not need 1100px, and stacked full-width
@@ -90,25 +133,25 @@ export const WeeklyPage: React.FC<Props> = ({ weekly, onSettingsClick }) => {
           gap: 1,
         }}
       >
-        {shownActivities.map((activity) => (
+        {shownTodos.map((todo) => (
           <WeeklyActivityCard
-            key={activity.id}
-            activity={activity}
-            onChange={(input) => changeActivity(activity.id, input)}
-            onCommit={(input) => commitActivity(activity.id, input)}
-            onCountOne={() => countOne(activity.id)}
-            onUndoOne={() => undoOne(activity.id)}
-            onDelete={() => setActivityPendingDelete(activity)}
+            key={todo.id}
+            todo={todo}
+            onChange={(input) => handleChange(todo.id, input)}
+            onCommit={(input) => handleCommit(todo.id, input)}
+            onCountOne={() => applyToTodo(todo.id, (current) => markWeeklyDone(current))}
+            onUndoOne={() => applyToTodo(todo.id, (current) => undoWeeklyDone(current))}
+            onDelete={() => setTodoPendingDelete(todo)}
           />
         ))}
       </Box>
 
       <ConfirmDialog
-        open={Boolean(activityPendingDelete)}
+        open={Boolean(todoPendingDelete)}
         title="Remove this?"
-        message={`"${activityPendingDelete?.name || "Untitled"}" and everything counted against it will be gone.`}
+        message={`"${todoPendingDelete?.text || "Untitled"}" and everything counted against it will be gone.`}
         onConfirm={handleDeleteConfirm}
-        onCancel={() => setActivityPendingDelete(null)}
+        onCancel={() => setTodoPendingDelete(null)}
       />
     </Box>
   );

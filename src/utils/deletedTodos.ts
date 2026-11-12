@@ -82,6 +82,10 @@ function parseDeletedTodos(savedItems: string) {
               : null,
           notToday: deletedTodo.notToday,
           notTodayDate: typeof deletedTodo.notTodayDate === "string" ? deletedTodo.notTodayDate : null,
+          weeklyTarget: typeof deletedTodo.weeklyTarget === "number" ? deletedTodo.weeklyTarget : null,
+          weeklyDoneDates: Array.isArray(deletedTodo.weeklyDoneDates)
+            ? deletedTodo.weeklyDoneDates.filter((doneDate): doneDate is number => typeof doneDate === "number")
+            : [],
           deletedAt: typeof deletedTodo.deletedAt === "string" ? deletedTodo.deletedAt : "",
         },
       ];

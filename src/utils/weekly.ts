@@ -1,23 +1,19 @@
 import dayjs from "dayjs";
-import type { WeeklyActivity, WeeklyActivityRow, WeeklyWeek } from "../types/weekly";
+import type { Todo } from "../types/todo";
+import type { WeeklyWeek } from "../types/weekly";
+import { KEPT_WEEKS, SHOWN_WEEKS } from "../constants/weekly";
 import { getLocalDateKey } from "./date";
-import { SNOOZE_DURATION_MS } from "./todos";
+import { getNewTodo } from "./todos";
 
-export const DEFAULT_WEEKLY_TARGET = 3;
+export { DEFAULT_WEEKLY_TARGET, KEPT_WEEKS, MAX_WEEKLY_TARGET, SHOWN_WEEKS, WEEKLY_TARGETS } from "../constants/weekly";
 
-// Seven is every day, which is as often as a week can ask for. The picker is
-// the whole range rather than a box to type a number into: a target is chosen
-// once and is always a single digit, so a row of seven is quicker than typing
-// and cannot land on a number that means nothing.
-export const WEEKLY_TARGETS = [1, 2, 3, 4, 5, 6, 7];
-export const MAX_WEEKLY_TARGET = WEEKLY_TARGETS[WEEKLY_TARGETS.length - 1];
+/** A task the week wants a number of times rather than once. */
+export const isWeeklyTodo = (todo: Todo) => todo.weeklyTarget !== null;
 
-// How much history is worth keeping: enough to see whether a habit is holding,
-// not so much that the row grows forever.
-export const KEPT_WEEKS = 12;
+export const getWeeklyTodos = (todos: Todo[]) => todos.filter(isWeeklyTodo);
 
-// The row of past weeks shown under an activity.
-export const SHOWN_WEEKS = 6;
+/** How many times a week it is asked for. One, for anything that is not weekly. */
+export const getWeeklyTarget = (todo: Todo) => todo.weeklyTarget ?? 1;
 
 /**
  * The Monday that starts the week a moment falls in, as a local timestamp.
@@ -44,25 +40,25 @@ export const getDaysLeftInWeek = (date: number = Date.now()) =>
 export const getDoneInWeek = (doneDates: number[], weekStart: number) =>
   doneDates.filter((doneDate) => doneDate >= weekStart && doneDate < getWeekEnd(weekStart)).length;
 
-export const getDoneThisWeek = (activity: WeeklyActivity, now: number = Date.now()) =>
-  getDoneInWeek(activity.doneDates, getWeekStart(now));
+export const getDoneThisWeek = (todo: Todo, now: number = Date.now()) =>
+  getDoneInWeek(todo.weeklyDoneDates, getWeekStart(now));
 
-export const isWeeklyDone = (activity: WeeklyActivity, now: number = Date.now()) =>
-  getDoneThisWeek(activity, now) >= activity.target;
+export const isWeeklyDone = (todo: Todo, now: number = Date.now()) =>
+  getDoneThisWeek(todo, now) >= getWeeklyTarget(todo);
 
 /** Already counted once today, whatever is still owed for the rest of the week. */
-export const isWeeklyDoneToday = (activity: WeeklyActivity, now: number = Date.now()) => {
+export const isWeeklyDoneToday = (todo: Todo, now: number = Date.now()) => {
   const dayStart = dayjs(now).startOf("day").valueOf();
   const dayEnd = dayjs(dayStart).add(1, "day").valueOf();
 
-  return activity.doneDates.some((doneDate) => doneDate >= dayStart && doneDate < dayEnd);
+  return todo.weeklyDoneDates.some((doneDate) => doneDate >= dayStart && doneDate < dayEnd);
 };
 
 /**
  * Drops anything older than the weeks worth keeping.
  *
- * Called on the way to the database rather than on the way back, so a row
- * thins out as it is used and a long-untouched one keeps whatever it had.
+ * Called on the way into the list rather than on the way out, so a task thins
+ * out as it is used and a long-untouched one keeps whatever it had.
  */
 export const pruneDoneDates = (doneDates: number[], now: number = Date.now()) => {
   const oldestKept = getPastWeekStart(KEPT_WEEKS - 1, now);
@@ -70,9 +66,19 @@ export const pruneDoneDates = (doneDates: number[], now: number = Date.now()) =>
   return doneDates.filter((doneDate) => doneDate >= oldestKept).sort((first, second) => first - second);
 };
 
-export const markWeeklyDone = (activity: WeeklyActivity, at: number = Date.now()): WeeklyActivity => ({
-  ...activity,
-  doneDates: pruneDoneDates([...activity.doneDates, at], at),
+/**
+ * Counts one off.
+ *
+ * A quota is never "done" the way a task is — the week's count is read from
+ * these timestamps — so this leaves `done` alone and only clears the two ways
+ * it was being put off: having just done one, it is not being avoided.
+ */
+export const markWeeklyDone = (todo: Todo, at: number = Date.now()): Todo => ({
+  ...todo,
+  weeklyDoneDates: pruneDoneDates([...todo.weeklyDoneDates, at], at),
+  snoozedUntil: null,
+  notToday: false,
+  notTodayDate: null,
 });
 
 /**
@@ -81,67 +87,34 @@ export const markWeeklyDone = (activity: WeeklyActivity, at: number = Date.now()
  * Only within this week: last week's count is history, and a stray tap today
  * should not quietly eat it.
  */
-export function undoWeeklyDone(activity: WeeklyActivity, now: number = Date.now()): WeeklyActivity {
+export function undoWeeklyDone(todo: Todo, now: number = Date.now()): Todo {
   const weekStart = getWeekStart(now);
-  const latest = activity.doneDates.filter((doneDate) => doneDate >= weekStart).at(-1);
+  const latest = todo.weeklyDoneDates.filter((doneDate) => doneDate >= weekStart).at(-1);
 
-  if (latest === undefined) return activity;
+  if (latest === undefined) return todo;
 
-  const index = activity.doneDates.lastIndexOf(latest);
+  const index = todo.weeklyDoneDates.lastIndexOf(latest);
 
   return {
-    ...activity,
-    doneDates: [...activity.doneDates.slice(0, index), ...activity.doneDates.slice(index + 1)],
+    ...todo,
+    weeklyDoneDates: [...todo.weeklyDoneDates.slice(0, index), ...todo.weeklyDoneDates.slice(index + 1)],
   };
 }
 
 /**
- * Out of the cloud for a while, and back on its own.
- *
- * The same two answers a task has, stored the same way: an hour's snooze is a
- * timestamp that passes, and "not today" is the date it was said on, so
- * tomorrow is a different date and the quota is back. The week's own page
- * ignores both — what is owed this week is owed whether or not it is wanted
- * this afternoon.
- */
-export const markWeeklySnoozed = (activity: WeeklyActivity, durationMs = SNOOZE_DURATION_MS): WeeklyActivity => ({
-  ...activity,
-  snoozedUntil: Date.now() + durationMs,
-});
-
-export const markWeeklyAwake = (activity: WeeklyActivity): WeeklyActivity => ({ ...activity, snoozedUntil: null });
-
-export const markWeeklyNotToday = (activity: WeeklyActivity): WeeklyActivity => ({
-  ...activity,
-  notTodayDate: getLocalDateKey(),
-  snoozedUntil: null,
-});
-
-export const markWeeklyNow = (activity: WeeklyActivity): WeeklyActivity => ({
-  ...activity,
-  notTodayDate: null,
-  snoozedUntil: null,
-});
-
-export const isWeeklySnoozed = (activity: WeeklyActivity, now: number = Date.now()) =>
-  typeof activity.snoozedUntil === "number" && activity.snoozedUntil > now;
-
-export const isWeeklyNotToday = (activity: WeeklyActivity, today: string = getLocalDateKey()) =>
-  activity.notTodayDate === today;
-
-/**
  * Where the whole week stands.
  *
- * Each activity counts for at most its own target, so reading twice as much as
+ * Each task counts for at most its own target, so reading twice as much as
  * planned cannot quietly stand in for the yoga that never happened — the bar
  * is "how much of the week is done", not "how much was done this week".
  */
-export function getWeekTotals(activities: WeeklyActivity[], now: number = Date.now()) {
-  const done = activities.reduce(
-    (total, activity) => total + Math.min(getDoneThisWeek(activity, now), activity.target),
+export function getWeekTotals(todos: Todo[], now: number = Date.now()) {
+  const weeklyTodos = getWeeklyTodos(todos);
+  const done = weeklyTodos.reduce(
+    (total, todo) => total + Math.min(getDoneThisWeek(todo, now), getWeeklyTarget(todo)),
     0,
   );
-  const target = activities.reduce((total, activity) => total + activity.target, 0);
+  const target = weeklyTodos.reduce((total, todo) => total + getWeeklyTarget(todo), 0);
 
   return { done, target, ratio: target ? done / target : 0, isDone: target > 0 && done >= target };
 }
@@ -154,16 +127,17 @@ export function getWeekTotals(activities: WeeklyActivity[], now: number = Date.n
  * which is the other half of pacing a week — five things on Sunday is not the
  * same week as one a day.
  */
-export function getWeekDays(activities: WeeklyActivity[], now: number = Date.now()) {
+export function getWeekDays(todos: Todo[], now: number = Date.now()) {
   const weekStart = getWeekStart(now);
   const todayIndex = dayjs(now).startOf("day").diff(dayjs(weekStart), "day");
+  const weeklyTodos = getWeeklyTodos(todos);
 
   return Array.from({ length: 7 }, (_unused, index) => {
     const dayStart = dayjs(weekStart).add(index, "day").valueOf();
     const dayEnd = dayjs(dayStart).add(1, "day").valueOf();
-    const done = activities.reduce(
-      (total, activity) =>
-        total + activity.doneDates.filter((doneDate) => doneDate >= dayStart && doneDate < dayEnd).length,
+    const done = weeklyTodos.reduce(
+      (total, todo) =>
+        total + todo.weeklyDoneDates.filter((doneDate) => doneDate >= dayStart && doneDate < dayEnd).length,
       0,
     );
 
@@ -172,60 +146,31 @@ export function getWeekDays(activities: WeeklyActivity[], now: number = Date.now
 }
 
 /** The weeks before this one, oldest first, for the history row. */
-export function getRecentWeeks(activity: WeeklyActivity, weeks = SHOWN_WEEKS, now: number = Date.now()): WeeklyWeek[] {
+export function getRecentWeeks(todo: Todo, weeks = SHOWN_WEEKS, now: number = Date.now()): WeeklyWeek[] {
   return Array.from({ length: weeks }, (_unused, index) => {
     const weekStart = getPastWeekStart(weeks - index, now);
 
-    return { weekStart, done: getDoneInWeek(activity.doneDates, weekStart), target: activity.target };
+    return {
+      weekStart,
+      done: getDoneInWeek(todo.weeklyDoneDates, weekStart),
+      target: getWeeklyTarget(todo),
+    };
   });
 }
 
 /** Whether anything was ever logged in the weeks shown, so an empty row can be hidden. */
-export const hasWeeklyHistory = (activity: WeeklyActivity, now: number = Date.now()) =>
-  activity.doneDates.some((doneDate) => doneDate < getWeekStart(now));
+export const hasWeeklyHistory = (todo: Todo, now: number = Date.now()) =>
+  todo.weeklyDoneDates.some((doneDate) => doneDate < getWeekStart(now));
 
 export const formatWeekRange = (weekStart: number) =>
   `${dayjs(weekStart).format("D MMM")} – ${dayjs(weekStart).add(6, "day").format("D MMM")}`;
 
-export const getNewWeeklyActivity = (sortOrder: number): Omit<WeeklyActivity, "id"> => ({
-  name: "",
-  target: DEFAULT_WEEKLY_TARGET,
-  doneDates: [],
-  sortOrder,
-  snoozedUntil: null,
-  notTodayDate: null,
+/** A new weekly task: an ordinary one, with a week's count on it. */
+export const getNewWeeklyTodo = (target: number): Todo => ({
+  ...getNewTodo(""),
+  weeklyTarget: target,
+  weeklyDoneDates: [],
 });
-
-// A target typed into the box: whole, at least one, and not a number that would
-// make the progress bar meaningless.
-export const clampTarget = (value: number) =>
-  Number.isFinite(value) ? Math.min(MAX_WEEKLY_TARGET, Math.max(1, Math.round(value))) : 1;
-
-/**
- * Reads a row without trusting it. The column is jsonb, so anything could be in
- * there; a row that has been through an older version of the app, or none at
- * all, should still open rather than taking the page down with it.
- */
-export function parseWeeklyActivity(row: WeeklyActivityRow): WeeklyActivity {
-  const doneDates = Array.isArray(row.done_dates)
-    ? row.done_dates.filter((value): value is number => typeof value === "number" && Number.isFinite(value))
-    : [];
-
-  return {
-    id: row.id,
-    name: typeof row.name === "string" ? row.name : "",
-    target: typeof row.target === "number" ? clampTarget(row.target) : 1,
-    doneDates: [...doneDates].sort((first, second) => first - second),
-    sortOrder: typeof row.sort_order === "number" ? row.sort_order : 0,
-    snoozedUntil: typeof row.snoozed_until === "number" ? row.snoozed_until : null,
-    notTodayDate: typeof row.not_today_date === "string" ? row.not_today_date : null,
-  };
-}
-
-// Weekly things are a short, ordered list; the order they were put in is the
-// order they are meant to be read in.
-export const sortWeeklyActivities = (activities: WeeklyActivity[]) =>
-  [...activities].sort((first, second) => first.sortOrder - second.sortOrder);
 
 /**
  * What is still owed today first, then what today is already done with, then
@@ -236,13 +181,16 @@ export const sortWeeklyActivities = (activities: WeeklyActivity[]) =>
  * the finished things live. Within each group the order they were added holds,
  * so the list only moves when something has actually happened.
  */
-const getWeeklyRank = (activity: WeeklyActivity, now: number) => {
-  if (isWeeklyDone(activity, now)) return 2;
+const getWeeklyRank = (todo: Todo, now: number) => {
+  if (isWeeklyDone(todo, now)) return 2;
 
-  return isWeeklyDoneToday(activity, now) ? 1 : 0;
+  return isWeeklyDoneToday(todo, now) ? 1 : 0;
 };
 
-export const sortWeeklyByRemaining = (activities: WeeklyActivity[], now: number = Date.now()) =>
-  [...activities].sort(
-    (first, second) => getWeeklyRank(first, now) - getWeeklyRank(second, now) || first.sortOrder - second.sortOrder,
-  );
+export const sortWeeklyByRemaining = (todos: Todo[], now: number = Date.now()) =>
+  [...todos].sort((first, second) => getWeeklyRank(first, now) - getWeeklyRank(second, now));
+
+// Kept for the places that ask "is this one hidden for today", so the weekly
+// screens read the same flags the cloud does rather than their own copy.
+export const isWeeklyNotToday = (todo: Todo, today: string = getLocalDateKey()) =>
+  todo.notToday && todo.notTodayDate === today;
