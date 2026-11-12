@@ -103,19 +103,37 @@ export const WeeklyActivityCard: React.FC<Props> = ({
         <Typography variant="caption" color="text.secondary" sx={{ mr: 0.5 }}>
           times a week
         </Typography>
-        {WEEKLY_TARGETS.map((target) => (
-          <Chip
-            key={target}
-            label={target}
-            size="small"
-            onClick={() => onCommit({ target })}
-            variant={target === activity.target ? "filled" : "outlined"}
-            color={target === activity.target ? "warning" : "default"}
-            aria-pressed={target === activity.target}
-            // Narrow enough that all seven and the label hold one line on a phone.
-            sx={{ minWidth: 30, "& .MuiChip-label": { px: 0.75 } }}
-          />
-        ))}
+        {WEEKLY_TARGETS.map((target) => {
+          const isTarget = target === activity.target;
+          // The numbers already counted off, marked where they are read: the
+          // fourth of five is the fourth chip, not a bar somewhere else.
+          // Dimmer than the target, which still has to be the loudest thing in
+          // the row — it is the one a click changes.
+          const isCounted = !isTarget && target <= Math.min(done, activity.target);
+
+          return (
+            <Chip
+              key={target}
+              label={target}
+              size="small"
+              onClick={() => onCommit({ target })}
+              variant={isTarget || isCounted ? "filled" : "outlined"}
+              color={isTarget ? (isDone ? "success" : "warning") : "default"}
+              aria-pressed={isTarget}
+              aria-label={isCounted ? `${target} times a week — ${target} of them done` : `${target} times a week`}
+              // Narrow enough that all seven and the label hold one line on a phone.
+              sx={{
+                minWidth: 30,
+                "& .MuiChip-label": { px: 0.75 },
+                ...(isCounted && {
+                  bgcolor: (theme) => alpha(theme.palette[isDone ? "success" : "warning"].main, 0.35),
+                  color: "text.primary",
+                  opacity: 0.8,
+                }),
+              }}
+            />
+          );
+        })}
 
         {/* Pushes the count and the buttons to the far end of the same row, and
             lets them drop to a line of their own when there is no room. */}
