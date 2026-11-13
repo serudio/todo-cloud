@@ -27,6 +27,7 @@ import {
   readBackedUpTodoList,
 } from "../utils/todoListBackup";
 import { getNextMidnightDelay } from "../utils/date";
+import { createSaveQueue } from "../utils/saveQueue";
 import { CLOUD_SORT_STORAGE_KEY, FULL_WIDTH_STORAGE_KEY } from "../constants/ui";
 
 export function useAppInit() {
@@ -55,6 +56,13 @@ export function useAppInit() {
   const [saveError, setSaveError] = useState<string | null>(null);
   const [todoListId, setTodoListId] = useState<string | null>(null);
   const todosRef = useRef<Todo[]>([]);
+  // The version of the list on the server that this tab last read or wrote.
+  // Every save names it, so a save from a copy that has gone stale is refused
+  // rather than written over whatever has happened since.
+  const listVersionRef = useRef<string | null>(null);
+  // One save at a time, each naming the version the last came back with, and
+  // anything queued against a copy that has since been reloaded is dropped.
+  const saveQueueRef = useRef(createSaveQueue());
   const sessionUserIdRef = useRef<string | null>(null);
   const [deletedTodos, setDeletedTodos] = useState<DeletedTodo[]>([]);
 
@@ -175,6 +183,7 @@ export function useAppInit() {
 
       setIsLoadingTodos(true);
       setSaveError(null);
+      saveQueueRef.current.startNewCopy();
 
       const { data, error } = await getFirstTodoList(userId);
 
@@ -191,13 +200,15 @@ export function useAppInit() {
         const newItems = backedUpItems ?? parsedItems;
 
         setTodoListId(data.id);
+        listVersionRef.current = data.updated_at;
         setTodoListItems(newItems);
         setIsLoadingTodos(false);
         backupTodoList(userId, newItems);
 
         if (backedUpItems) {
           setNotification("Restored your todo list from the local backup.");
-          await updateTodoListItems(data.id, backedUpItems);
+          const { data: saved } = await updateTodoListItems(data.id, backedUpItems, data.updated_at);
+          if (saved) listVersionRef.current = saved.updated_at;
         }
 
         return;
@@ -220,15 +231,16 @@ export function useAppInit() {
       );
 
       setTodoListId(createdTodoList.id);
+      listVersionRef.current = createdTodoList.updated_at;
       setTodoListItems(createdItems);
       setIsLoadingTodos(false);
     },
     [setIsLoadingTodos, setLinks, setNotes, setSaveError, setTags, setTodoListId, setTodos, setNotification],
   );
 
-  const saveTodoList = useCallback(
+  const writeTodoList = useCallback(
     async (newTodos: Todo[], newTags: TodoTag[], newLinks: CustomLink[], newNotes: string) => {
-      if (!supabase || !todoListId) return;
+      if (!supabase || !todoListId || !listVersionRef.current) return;
 
       setSaveError(null);
 
@@ -253,17 +265,35 @@ export function useAppInit() {
       }
 
       const newItems = { todos: newTodos, tags: newTags, links: newLinks, notes: newNotes };
-      const { error } = await updateTodoListItems(todoListId, newItems);
-
-      if (!error && session) {
-        backupTodoList(session.user.id, newItems);
-      }
+      const { data, error } = await updateTodoListItems(todoListId, newItems, listVersionRef.current);
 
       if (error) {
         setSaveError(error.message);
+        return;
       }
+
+      // Nothing matched: the list on the server has moved on since this tab
+      // last saw it — another tab, another device, a migration. Writing this
+      // copy over it is how a whole list goes missing, so take the server's
+      // version instead and say what happened. The change just made is the
+      // price, and it is one change rather than everything since.
+      if (!data) {
+        if (session) await loadTodoList(session.user.id);
+        setNotification("Your list changed somewhere else, so it was reloaded. Your last change wasn't saved.");
+        return;
+      }
+
+      listVersionRef.current = data.updated_at;
+
+      if (session) backupTodoList(session.user.id, newItems);
     },
-    [notes, todoListId, session, setSaveError, setNotification],
+    [todoListId, session, setSaveError, setNotification, loadTodoList],
+  );
+
+  const saveTodoList = useCallback(
+    (newTodos: Todo[], newTags: TodoTag[], newLinks: CustomLink[], newNotes: string) =>
+      saveQueueRef.current.enqueue(() => writeTodoList(newTodos, newTags, newLinks, newNotes)),
+    [writeTodoList],
   );
 
   function setTodoListItems(items: TodoListItems) {
@@ -274,6 +304,8 @@ export function useAppInit() {
   }
 
   function resetTodoList() {
+    // No list, no version: a save with nothing to name is refused outright.
+    listVersionRef.current = null;
     setTodos([]);
     setTags([]);
     setLinks([]);
@@ -288,18 +320,18 @@ export function useAppInit() {
   );
 
   const saveTags = useCallback(
-    async (newTags: TodoTag[]) => await saveTodoList(todos, newTags, links, notes),
-    [links, notes, saveTodoList, todos],
+    async (newTags: TodoTag[]) => await saveTodoList(todosRef.current, newTags, links, notes),
+    [links, notes, saveTodoList],
   );
 
   const saveLinks = useCallback(
-    async (newLinks: CustomLink[]) => await saveTodoList(todos, tags, newLinks, notes),
-    [tags, notes, saveTodoList, todos],
+    async (newLinks: CustomLink[]) => await saveTodoList(todosRef.current, tags, newLinks, notes),
+    [tags, notes, saveTodoList],
   );
 
   const saveNotes = useCallback(
-    async (newNotes: string) => await saveTodoList(todos, tags, links, newNotes),
-    [tags, links, saveTodoList, todos],
+    async (newNotes: string) => await saveTodoList(todosRef.current, tags, links, newNotes),
+    [tags, links, saveTodoList],
   );
 
   const updateTodos = useCallback(

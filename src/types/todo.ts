@@ -55,4 +55,7 @@ export type TodoListRow = {
   tags: unknown;
   links: unknown;
   notes: unknown;
+  // The version of the row this copy was read at. A save only lands if the row
+  // is still at that version, so a copy that has gone stale cannot replace it.
+  updated_at: string;
 };
