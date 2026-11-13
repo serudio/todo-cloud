@@ -20,6 +20,7 @@ import { Snoozed } from "./Snoozed";
 import { SwipeableTodoRow } from "./SwipeableTodoRow";
 import { TodoActionSheet } from "./TodoActionSheet";
 import { useIsMobile } from "../../hooks/mobile";
+import { useToday } from "../../hooks/day";
 import { isWeeklyDone, isWeeklyDoneToday, isWeeklyTodo } from "../../utils/weekly";
 import { WeeklyCloudItem } from "./WeeklyCloudItem";
 
@@ -52,6 +53,7 @@ export const TodoCloud: React.FC<Props> = ({
   const isMobile = useIsMobile();
   const [actionsTodoId, setActionsTodoId] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(() => Date.now());
+  const today = useToday();
   // The search narrows every strip on this card, not just the cloud, so a hit is
   // never hidden behind a heading that still shows everything.
   const matchesTodo = (todo: Todo) => matchesSearch(search, todo.text, todo.link);
@@ -62,8 +64,8 @@ export const TodoCloud: React.FC<Props> = ({
   // The cloud is what is still owed today, so a weekly task leaves it the
   // moment it has been counted once — for the rest of the day if the week
   // still wants more, and until Monday if that was the last one. Both come
-  // back on their own: the counts are read from the day and week they fall in,
-  // so nothing has to run at midnight.
+  // back on their own, from the day and week the counts fall in, as long as
+  // this is asked again: hence the midnight tick below.
   const owedTodos = activeTodos.filter(
     (todo) => !isWeeklyTodo(todo) || (!isWeeklyDone(todo, currentTime) && !isWeeklyDoneToday(todo, currentTime)),
   );
@@ -71,16 +73,12 @@ export const TodoCloud: React.FC<Props> = ({
   const unsortedCloudTodos = owedTodos.filter((todo) => !isTodoSnoozed(todo, currentTime));
   const cloudTodos = isSortedByName ? getTodosSortedByName(unsortedCloudTodos) : unsortedCloudTodos;
   const snoozedTodos = owedTodos.filter((todo) => isTodoSnoozed(todo, currentTime));
-  // Left in the order they were set up rather than sorted by what is left:
-  // counting one off would otherwise slide the next quota under the pointer,
-  // and the click after it would land on something else. The only move here is
-  // the one that means something — a quota the week is done with drops out,
-  // and comes back on Monday, because the counts are read from the week they
-  // fall in: nothing has to run at midnight on Sunday for it to reappear.
-  // The cloud is what is still owed today, so a quota leaves it the moment it
-  // has been counted once — for the rest of the day if the week still wants
-  // more, and until Monday if that was the last one. Both come back on their
-  // own: the counts are read from the day and week they fall in.
+  // Midnight makes every "today" in here wrong at once: a weekly task counted
+  // yesterday is owed again this morning, and would otherwise stay out of the
+  // cloud all day in a tab that was left open overnight.
+  useEffect(() => {
+    setCurrentTime(Date.now());
+  }, [today]);
 
   // Re-render when the earliest snooze runs out, so a task reappears on its own.
   useEffect(() => {

@@ -25,6 +25,7 @@ import { useSectionSettings } from "./hooks/settings.ts";
 import { markWeeklyDone } from "./utils/weekly.ts";
 import { SIDE_PANEL_WIDTH } from "./constants/ui.ts";
 import { useIsMobile } from "./hooks/mobile.ts";
+import { useToday } from "./hooks/day.ts";
 import { ListsPage } from "./components/Lists/ListsPage";
 import { ListPage } from "./components/Lists/ListPage";
 import { ListEditor } from "./components/Lists/ListEditor";
@@ -44,6 +45,9 @@ export default function App() {
   const route = useRoute();
   const isMobile = useIsMobile();
   const { sections, toggleSection } = useSectionSettings();
+  // Not read here: it re-renders the app when the date changes, so everything
+  // below that draws a distinction about today redraws with the new one.
+  useToday();
   // Not a route: settings only change how the page behind them looks, and
   // leaving that page to flip a switch hid the thing being switched.
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
