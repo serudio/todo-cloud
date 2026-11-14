@@ -59,7 +59,7 @@ export function useAppInit() {
   // The version of the list on the server that this tab last read or wrote.
   // Every save names it, so a save from a copy that has gone stale is refused
   // rather than written over whatever has happened since.
-  const listVersionRef = useRef<string | null>(null);
+  const listVersionRef = useRef<number | null>(null);
   // One save at a time, each naming the version the last came back with, and
   // anything queued against a copy that has since been reloaded is dropped.
   const saveQueueRef = useRef(createSaveQueue());
@@ -200,15 +200,15 @@ export function useAppInit() {
         const newItems = backedUpItems ?? parsedItems;
 
         setTodoListId(data.id);
-        listVersionRef.current = data.updated_at;
+        listVersionRef.current = data.version;
         setTodoListItems(newItems);
         setIsLoadingTodos(false);
         backupTodoList(userId, newItems);
 
         if (backedUpItems) {
           setNotification("Restored your todo list from the local backup.");
-          const { data: saved } = await updateTodoListItems(data.id, backedUpItems, data.updated_at);
-          if (saved) listVersionRef.current = saved.updated_at;
+          const { data: saved } = await updateTodoListItems(data.id, backedUpItems, data.version);
+          if (saved) listVersionRef.current = saved.version;
         }
 
         return;
@@ -231,7 +231,7 @@ export function useAppInit() {
       );
 
       setTodoListId(createdTodoList.id);
-      listVersionRef.current = createdTodoList.updated_at;
+      listVersionRef.current = createdTodoList.version;
       setTodoListItems(createdItems);
       setIsLoadingTodos(false);
     },
@@ -240,7 +240,7 @@ export function useAppInit() {
 
   const writeTodoList = useCallback(
     async (newTodos: Todo[], newTags: TodoTag[], newLinks: CustomLink[], newNotes: string) => {
-      if (!supabase || !todoListId || !listVersionRef.current) return;
+      if (!supabase || !todoListId || listVersionRef.current === null) return;
 
       setSaveError(null);
 
@@ -283,7 +283,7 @@ export function useAppInit() {
         return;
       }
 
-      listVersionRef.current = data.updated_at;
+      listVersionRef.current = data.version;
 
       if (session) backupTodoList(session.user.id, newItems);
     },

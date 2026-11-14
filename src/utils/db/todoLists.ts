@@ -12,7 +12,7 @@ function getSupabaseClient() {
 export async function getFirstTodoList(userId: string) {
   return getSupabaseClient()
     .from("todo_lists")
-    .select("id, name, items, tags, links, notes, updated_at")
+    .select("id, name, items, tags, links, notes, version")
     .eq("user_id", userId)
     .order("created_at", { ascending: true })
     .limit(1)
@@ -23,7 +23,7 @@ export async function createTodoList(userId: string) {
   return getSupabaseClient()
     .from("todo_lists")
     .insert({ user_id: userId, items: [], tags: [], links: [], notes: "" })
-    .select("id, name, items, tags, links, notes, updated_at")
+    .select("id, name, items, tags, links, notes, version")
     .single<TodoListRow>();
 }
 
@@ -32,11 +32,13 @@ export async function createTodoList(userId: string) {
  *
  * The list is one document and a save replaces all of it, so a tab holding an
  * old copy would otherwise wipe out whatever was written since: another tab's
- * tasks, a phone's counts, a migration. Matching on updated_at turns that into
+ * tasks, a phone's counts, a restore. Filtering on the version turns that into
  * a save that touches no rows, which the caller sees as `data: null` and can
- * answer by reloading instead of overwriting.
+ * answer by reloading instead of overwriting. The database refuses any save
+ * that does not move the version up by exactly one (migration 0012), so this
+ * holds even for code that never learned to ask.
  */
-export async function updateTodoListItems(todoListId: string, items: TodoListItems, expectedVersion: string) {
+export async function updateTodoListItems(todoListId: string, items: TodoListItems, expectedVersion: number) {
   return getSupabaseClient()
     .from("todo_lists")
     .update({
@@ -44,11 +46,12 @@ export async function updateTodoListItems(todoListId: string, items: TodoListIte
       tags: items.tags,
       links: items.links,
       notes: items.notes,
+      version: expectedVersion + 1,
     })
     .eq("id", todoListId)
-    .eq("updated_at", expectedVersion)
-    .select("updated_at")
-    .maybeSingle<{ updated_at: string }>();
+    .eq("version", expectedVersion)
+    .select("version")
+    .maybeSingle<{ version: number }>();
 }
 
 export async function updateTodoListName(todoListId: string, name: string) {
