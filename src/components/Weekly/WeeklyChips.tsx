@@ -38,9 +38,9 @@ export const WeeklyChips: React.FC<Props> = ({ todos, search, onCountOne }) => {
   const matchingTodos = sortWeeklyByRemaining(getWeeklyTodos(todos), Date.now(), { isNotTodayAside: true }).filter(
     (todo) => matchesSearch(search, todo.text),
   );
-  // Done for the week, or put off for today: nothing to do about either of
-  // them now, so they wait behind the button at the end.
-  const isSetAside = (todo: Todo) => isWeeklyDone(todo) || isWeeklyNotToday(todo);
+  // Done for the week, counted already today, or put off for today: nothing
+  // to do about any of them now, so they wait behind the button at the end.
+  const isSetAside = (todo: Todo) => isWeeklyDone(todo) || isWeeklyDoneToday(todo) || isWeeklyNotToday(todo);
   const setAsideCount = matchingTodos.filter(isSetAside).length;
   const shownTodos = isShowingSetAside ? matchingTodos : matchingTodos.filter((todo) => !isSetAside(todo));
 
