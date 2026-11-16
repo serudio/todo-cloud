@@ -151,19 +151,9 @@ export const WeeklyPage: React.FC<Props> = ({
           week is on track is the question the page is opened to answer. */}
       {weeklyTodos.length > 0 && <WeeklyTotalsCard todos={weeklyTodos} daysLeft={daysLeft} />}
 
-      {/* A column each on a wide screen rather than one card per band: a line
-          of five cells and a name does not need 1100px, and stacked full-width
-          rows push the week off the bottom of the screen. */}
-      <Box
-        sx={{
-          display: "grid",
-          // minmax(0, …) rather than 1fr: a column floored at its content's
-          // width would be pushed wider than a phone by the row of targets.
-          gridTemplateColumns: { xs: "minmax(0, 1fr)", md: "repeat(2, minmax(0, 1fr))" },
-          alignItems: "start",
-          gap: 1,
-        }}
-      >
+      {/* One full-width row each: the name, its numbers and its buttons on
+          one line read down the page as a list, which is what this is. */}
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
         {shownTodos.map((todo) => (
           <WeeklyActivityCard
             key={todo.id}
