@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Card, Chip, Tooltip, Typography } from "@mui/material";
 import CheckIcon from "@mui/icons-material/Check";
 import type { Todo } from "../../types/todo";
@@ -7,7 +8,9 @@ import {
   getDoneThisWeek,
   getWeeklyTarget,
   getWeeklyTodos,
+  isWeeklyDone,
   isWeeklyDoneToday,
+  isWeeklyNotToday,
   sortWeeklyByRemaining,
 } from "../../utils/weekly";
 import { matchesSearch } from "../../utils/search";
@@ -26,12 +29,24 @@ type Props = {
  * Everything else about them is on the page behind the label.
  */
 export const WeeklyChips: React.FC<Props> = ({ todos, search, onCountOne }) => {
+  // Not remembered across reloads: the strip is for what is still owed today,
+  // and showing the rest is a look, not a setting.
+  const [isShowingSetAside, setIsShowingSetAside] = useState(false);
   const daysLeft = getDaysLeftInWeek();
-  const shownTodos = sortWeeklyByRemaining(getWeeklyTodos(todos)).filter((todo) => matchesSearch(search, todo.text));
+  // Not today sorted to the end with the finished ones, so showing them adds
+  // to the end of the line rather than shuffling what is already there.
+  const matchingTodos = sortWeeklyByRemaining(getWeeklyTodos(todos), Date.now(), { isNotTodayAside: true }).filter(
+    (todo) => matchesSearch(search, todo.text),
+  );
+  // Done for the week, or put off for today: nothing to do about either of
+  // them now, so they wait behind the button at the end.
+  const isSetAside = (todo: Todo) => isWeeklyDone(todo) || isWeeklyNotToday(todo);
+  const setAsideCount = matchingTodos.filter(isSetAside).length;
+  const shownTodos = isShowingSetAside ? matchingTodos : matchingTodos.filter((todo) => !isSetAside(todo));
 
   // Nothing set up, or nothing matching what is being searched for: the strip
   // is a reminder, and an empty reminder is just a bar taking up room.
-  if (!shownTodos.length) return null;
+  if (!matchingTodos.length) return null;
 
   return (
     <Card sx={{ display: "flex", alignItems: "center", gap: 0.5, flexWrap: "wrap", px: 1, py: 0.5 }}>
@@ -54,6 +69,7 @@ export const WeeklyChips: React.FC<Props> = ({ todos, search, onCountOne }) => {
         // Counted today: still owed this week, but already dealt with once
         // since this morning, which is the thing being asked at a glance.
         const isDoneToday = isWeeklyDoneToday(todo);
+        const isNotToday = isWeeklyNotToday(todo);
 
         return (
           <Tooltip
@@ -61,7 +77,7 @@ export const WeeklyChips: React.FC<Props> = ({ todos, search, onCountOne }) => {
             title={
               isDone
                 ? "Done for the week — tap to count another"
-                : `${isDoneToday ? "Counted today · " : ""}Tap to count one · ${daysLeft} days left`
+                : `${isNotToday ? "Not today · " : isDoneToday ? "Counted today · " : ""}Tap to count one · ${daysLeft} days left`
             }
           >
             <Chip
@@ -71,11 +87,23 @@ export const WeeklyChips: React.FC<Props> = ({ todos, search, onCountOne }) => {
               color={isDone ? "success" : isDoneToday ? "warning" : "default"}
               icon={isDone ? <CheckIcon /> : undefined}
               label={`${todo.text || "untitled"} ${done}/${target}`}
-              sx={{ height: 22, fontSize: 12, letterSpacing: 1.2 }}
+              sx={{ height: 22, fontSize: 12, letterSpacing: 1.2, ...(isNotToday && !isDone && { opacity: 0.55 }) }}
             />
           </Tooltip>
         );
       })}
+
+      {setAsideCount > 0 && (
+        <Chip
+          onClick={() => setIsShowingSetAside((previous) => !previous)}
+          size="small"
+          color="warning"
+          variant="filled"
+          aria-pressed={isShowingSetAside}
+          label={isShowingSetAside ? "hide" : `show ${setAsideCount}`}
+          sx={{ height: 18, fontSize: 11, ml: "auto" }}
+        />
+      )}
     </Card>
   );
 };
