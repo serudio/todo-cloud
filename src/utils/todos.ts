@@ -54,6 +54,8 @@ export const markTodoNotNow = (todo: Todo) => ({
   notTodayDate: null,
 });
 export const markTodoNotToday = (todo: Todo) => ({ ...todo, notToday: true, notTodayDate: getLocalDateKey() });
+
+export const markTodoBackToday = (todo: Todo) => ({ ...todo, notToday: false, notTodayDate: null });
 export const markTodoDone = (todo: Todo) => {
   const now = new Date().toISOString();
   const newDone = !todo.done;

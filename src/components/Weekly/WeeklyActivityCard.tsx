@@ -1,10 +1,8 @@
 import { Box, Button, Card, Chip, IconButton, InputBase, Tooltip, Typography } from "@mui/material";
-import dayjs from "dayjs";
 import { alpha } from "@mui/material/styles";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutlineOutlined";
-import SnoozeIcon from "@mui/icons-material/Snooze";
 import type { Todo } from "../../types/todo";
 import {
   getDoneThisWeek,
@@ -20,8 +18,8 @@ type Props = {
   onCountOne: () => void;
   onUndoOne: () => void;
   onDelete: () => void;
-  isSnoozed: boolean;
-  onToggleSnooze: () => void;
+  isNotToday: boolean;
+  onToggleNotToday: () => void;
 };
 
 export const WeeklyActivityCard: React.FC<Props> = ({
@@ -31,8 +29,8 @@ export const WeeklyActivityCard: React.FC<Props> = ({
   onCountOne,
   onUndoOne,
   onDelete,
-  isSnoozed,
-  onToggleSnooze,
+  isNotToday,
+  onToggleNotToday,
 }) => {
   const done = getDoneThisWeek(todo);
   const target = getWeeklyTarget(todo);
@@ -41,10 +39,10 @@ export const WeeklyActivityCard: React.FC<Props> = ({
   const isDoneToday = isWeeklyDoneToday(todo);
   const name = todo.text || "this";
 
-  // Folded to one line while snoozed: it is still owed, so it stays on the
-  // page, but it has asked not to be looked at for now, and the targets and
-  // history are the part that takes the room.
-  if (isSnoozed) {
+  // Folded to one line for the rest of the day: it is still owed this week, so
+  // it stays on the page, but not today, and the targets are the part that
+  // takes the room. It unfolds at midnight on its own.
+  if (isNotToday) {
     return (
       <Card
         sx={{
@@ -57,22 +55,21 @@ export const WeeklyActivityCard: React.FC<Props> = ({
           bgcolor: (theme) => alpha(theme.palette.text.primary, 0.04),
         }}
       >
-        <SnoozeIcon fontSize="small" color="disabled" />
         <Typography
           sx={{ flex: 1, minWidth: 0, letterSpacing: 1.2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
         >
           {todo.text || "untitled"}
         </Typography>
         <Typography variant="caption" color="text.secondary" sx={{ whiteSpace: "nowrap" }}>
-          {done}/{target} · until {dayjs(todo.snoozedUntil).format("HH:mm")}
+          {done}/{target} · not today
         </Typography>
         <Button
           size="small"
-          onClick={onToggleSnooze}
-          aria-label={`Wake ${name}`}
+          onClick={onToggleNotToday}
+          aria-label={`Bring ${name} back for today`}
           sx={{ minWidth: 0, p: 0, px: 0.5, fontWeight: 700, textTransform: "lowercase" }}
         >
-          wake
+          today
         </Button>
       </Card>
     );
@@ -130,10 +127,15 @@ export const WeeklyActivityCard: React.FC<Props> = ({
           sx={{ flex: 1, minWidth: 0, fontSize: "1.1rem", letterSpacing: 1.2 }}
         />
 
-        <Tooltip title="Snooze for an hour">
-          <IconButton size="small" onClick={onToggleSnooze} aria-label={`Snooze ${name}`}>
-            <SnoozeIcon fontSize="small" />
-          </IconButton>
+        <Tooltip title="Not today: fold it away until tomorrow">
+          <Button
+            size="small"
+            onClick={onToggleNotToday}
+            aria-label={`Not today for ${name}`}
+            sx={{ minWidth: 0, p: 0, px: 0.5, fontWeight: 700, textTransform: "lowercase" }}
+          >
+            <s>today</s>
+          </Button>
         </Tooltip>
 
         <Tooltip title="Remove this">

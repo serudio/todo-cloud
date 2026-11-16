@@ -2,7 +2,7 @@ import dayjs from "dayjs";
 import type { Todo } from "../types/todo";
 import { DEFAULT_WEEKLY_TARGET, KEPT_WEEKS } from "../constants/weekly";
 import { getLocalDateKey } from "./date";
-import { getNewTodo, isTodoSnoozed } from "./todos";
+import { getNewTodo } from "./todos";
 
 export { DEFAULT_WEEKLY_TARGET, KEPT_WEEKS, MAX_WEEKLY_TARGET, WEEKLY_TARGETS } from "../constants/weekly";
 
@@ -187,25 +187,25 @@ export const getNewWeeklyTodo = (target: number): Todo => ({
  * the finished things live. Within each group the order they were added holds,
  * so the list only moves when something has actually happened.
  */
-const getWeeklyRank = (todo: Todo, now: number, isSnoozedAside: boolean) => {
+const getWeeklyRank = (todo: Todo, now: number, isNotTodayAside: boolean) => {
   if (isWeeklyDone(todo, now)) return 3;
-  if (isSnoozedAside && isTodoSnoozed(todo, now)) return 2;
+  if (isNotTodayAside && isWeeklyNotToday(todo, getLocalDateKey(new Date(now)))) return 2;
 
   return isWeeklyDoneToday(todo, now) ? 1 : 0;
 };
 
 /**
- * `isSnoozedAside` is for the Weekly page, where a snoozed task is folded up
- * and goes after everything still in play, but before what the week is done
- * with: it is still owed, just not now.
+ * `isNotTodayAside` is for the Weekly page, where a task put off for today is
+ * folded up and goes after everything still in play, but before what the week
+ * is done with: it is still owed, just not today.
  */
 export const sortWeeklyByRemaining = (
   todos: Todo[],
   now: number = Date.now(),
-  { isSnoozedAside = false }: { isSnoozedAside?: boolean } = {},
+  { isNotTodayAside = false }: { isNotTodayAside?: boolean } = {},
 ) =>
   [...todos].sort(
-    (first, second) => getWeeklyRank(first, now, isSnoozedAside) - getWeeklyRank(second, now, isSnoozedAside),
+    (first, second) => getWeeklyRank(first, now, isNotTodayAside) - getWeeklyRank(second, now, isNotTodayAside),
   );
 
 // Kept for the places that ask "is this one hidden for today", so the weekly

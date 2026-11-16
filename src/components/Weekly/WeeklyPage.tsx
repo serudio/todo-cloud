@@ -5,8 +5,7 @@ import AddIcon from "@mui/icons-material/Add";
 import SettingsIcon from "@mui/icons-material/Settings";
 import type { Todo } from "../../types/todo";
 import { navigate, todosPath } from "../../hooks/route";
-import { useSnoozeClock } from "../../hooks/snooze";
-import { isTodoSnoozed, markTodoAwake, markTodoSnoozed } from "../../utils/todos";
+import { markTodoBackToday, markTodoNotToday } from "../../utils/todos";
 import {
   DEFAULT_WEEKLY_TARGET,
   formatWeekRange,
@@ -14,6 +13,7 @@ import {
   getNewWeeklyTodo,
   getWeeklyTodos,
   getWeekStart,
+  isWeeklyNotToday,
   markWeeklyDone,
   sortWeeklyByRemaining,
   undoWeeklyDone,
@@ -55,20 +55,16 @@ export const WeeklyPage: React.FC<Props> = ({
   // the whole list; the text in hand wins over the one that came back.
   const [drafts, setDrafts] = useState<Record<string, string>>({});
 
-  const [now, setNow] = useSnoozeClock(todos);
-
   const daysLeft = getDaysLeftInWeek();
   const weeklyTodos = getWeeklyTodos(todos).map((todo) =>
     drafts[todo.id] === undefined ? todo : { ...todo, text: drafts[todo.id] },
   );
-  const shownTodos = sortWeeklyByRemaining(weeklyTodos, now, { isSnoozedAside: true });
+  // Not today ends at midnight, and the app re-renders then on its own, so
+  // there is no clock to keep here.
+  const shownTodos = sortWeeklyByRemaining(weeklyTodos, Date.now(), { isNotTodayAside: true });
 
-  const handleToggleSnooze = (todoId: string) => {
-    // Moved on first, so the card folds against the time it was snoozed at
-    // rather than whenever the clock last ticked.
-    setNow(Date.now());
-    applyToTodo(todoId, (todo) => (isTodoSnoozed(todo) ? markTodoAwake(todo) : markTodoSnoozed(todo)));
-  };
+  const handleToggleNotToday = (todoId: string) =>
+    applyToTodo(todoId, (todo) => (isWeeklyNotToday(todo) ? markTodoBackToday(todo) : markTodoNotToday(todo)));
 
   const handleDeleteConfirm = () => {
     if (todoPendingDelete) deleteTodo(todoPendingDelete.id);
@@ -153,8 +149,8 @@ export const WeeklyPage: React.FC<Props> = ({
             onCountOne={() => applyToTodo(todo.id, (current) => markWeeklyDone(current))}
             onUndoOne={() => applyToTodo(todo.id, (current) => undoWeeklyDone(current))}
             onDelete={() => setTodoPendingDelete(todo)}
-            isSnoozed={isTodoSnoozed(todo, now)}
-            onToggleSnooze={() => handleToggleSnooze(todo.id)}
+            isNotToday={isWeeklyNotToday(todo)}
+            onToggleNotToday={() => handleToggleNotToday(todo.id)}
           />
         ))}
       </Box>
