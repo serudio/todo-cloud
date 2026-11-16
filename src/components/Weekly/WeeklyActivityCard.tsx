@@ -151,11 +151,6 @@ export const WeeklyActivityCard: React.FC<Props> = ({
       <Box
         sx={{ position: "relative", display: "flex", alignItems: "center", gap: 0.25, flexWrap: "wrap", rowGap: 0.5 }}
       >
-        {/* Not on a phone: there it would push the buttons onto a line of
-            their own, and seven numbers in a row say "how often" well enough. */}
-        <Typography variant="caption" color="text.secondary" sx={{ mr: 0.5, display: { xs: "none", sm: "block" } }}>
-          times a week
-        </Typography>
         {WEEKLY_TARGETS.map((chipTarget) => {
           const isTarget = chipTarget === target;
           // The numbers already counted off, marked where they are read: the
@@ -163,29 +158,33 @@ export const WeeklyActivityCard: React.FC<Props> = ({
           // Dimmer than the target, which still has to be the loudest thing in
           // the row — it is the one a click changes.
           const isCounted = !isTarget && chipTarget <= Math.min(done, target);
+          // On hover rather than as a label: seven numbers in a row say "how
+          // often" well enough, and the words took the room the buttons need.
+          const targetLabel = `${chipTarget} ${chipTarget === 1 ? "time" : "times"} a week`;
 
           return (
-            <Chip
-              key={chipTarget}
-              label={chipTarget}
-              size="small"
-              onClick={() => onCommit({ weeklyTarget: chipTarget })}
-              variant={isTarget || isCounted ? "filled" : "outlined"}
-              color={isTarget ? (isDone ? "success" : "warning") : "default"}
-              aria-pressed={isTarget}
-              aria-label={`${chipTarget} times a week`}
-              // Narrow enough that all seven and the label hold one line on a phone.
-              sx={{
-                minWidth: 26,
-                height: 22,
-                "& .MuiChip-label": { px: 0.6 },
-                ...(isCounted && {
-                  bgcolor: (theme) => alpha(theme.palette[isDone ? "success" : "warning"].main, 0.35),
-                  color: "text.primary",
-                  opacity: 0.8,
-                }),
-              }}
-            />
+            <Tooltip key={chipTarget} title={targetLabel} placement="top" disableInteractive>
+              <Chip
+                label={chipTarget}
+                size="small"
+                onClick={() => onCommit({ weeklyTarget: chipTarget })}
+                variant={isTarget || isCounted ? "filled" : "outlined"}
+                color={isTarget ? (isDone ? "success" : "warning") : "default"}
+                aria-pressed={isTarget}
+                aria-label={targetLabel}
+                // Narrow enough that all seven and the buttons hold one line on a phone.
+                sx={{
+                  minWidth: 26,
+                  height: 22,
+                  "& .MuiChip-label": { px: 0.6 },
+                  ...(isCounted && {
+                    bgcolor: (theme) => alpha(theme.palette[isDone ? "success" : "warning"].main, 0.35),
+                    color: "text.primary",
+                    opacity: 0.8,
+                  }),
+                }}
+              />
+            </Tooltip>
           );
         })}
 
