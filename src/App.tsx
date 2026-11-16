@@ -154,7 +154,11 @@ export default function App() {
           addTodo={addTodo}
           deleteTodo={deleteTodo}
           onSettingsClick={() => setIsSettingsOpen(true)}
+          onRefresh={refreshTodoList}
         />
+        {/* Here too: a save refused because the list changed elsewhere says so,
+            and this page saves counts as often as the cloud saves tasks. */}
+        <NotificationsToast notification={notification} onClose={closeNotification} />
         {settingsDialog}
       </PageLayout>
     );

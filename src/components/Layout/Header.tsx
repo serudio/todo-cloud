@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { Box, Button, Card, Chip, IconButton, InputBase, Tooltip } from "@mui/material";
+import { Box, Button, Card, IconButton, InputBase, Tooltip } from "@mui/material";
 import RefreshRoundedIcon from "@mui/icons-material/RefreshRounded";
 import LogoutIcon from "@mui/icons-material/Logout";
 import { signOut } from "../../utils/auth";
 import { HeaderMenu } from "./HeaderMenu";
+import { AppLinks } from "./AppLinks";
 import { getAbsoluteUrl, pointsPath } from "../../hooks/route";
 import { useIsMobile } from "../../hooks/mobile";
 import { MAIN_SITE_URL } from "../../constants/ui";
@@ -175,7 +176,7 @@ export const Header: React.FC<Props> = ({
 
       <Box sx={{ display: "flex", alignItems: "center", flexWrap: "wrap" }}>
         <Tooltip title="Quick links">
-          <Button onClick={(event) => setLinksAnchor(event.currentTarget)} color="info">
+          <Button onClick={(event) => setLinksAnchor(event.currentTarget)} color="info" sx={{ minWidth: 0 }}>
             <LinkIcon />
           </Button>
         </Tooltip>
@@ -199,7 +200,7 @@ export const Header: React.FC<Props> = ({
           </Button>
         </Tooltip>
         <Tooltip title={isCloudSortedByName ? "Back to the order tasks were added" : "Sort tasks A–Z"}>
-          <Button onClick={onCloudSortClick} aria-pressed={isCloudSortedByName}>
+          <Button onClick={onCloudSortClick} aria-pressed={isCloudSortedByName} sx={{ minWidth: 0 }}>
             <SortByAlphaIcon color={isCloudSortedByName ? "warning" : "action"} />
           </Button>
         </Tooltip>
@@ -261,26 +262,24 @@ export const Header: React.FC<Props> = ({
         </Tooltip>
 
         {/* Left Menu */}
-        <Button onClick={onLeftMenuClick}>
+        <Button onClick={onLeftMenuClick} sx={{ minWidth: 0 }}>
           <MenuOpenIcon sx={{ transform: "scaleX(-1)" }} color="info" />
         </Button>
 
         {/* Right Menu */}
-        <Button onClick={onRightMenuClick}>
+        <Button onClick={onRightMenuClick} sx={{ minWidth: 0 }}>
           <MenuOpenIcon color="info" />
         </Button>
       </Box>
       <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-        <Chip
-          label={email}
-          size="small"
-          color="secondary"
-          variant="outlined"
-          sx={{ display: { xs: "none", lg: "flex" } }}
-        />
-        <IconButton onClick={signOut} size="small" color="secondary">
-          <LogoutIcon fontSize="small" />
-        </IconButton>
+        <AppLinks isOnCloud />
+        {/* The account on hover rather than as a chip: the app links needed the
+            room, and which account this is gets asked far less often. */}
+        <Tooltip title={email ? `Sign out ${email}` : "Sign out"}>
+          <IconButton onClick={signOut} size="small" color="secondary" aria-label="Sign out">
+            <LogoutIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
       </Box>
     </Card>
   );

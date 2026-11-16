@@ -11,7 +11,9 @@ import EventRepeatIcon from "@mui/icons-material/EventRepeat";
 import LogoutIcon from "@mui/icons-material/Logout";
 import { signOut } from "../../utils/auth";
 import { getAbsoluteUrl, pointsPath } from "../../hooks/route";
-import { MAIN_SITE_URL } from "../../constants/ui";
+import { GOALS_URL, HUNDRED_TODO_URL, MAIN_SITE_URL } from "../../constants/ui";
+import FlagIcon from "@mui/icons-material/Flag";
+import ChecklistIcon from "@mui/icons-material/Checklist";
 import { LinksPopover, type LinksPopoverProps } from "../LinksCard/LinksPopover";
 
 type Props = LinksPopoverProps & {
@@ -68,6 +70,28 @@ export const HeaderMenu: React.FC<Props> = ({
             <ListItemText>{item.label}</ListItemText>
           </MenuItem>
         ))}
+
+        {/* The other everyday tools, on the main site. */}
+        <Divider />
+        <MenuItem component="a" href={GOALS_URL} target="_blank" rel="noreferrer" onClick={() => setAnchorElement(null)}>
+          <ListItemIcon>
+            <FlagIcon />
+          </ListItemIcon>
+          <ListItemText>Goals</ListItemText>
+        </MenuItem>
+        <MenuItem
+          component="a"
+          href={HUNDRED_TODO_URL}
+          target="_blank"
+          rel="noreferrer"
+          onClick={() => setAnchorElement(null)}
+        >
+          <ListItemIcon>
+            <ChecklistIcon />
+          </ListItemIcon>
+          <ListItemText>100 todo</ListItemText>
+        </MenuItem>
+        <Divider />
 
         <MenuItem
           component="a"

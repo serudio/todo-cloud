@@ -3,6 +3,7 @@ import { Box, Button, IconButton, Tooltip, Typography } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import AddIcon from "@mui/icons-material/Add";
 import SettingsIcon from "@mui/icons-material/Settings";
+import RefreshRoundedIcon from "@mui/icons-material/RefreshRounded";
 import type { Todo } from "../../types/todo";
 import { navigate, todosPath } from "../../hooks/route";
 import { markTodoBackToday, markTodoNotToday } from "../../utils/todos";
@@ -22,6 +23,7 @@ import { LoadingComponent } from "../Layout/LoadingComponent";
 import { ConfirmDialog } from "../Shared/ConfirmDialog";
 import { WeeklyActivityCard } from "./WeeklyActivityCard";
 import { WeeklyTotalsCard } from "./WeeklyTotalsCard";
+import { AppLinks } from "../Layout/AppLinks";
 
 type Props = {
   // The whole list, because a weekly task is a task: it is in there with the
@@ -32,6 +34,7 @@ type Props = {
   addTodo: (todo: Todo) => void;
   deleteTodo: (todoId: string) => void;
   onSettingsClick: () => void;
+  onRefresh: () => void;
 };
 
 /**
@@ -49,6 +52,7 @@ export const WeeklyPage: React.FC<Props> = ({
   addTodo,
   deleteTodo,
   onSettingsClick,
+  onRefresh,
 }) => {
   const [todoPendingDelete, setTodoPendingDelete] = useState<Todo | null>(null);
   // Typing is local until it is committed, so every keystroke is not a write of
@@ -103,9 +107,29 @@ export const WeeklyPage: React.FC<Props> = ({
         <Typography variant="caption" color="text.secondary" sx={{ mr: "auto" }}>
           {formatWeekRange(getWeekStart())} · {daysLeft} {daysLeft === 1 ? "day" : "days"} left
         </Typography>
+        {/* A line of their own on a phone, last, so the page's own controls
+            keep the first one. */}
+        <Box sx={{ order: { xs: 10, sm: 0 }, width: { xs: "100%", sm: "auto" } }}>
+          <AppLinks />
+        </Box>
         <Button size="small" onClick={() => addTodo(getNewWeeklyTodo(DEFAULT_WEEKLY_TARGET))} startIcon={<AddIcon />}>
           add
         </Button>
+        {/* The same reload as the cloud's: this page reads the same list, and
+            a count made on the phone should be one tap away on the laptop. */}
+        <Tooltip title="Refresh">
+          <span>
+            <IconButton
+              size="small"
+              color="secondary"
+              onClick={onRefresh}
+              disabled={isLoadingTodos}
+              aria-label="Refresh"
+            >
+              <RefreshRoundedIcon fontSize="small" />
+            </IconButton>
+          </span>
+        </Tooltip>
         {/* The theme lives in settings now, and this page is somewhere you can
             end up and stay — so it needs the same way in as the cloud has. */}
         <Tooltip title="Settings">

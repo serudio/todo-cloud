@@ -14,6 +14,10 @@ export const DEFAULT_TAG_COLOR = "#e2e2e2";
 
 export const MAIN_SITE_URL = "https://serudio.github.io/";
 
+// The other everyday tools, which live on the main site rather than in this app.
+export const GOALS_URL = `${MAIN_SITE_URL}goals`;
+export const HUNDRED_TODO_URL = `${MAIN_SITE_URL}100-todo`;
+
 export const SECTION_SETTINGS_STORAGE_KEY = "todo-cloud:sections";
 export const CLOUD_SORT_STORAGE_KEY = "todo-cloud:cloud-sort";
 export const FULL_WIDTH_STORAGE_KEY = "todo-cloud:full-width";
