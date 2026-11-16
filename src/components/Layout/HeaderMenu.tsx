@@ -11,7 +11,8 @@ import EventRepeatIcon from "@mui/icons-material/EventRepeat";
 import LogoutIcon from "@mui/icons-material/Logout";
 import { signOut } from "../../utils/auth";
 import { getAbsoluteUrl, pointsPath } from "../../hooks/route";
-import { GOALS_URL, HUNDRED_TODO_URL, MAIN_SITE_URL } from "../../constants/ui";
+import { GOALS_URL, HUNDRED_TODO_URL, MAIN_SITE_URL, SPORT_URL } from "../../constants/ui";
+import FitnessCenterIcon from "@mui/icons-material/FitnessCenter";
 import FlagIcon from "@mui/icons-material/Flag";
 import ChecklistIcon from "@mui/icons-material/Checklist";
 import { LinksPopover, type LinksPopoverProps } from "../LinksCard/LinksPopover";
@@ -90,6 +91,12 @@ export const HeaderMenu: React.FC<Props> = ({
             <ChecklistIcon />
           </ListItemIcon>
           <ListItemText>100 todo</ListItemText>
+        </MenuItem>
+        <MenuItem component="a" href={SPORT_URL} target="_blank" rel="noreferrer" onClick={() => setAnchorElement(null)}>
+          <ListItemIcon>
+            <FitnessCenterIcon />
+          </ListItemIcon>
+          <ListItemText>Sport</ListItemText>
         </MenuItem>
         <Divider />
 

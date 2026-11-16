@@ -17,6 +17,8 @@ export const MAIN_SITE_URL = "https://serudio.github.io/";
 // The other everyday tools, which live on the main site rather than in this app.
 export const GOALS_URL = `${MAIN_SITE_URL}goals`;
 export const HUNDRED_TODO_URL = `${MAIN_SITE_URL}100-todo`;
+// Called "sport" here; the page on the main site is /workouts.
+export const SPORT_URL = `${MAIN_SITE_URL}workouts`;
 
 export const SECTION_SETTINGS_STORAGE_KEY = "todo-cloud:sections";
 export const CLOUD_SORT_STORAGE_KEY = "todo-cloud:cloud-sort";

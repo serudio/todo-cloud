@@ -1,5 +1,5 @@
 import { Box, Button } from "@mui/material";
-import { GOALS_URL, HUNDRED_TODO_URL } from "../../constants/ui";
+import { GOALS_URL, HUNDRED_TODO_URL, SPORT_URL } from "../../constants/ui";
 import { navigate, todosPath } from "../../hooks/route";
 
 type Props = {
@@ -19,7 +19,7 @@ const linkSx = {
 } as const;
 
 /**
- * The everyday tools side by side: this one, and the two that live on the
+ * The everyday tools side by side: this one, and the ones that live on the
  * main site. They are used together through a day, so getting from one to
  * the next should be a tap rather than a bookmark.
  */
@@ -48,6 +48,9 @@ export const AppLinks: React.FC<Props> = ({ isOnCloud = false }) => (
       sx={linkSx}
     >
       100 todo
+    </Button>
+    <Button size="small" color="secondary" component="a" href={SPORT_URL} target="_blank" rel="noreferrer" sx={linkSx}>
+      sport
     </Button>
   </Box>
 );
