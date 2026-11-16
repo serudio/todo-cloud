@@ -1,15 +1,14 @@
-import { Box, Card, Chip, IconButton, InputBase, Tooltip, Typography } from "@mui/material";
+import { Box, Button, Card, Chip, IconButton, InputBase, Tooltip, Typography } from "@mui/material";
+import dayjs from "dayjs";
 import { alpha } from "@mui/material/styles";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutlineOutlined";
+import SnoozeIcon from "@mui/icons-material/Snooze";
 import type { Todo } from "../../types/todo";
 import {
-  formatWeekRange,
   getDoneThisWeek,
-  getRecentWeeks,
   getWeeklyTarget,
-  hasWeeklyHistory,
   isWeeklyDoneToday,
   WEEKLY_TARGETS,
 } from "../../utils/weekly";
@@ -21,6 +20,8 @@ type Props = {
   onCountOne: () => void;
   onUndoOne: () => void;
   onDelete: () => void;
+  isSnoozed: boolean;
+  onToggleSnooze: () => void;
 };
 
 export const WeeklyActivityCard: React.FC<Props> = ({
@@ -30,23 +31,63 @@ export const WeeklyActivityCard: React.FC<Props> = ({
   onCountOne,
   onUndoOne,
   onDelete,
+  isSnoozed,
+  onToggleSnooze,
 }) => {
   const done = getDoneThisWeek(todo);
   const target = getWeeklyTarget(todo);
   const left = Math.max(0, target - done);
   const isDone = left === 0;
-  const weeks = getRecentWeeks(todo);
   const isDoneToday = isWeeklyDoneToday(todo);
+  const name = todo.text || "this";
+
+  // Folded to one line while snoozed: it is still owed, so it stays on the
+  // page, but it has asked not to be looked at for now, and the targets and
+  // history are the part that takes the room.
+  if (isSnoozed) {
+    return (
+      <Card
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: 1,
+          px: 1,
+          py: 0.25,
+          opacity: 0.7,
+          bgcolor: (theme) => alpha(theme.palette.text.primary, 0.04),
+        }}
+      >
+        <SnoozeIcon fontSize="small" color="disabled" />
+        <Typography
+          sx={{ flex: 1, minWidth: 0, letterSpacing: 1.2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+        >
+          {todo.text || "untitled"}
+        </Typography>
+        <Typography variant="caption" color="text.secondary" sx={{ whiteSpace: "nowrap" }}>
+          {done}/{target} · until {dayjs(todo.snoozedUntil).format("HH:mm")}
+        </Typography>
+        <Button
+          size="small"
+          onClick={onToggleSnooze}
+          aria-label={`Wake ${name}`}
+          sx={{ minWidth: 0, p: 0, px: 0.5, fontWeight: 700, textTransform: "lowercase" }}
+        >
+          wake
+        </Button>
+      </Card>
+    );
+  }
 
   return (
     <Card
       sx={{
         position: "relative",
         overflow: "hidden",
-        p: 1.5,
+        px: 1.25,
+        py: 0.75,
         display: "flex",
         flexDirection: "column",
-        gap: 1,
+        gap: 0.5,
         // Something counted today is marked, not just moved: the order says
         // where it stands in the week, the outline says it has been touched
         // since this morning.
@@ -86,8 +127,14 @@ export const WeeklyActivityCard: React.FC<Props> = ({
           onBlur={() => onCommit({ text: todo.text })}
           // The name is what the card is; everything else on it is a number or
           // a control, so it can carry the size and the spacing on its own.
-          sx={{ flex: 1, minWidth: 0, fontSize: "1.25rem", letterSpacing: 1.2 }}
+          sx={{ flex: 1, minWidth: 0, fontSize: "1.1rem", letterSpacing: 1.2 }}
         />
+
+        <Tooltip title="Snooze for an hour">
+          <IconButton size="small" onClick={onToggleSnooze} aria-label={`Snooze ${name}`}>
+            <SnoozeIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
 
         <Tooltip title="Remove this">
           <IconButton size="small" onClick={onDelete} aria-label={`Remove ${todo.text || "this"}`}>
@@ -102,7 +149,9 @@ export const WeeklyActivityCard: React.FC<Props> = ({
       <Box
         sx={{ position: "relative", display: "flex", alignItems: "center", gap: 0.25, flexWrap: "wrap", rowGap: 0.5 }}
       >
-        <Typography variant="caption" color="text.secondary" sx={{ mr: 0.5 }}>
+        {/* Not on a phone: there it would push the buttons onto a line of
+            their own, and seven numbers in a row say "how often" well enough. */}
+        <Typography variant="caption" color="text.secondary" sx={{ mr: 0.5, display: { xs: "none", sm: "block" } }}>
           times a week
         </Typography>
         {WEEKLY_TARGETS.map((chipTarget) => {
@@ -125,8 +174,9 @@ export const WeeklyActivityCard: React.FC<Props> = ({
               aria-label={`${chipTarget} times a week`}
               // Narrow enough that all seven and the label hold one line on a phone.
               sx={{
-                minWidth: 30,
-                "& .MuiChip-label": { px: 0.75 },
+                minWidth: 26,
+                height: 22,
+                "& .MuiChip-label": { px: 0.6 },
                 ...(isCounted && {
                   bgcolor: (theme) => alpha(theme.palette[isDone ? "success" : "warning"].main, 0.35),
                   color: "text.primary",
@@ -165,42 +215,17 @@ export const WeeklyActivityCard: React.FC<Props> = ({
 
         <Tooltip title="Did it once">
           <IconButton
+            size="small"
             onClick={onCountOne}
             color={isDone ? "success" : "warning"}
             aria-label={`Count one for ${todo.text || "this"}`}
             sx={{ border: 1, borderColor: "divider" }}
           >
-            <AddIcon />
+            <AddIcon fontSize="small" />
           </IconButton>
         </Tooltip>
       </Box>
 
-      {/* Only once there is a past to show: a row of empty weeks on something
-          started yesterday reads as failure rather than as no data. */}
-      {hasWeeklyHistory(todo) && (
-        <Box sx={{ position: "relative", display: "flex", alignItems: "center", gap: 0.5, flexWrap: "wrap" }}>
-          <Typography variant="caption" color="text.secondary" sx={{ mr: 0.5 }}>
-            before
-          </Typography>
-          {weeks.map((week) => (
-            <Tooltip key={week.weekStart} title={formatWeekRange(week.weekStart)}>
-              <Box
-                sx={{
-                  px: 0.75,
-                  borderRadius: 1,
-                  fontSize: 11,
-                  lineHeight: "18px",
-                  border: 1,
-                  borderColor: "divider",
-                  color: week.done >= week.target ? "success.main" : "text.secondary",
-                }}
-              >
-                {week.done}/{week.target}
-              </Box>
-            </Tooltip>
-          ))}
-        </Box>
-      )}
     </Card>
   );
 };

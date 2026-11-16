@@ -8,9 +8,6 @@ export const WEEKLY_TARGETS = [1, 2, 3, 4, 5, 6, 7];
 export const MAX_WEEKLY_TARGET = WEEKLY_TARGETS[WEEKLY_TARGETS.length - 1];
 export const DEFAULT_WEEKLY_TARGET = 3;
 
-// How much history is worth keeping: enough to see whether a habit is holding,
-// not so much that the row grows forever.
+// How much history is kept on a weekly task: enough to look back on whether a
+// habit is holding, not so much that its dates grow forever.
 export const KEPT_WEEKS = 12;
-
-// The row of past weeks shown under a weekly task.
-export const SHOWN_WEEKS = 6;

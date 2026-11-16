@@ -1,11 +1,10 @@
 import dayjs from "dayjs";
 import type { Todo } from "../types/todo";
-import type { WeeklyWeek } from "../types/weekly";
-import { DEFAULT_WEEKLY_TARGET, KEPT_WEEKS, SHOWN_WEEKS } from "../constants/weekly";
+import { DEFAULT_WEEKLY_TARGET, KEPT_WEEKS } from "../constants/weekly";
 import { getLocalDateKey } from "./date";
-import { getNewTodo } from "./todos";
+import { getNewTodo, isTodoSnoozed } from "./todos";
 
-export { DEFAULT_WEEKLY_TARGET, KEPT_WEEKS, MAX_WEEKLY_TARGET, SHOWN_WEEKS, WEEKLY_TARGETS } from "../constants/weekly";
+export { DEFAULT_WEEKLY_TARGET, KEPT_WEEKS, MAX_WEEKLY_TARGET, WEEKLY_TARGETS } from "../constants/weekly";
 
 /** A task the week wants a number of times rather than once. */
 export const isWeeklyTodo = (todo: Todo) => todo.weeklyTarget !== null;
@@ -145,23 +144,6 @@ export function getWeekDays(todos: Todo[], now: number = Date.now()) {
   });
 }
 
-/** The weeks before this one, oldest first, for the history row. */
-export function getRecentWeeks(todo: Todo, weeks = SHOWN_WEEKS, now: number = Date.now()): WeeklyWeek[] {
-  return Array.from({ length: weeks }, (_unused, index) => {
-    const weekStart = getPastWeekStart(weeks - index, now);
-
-    return {
-      weekStart,
-      done: getDoneInWeek(todo.weeklyDoneDates, weekStart),
-      target: getWeeklyTarget(todo),
-    };
-  });
-}
-
-/** Whether anything was ever logged in the weeks shown, so an empty row can be hidden. */
-export const hasWeeklyHistory = (todo: Todo, now: number = Date.now()) =>
-  todo.weeklyDoneDates.some((doneDate) => doneDate < getWeekStart(now));
-
 export const formatWeekRange = (weekStart: number) =>
   `${dayjs(weekStart).format("D MMM")} – ${dayjs(weekStart).add(6, "day").format("D MMM")}`;
 
@@ -205,14 +187,26 @@ export const getNewWeeklyTodo = (target: number): Todo => ({
  * the finished things live. Within each group the order they were added holds,
  * so the list only moves when something has actually happened.
  */
-const getWeeklyRank = (todo: Todo, now: number) => {
-  if (isWeeklyDone(todo, now)) return 2;
+const getWeeklyRank = (todo: Todo, now: number, isSnoozedAside: boolean) => {
+  if (isWeeklyDone(todo, now)) return 3;
+  if (isSnoozedAside && isTodoSnoozed(todo, now)) return 2;
 
   return isWeeklyDoneToday(todo, now) ? 1 : 0;
 };
 
-export const sortWeeklyByRemaining = (todos: Todo[], now: number = Date.now()) =>
-  [...todos].sort((first, second) => getWeeklyRank(first, now) - getWeeklyRank(second, now));
+/**
+ * `isSnoozedAside` is for the Weekly page, where a snoozed task is folded up
+ * and goes after everything still in play, but before what the week is done
+ * with: it is still owed, just not now.
+ */
+export const sortWeeklyByRemaining = (
+  todos: Todo[],
+  now: number = Date.now(),
+  { isSnoozedAside = false }: { isSnoozedAside?: boolean } = {},
+) =>
+  [...todos].sort(
+    (first, second) => getWeeklyRank(first, now, isSnoozedAside) - getWeeklyRank(second, now, isSnoozedAside),
+  );
 
 // Kept for the places that ask "is this one hidden for today", so the weekly
 // screens read the same flags the cloud does rather than their own copy.
