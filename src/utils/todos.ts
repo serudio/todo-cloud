@@ -119,7 +119,7 @@ export const getDoneTodos = (todos: Todo[]) => {
       return b.count - a.count;
     });
 };
-// A "not now" todo comes back to the main list once its due date is a day out.
+// A "not now" todo comes back to the main list on the day it is due.
 export const isTodoNotNow = (todo: Todo) => todo.notNow && !shouldHighlightDueDate(todo.dueDate);
 
 export const getNotNowTodos = (todos: Todo[]) => todos.filter((todo) => !todo.done && isTodoNotNow(todo));
@@ -290,10 +290,9 @@ export function shouldHighlightDueDate(dueDate: string | number | null) {
   const dueDateInputValue = getDateInputValue(dueDate);
   if (!dueDateInputValue) return false;
 
-  const today = dayjs().startOf("day");
-  const highlightFrom = dayjs(dueDateInputValue).subtract(1, "day").startOf("day");
-
-  return !today.isBefore(highlightFrom, "day");
+  // On the day itself, not the day before: a reminder a day early was read as
+  // "due today", and the real due day looked no different from the one before.
+  return !dayjs().isBefore(dayjs(dueDateInputValue), "day");
 }
 
 export function getStartOfDayTimestamp(dateKey: string) {
@@ -451,7 +450,7 @@ function getTodosWithExpiredNotTodayCleared(currentTodos: Todo[]) {
   return hasChanges ? newTodos : null;
 }
 
-// Moves "not now" todos back into the cloud once their due date is close.
+// Moves "not now" todos back into the cloud on the day they are due.
 function getTodosWithDueNotNowCleared(currentTodos: Todo[]) {
   let hasChanges = false;
 

@@ -86,11 +86,12 @@ export const TodoActionSheet: React.FC<Props> = ({
           <TodoActionControls
             todo={todo}
             tags={tags}
-            isDayBeforeDueDate={shouldHighlightDueDate(todo.dueDate)}
+            isDue={shouldHighlightDueDate(todo.dueDate)}
             isSnoozed={isSnoozed}
             updateTodo={updateTodo}
             onToggleWeek={onToggleWeek}
             onToggleSnooze={() => onToggleSnooze(todo.id)}
+            onMadeWeekly={onClose}
           />
 
           <Divider />

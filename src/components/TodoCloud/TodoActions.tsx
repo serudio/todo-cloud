@@ -6,7 +6,7 @@ import { TodoActionControls } from "./TodoActionControls";
 type Props = {
   todo: Todo;
   tags: TodoTag[];
-  isDayBeforeDueDate: boolean;
+  isDue: boolean;
   isSnoozed: boolean;
   updateTodo: (todo: Todo) => void;
   onToggleWeek: (todoId: string) => void;

@@ -1,7 +1,7 @@
 import dayjs from "dayjs";
 import type { Todo } from "../types/todo";
 import type { WeeklyWeek } from "../types/weekly";
-import { KEPT_WEEKS, SHOWN_WEEKS } from "../constants/weekly";
+import { DEFAULT_WEEKLY_TARGET, KEPT_WEEKS, SHOWN_WEEKS } from "../constants/weekly";
 import { getLocalDateKey } from "./date";
 import { getNewTodo } from "./todos";
 
@@ -164,6 +164,30 @@ export const hasWeeklyHistory = (todo: Todo, now: number = Date.now()) =>
 
 export const formatWeekRange = (weekStart: number) =>
   `${dayjs(weekStart).format("D MMM")} – ${dayjs(weekStart).add(6, "day").format("D MMM")}`;
+
+/**
+ * An existing task, turned into a weekly one where it stands: same id, name,
+ * tag and link, with a fresh week's count on it.
+ *
+ * What only makes sense for a one-off is dropped. Repeating at the end of the
+ * day is what a week's count replaces, and a weekly task is never finished, so
+ * it has no place in the productive week; being set aside for today or
+ * snoozed is let go too, so it shows up in the cloud straight away as the
+ * weekly task it now is.
+ */
+export const markTodoWeekly = (todo: Todo, target: number = DEFAULT_WEEKLY_TARGET): Todo => ({
+  ...todo,
+  done: false,
+  doneAt: null,
+  weeklyTarget: target,
+  weeklyDoneDates: [],
+  repeatAtEndOfDay: false,
+  lastAutoAddedDate: null,
+  productiveWeek: false,
+  snoozedUntil: null,
+  notToday: false,
+  notTodayDate: null,
+});
 
 /** A new weekly task: an ordinary one, with a week's count on it. */
 export const getNewWeeklyTodo = (target: number): Todo => ({
