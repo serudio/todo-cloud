@@ -124,7 +124,7 @@ export const WeeklyActivityCard: React.FC<Props> = ({
           onBlur={() => onCommit({ text: todo.text })}
           // The name is what the card is; everything else on it is a number or
           // a control, so it can carry the size and the spacing on its own.
-          sx={{ flex: 1, minWidth: 0, fontSize: "1.1rem", letterSpacing: 1.2 }}
+          sx={{ flex: 1, minWidth: 0, fontSize: "1rem", letterSpacing: 1.2 }}
         />
 
         <Tooltip title="Not today: fold it away until tomorrow">
