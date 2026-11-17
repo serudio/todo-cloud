@@ -194,6 +194,13 @@ const getWeeklyRank = (todo: Todo, now: number, isNotTodayAside: boolean) => {
   return isWeeklyDoneToday(todo, now) ? 1 : 0;
 };
 
+/** The Weekly page's groups, in the order they are shown; the same split the sort makes. */
+export const WEEKLY_GROUPS = ["owed", "doneToday", "notToday", "doneForWeek"] as const;
+export type WeeklyGroup = (typeof WEEKLY_GROUPS)[number];
+
+export const getWeeklyGroup = (todo: Todo, now: number = Date.now()): WeeklyGroup =>
+  WEEKLY_GROUPS[getWeeklyRank(todo, now, true)];
+
 /**
  * `isNotTodayAside` is for the Weekly page, where a task put off for today is
  * folded up and goes after everything still in play, but before what the week

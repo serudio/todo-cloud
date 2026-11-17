@@ -14,7 +14,10 @@ import {
   getNewWeeklyTodo,
   getWeeklyTodos,
   getWeekStart,
+  getWeeklyGroup,
   isWeeklyNotToday,
+  WEEKLY_GROUPS,
+  type WeeklyGroup,
   markWeeklyDone,
   sortWeeklyByRemaining,
   undoWeeklyDone,
@@ -24,6 +27,20 @@ import { ConfirmDialog } from "../Shared/ConfirmDialog";
 import { WeeklyActivityCard } from "./WeeklyActivityCard";
 import { WeeklyTotalsCard } from "./WeeklyTotalsCard";
 import { AppLinks } from "../Layout/AppLinks";
+
+const GROUP_TITLES: Record<WeeklyGroup, string> = {
+  owed: "to do",
+  doneToday: "done today",
+  notToday: "not today",
+  doneForWeek: "done this week",
+};
+
+const GROUP_COLORS: Record<WeeklyGroup, string> = {
+  owed: "text.primary",
+  doneToday: "warning.main",
+  notToday: "text.disabled",
+  doneForWeek: "success.main",
+};
 
 type Props = {
   // The whole list, because a weekly task is a task: it is in there with the
@@ -66,6 +83,12 @@ export const WeeklyPage: React.FC<Props> = ({
   // Not today ends at midnight, and the app re-renders then on its own, so
   // there is no clock to keep here.
   const shownTodos = sortWeeklyByRemaining(weeklyTodos, Date.now(), { isNotTodayAside: true });
+  // Each state under a heading of its own, so where one ends and the next
+  // begins is read rather than inferred from colours and folds.
+  const groups = WEEKLY_GROUPS.map((group) => ({
+    group,
+    todos: shownTodos.filter((todo) => getWeeklyGroup(todo) === group),
+  })).filter(({ todos: groupTodos }) => groupTodos.length > 0);
 
   const handleToggleNotToday = (todoId: string) =>
     applyToTodo(todoId, (todo) => (isWeeklyNotToday(todo) ? markTodoBackToday(todo) : markTodoNotToday(todo)));
@@ -154,18 +177,36 @@ export const WeeklyPage: React.FC<Props> = ({
       {/* One full-width row each: the name, its numbers and its buttons on
           one line read down the page as a list, which is what this is. */}
       <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-        {shownTodos.map((todo) => (
-          <WeeklyActivityCard
-            key={todo.id}
-            todo={todo}
-            onChange={(input) => handleChange(todo.id, input)}
-            onCommit={(input) => handleCommit(todo.id, input)}
-            onCountOne={() => applyToTodo(todo.id, (current) => markWeeklyDone(current))}
-            onUndoOne={() => applyToTodo(todo.id, (current) => undoWeeklyDone(current))}
-            onDelete={() => setTodoPendingDelete(todo)}
-            isNotToday={isWeeklyNotToday(todo)}
-            onToggleNotToday={() => handleToggleNotToday(todo.id)}
-          />
+        {groups.map(({ group, todos: groupTodos }) => (
+          <Box
+            key={group}
+            component="section"
+            aria-label={GROUP_TITLES[group]}
+            sx={{ display: "flex", flexDirection: "column", gap: 1 }}
+          >
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 1 }}>
+              <Typography
+                variant="caption"
+                sx={{ textTransform: "uppercase", letterSpacing: 1.5, fontWeight: 700, color: GROUP_COLORS[group] }}
+              >
+                {GROUP_TITLES[group]} · {groupTodos.length}
+              </Typography>
+              <Box sx={{ flex: 1, borderBottom: 1, borderColor: "divider" }} />
+            </Box>
+            {groupTodos.map((todo) => (
+              <WeeklyActivityCard
+                key={todo.id}
+                todo={todo}
+                onChange={(input) => handleChange(todo.id, input)}
+                onCommit={(input) => handleCommit(todo.id, input)}
+                onCountOne={() => applyToTodo(todo.id, (current) => markWeeklyDone(current))}
+                onUndoOne={() => applyToTodo(todo.id, (current) => undoWeeklyDone(current))}
+                onDelete={() => setTodoPendingDelete(todo)}
+                isNotToday={isWeeklyNotToday(todo)}
+                onToggleNotToday={() => handleToggleNotToday(todo.id)}
+              />
+            ))}
+          </Box>
         ))}
       </Box>
 
