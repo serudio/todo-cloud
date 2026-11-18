@@ -16,15 +16,20 @@
     "start:api": "node api/dist/server.js"
   },
   "dependencies": {
+    "@astryxdesign/cli": "^0.7.16",
+    "@astryxdesign/core": "^0.7.16",
+    "@astryxdesign/theme-neutral": "^0.7.16",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@hono/node-server": "^2.0.0",
     "@mui/icons-material": "^9.0.0",
     "@mui/material": "^9.0.0",
     "@mui/x-date-pickers": "^9.0.4",
+    "@stylexjs/stylex": "^0.19.2",
     "@supabase/supabase-js": "^2.105.1",
     "dayjs": "^1.11.20",
     "hono": "^4.12.15",
+    "lucide-react": "^1.74.0",
     "pg": "^8.20.0",
     "react": "^19.2.5",
     "react-dom": "^19.2.5"
