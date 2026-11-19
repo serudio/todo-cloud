@@ -83,10 +83,20 @@ export const WeeklyPage: React.FC<Props> = ({
   const shownTodos = sortWeeklyByRemaining(weeklyTodos, Date.now(), { isNotTodayAside: true });
   // Each state under a heading of its own, so where one ends and the next
   // begins is read rather than inferred from colours and folds.
-  const groups = WEEKLY_GROUPS.map((group) => ({
-    group,
-    todos: shownTodos.filter((todo) => getWeeklyGroup(todo) === group),
-  })).filter(({ todos: groupTodos }) => groupTodos.length > 0);
+  // Each group reads A–Z, so a task is found where its name says it is. Sorted on
+  // the saved name, not the one being typed, so a row does not jump away
+  // mid-rename; a new, unnamed one starts at the top.
+  const savedNames = new Map(getWeeklyTodos(todos).map((todo) => [todo.id, todo.text]));
+  const byName = (first: Todo, second: Todo) =>
+    (savedNames.get(first.id) ?? "").localeCompare(savedNames.get(second.id) ?? "", undefined, {
+      sensitivity: "base",
+      numeric: true,
+    });
+  const groups = WEEKLY_GROUPS.map((group) => {
+    const groupTodos = shownTodos.filter((todo) => getWeeklyGroup(todo) === group);
+
+    return { group, todos: [...groupTodos].sort(byName) };
+  }).filter(({ todos: groupTodos }) => groupTodos.length > 0);
   const mainGroups = groups.filter(({ group }) => !SIDE_GROUPS.has(group));
   const sideGroups = groups.filter(({ group }) => SIDE_GROUPS.has(group));
 
