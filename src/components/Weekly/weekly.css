@@ -279,6 +279,43 @@
   background: var(--color-success);
 }
 
+/*
+ * Counted today: dealt with until tomorrow, so it takes less room than what
+ * is still to do — tighter lines, a smaller name, smaller controls.
+ */
+.weekly-row[data-done-today="true"] {
+  padding-block: 2px;
+  row-gap: 0;
+}
+
+.weekly-row[data-done-today="true"] .weekly-name {
+  font-size: 0.875rem;
+  padding-block: 0;
+}
+
+.weekly-row[data-done-today="true"] .weekly-target-number {
+  height: 20px;
+  font-size: 12px;
+}
+
+.weekly-row[data-done-today="true"] .weekly-target-number[data-selected="true"] {
+  background: radial-gradient(circle closest-side, var(--color-warning) 9px, transparent 9.5px);
+}
+
+.weekly-row[data-done-today="true"] .weekly-targets {
+  gap: 2px;
+}
+
+.weekly-row[data-done-today="true"] .weekly-actions button {
+  height: 24px;
+  min-height: 24px;
+}
+
+.weekly-row[data-done-today="true"] .weekly-actions[data-part="count"] button {
+  width: 24px;
+  min-width: 24px;
+}
+
 /* Folded for the rest of the day. */
 .weekly-folded {
   display: flex;
