@@ -35,6 +35,9 @@ const GROUP_TITLES: Record<WeeklyGroup, string> = {
   doneForWeek: "done this week",
 };
 
+// Set aside for now: shown in their own column on the right of a wide screen.
+const SIDE_GROUPS = new Set<WeeklyGroup>(["notToday", "doneForWeek"]);
+
 type Props = {
   // The whole list, because a weekly task is a task: it is in there with the
   // rest of them, and the cloud is counting against the same rows.
@@ -82,6 +85,8 @@ export const WeeklyPage: React.FC<Props> = ({
     group,
     todos: shownTodos.filter((todo) => getWeeklyGroup(todo) === group),
   })).filter(({ todos: groupTodos }) => groupTodos.length > 0);
+  const mainGroups = groups.filter(({ group }) => !SIDE_GROUPS.has(group));
+  const sideGroups = groups.filter(({ group }) => SIDE_GROUPS.has(group));
 
   const handleToggleNotToday = (todoId: string) =>
     applyToTodo(todoId, (todo) => (isWeeklyNotToday(todo) ? markTodoBackToday(todo) : markTodoNotToday(todo)));
@@ -110,6 +115,27 @@ export const WeeklyPage: React.FC<Props> = ({
       return rest;
     });
   };
+
+  const renderGroup = ({ group, todos: groupTodos }: (typeof groups)[number]) => (
+    <section key={group} aria-label={GROUP_TITLES[group]} className="weekly-group">
+      <div className="weekly-group-heading" data-group={group}>
+        {GROUP_TITLES[group]} · {groupTodos.length}
+      </div>
+      {groupTodos.map((todo) => (
+        <WeeklyActivityCard
+          key={todo.id}
+          todo={todo}
+          onChange={(input) => handleChange(todo.id, input)}
+          onCommit={(input) => handleCommit(todo.id, input)}
+          onCountOne={() => applyToTodo(todo.id, (current) => markWeeklyDone(current))}
+          onUndoOne={() => applyToTodo(todo.id, (current) => undoWeeklyDone(current))}
+          onDelete={() => setTodoPendingDelete(todo)}
+          isNotToday={isWeeklyNotToday(todo)}
+          onToggleNotToday={() => handleToggleNotToday(todo.id)}
+        />
+      ))}
+    </section>
+  );
 
   return (
     <div className="weekly-page">
@@ -175,28 +201,12 @@ export const WeeklyPage: React.FC<Props> = ({
           week is on track is the question the page is opened to answer. */}
       {weeklyTodos.length > 0 && <WeeklyTotalsCard todos={weeklyTodos} daysLeft={daysLeft} />}
 
-      {/* Each state under a heading of its own, one full-width row per task. */}
-      <div className="weekly-groups">
-        {groups.map(({ group, todos: groupTodos }) => (
-          <section key={group} aria-label={GROUP_TITLES[group]} className="weekly-group">
-            <div className="weekly-group-heading" data-group={group}>
-              {GROUP_TITLES[group]} · {groupTodos.length}
-            </div>
-            {groupTodos.map((todo) => (
-              <WeeklyActivityCard
-                key={todo.id}
-                todo={todo}
-                onChange={(input) => handleChange(todo.id, input)}
-                onCommit={(input) => handleCommit(todo.id, input)}
-                onCountOne={() => applyToTodo(todo.id, (current) => markWeeklyDone(current))}
-                onUndoOne={() => applyToTodo(todo.id, (current) => undoWeeklyDone(current))}
-                onDelete={() => setTodoPendingDelete(todo)}
-                isNotToday={isWeeklyNotToday(todo)}
-                onToggleNotToday={() => handleToggleNotToday(todo.id)}
-              />
-            ))}
-          </section>
-        ))}
+      {/* Each state under a heading of its own. On a wide screen what is
+          still in play today keeps the left, and what is set aside — put off
+          for today, or finished for the week — moves to a column on the right. */}
+      <div className="weekly-columns" data-split={mainGroups.length > 0 && sideGroups.length > 0}>
+        {mainGroups.length > 0 && <div className="weekly-groups">{mainGroups.map(renderGroup)}</div>}
+        {sideGroups.length > 0 && <div className="weekly-groups">{sideGroups.map(renderGroup)}</div>}
       </div>
 
       <AlertDialog

@@ -1,7 +1,6 @@
 import { Button } from "@astryxdesign/core/Button";
 import { Card } from "@astryxdesign/core/Card";
 import { IconButton } from "@astryxdesign/core/IconButton";
-import { SegmentedControl, SegmentedControlItem } from "@astryxdesign/core/SegmentedControl";
 import { Text } from "@astryxdesign/core/Text";
 import { Tooltip } from "@astryxdesign/core/Tooltip";
 import { Minus, Plus, Trash2 } from "lucide-react";
@@ -67,24 +66,37 @@ export const WeeklyActivityCard: React.FC<Props> = ({
       {/* How often, as the whole range rather than a box to type in: a target
           is set once and is always a single digit. */}
       <div className="weekly-targets">
-        {/* The count lives here now, on hover: the line under the numbers
-            already shows how far along it is. */}
-        <Tooltip
-          content={`${target} ${target === 1 ? "time" : "times"} a week · ${isDone ? "done for the week" : `${left} to go`}`}
-          hasHoverIndication={false}
-        >
-          <SegmentedControl
-            size="sm"
-            layout="fill"
-            label="Times a week"
-            value={String(target)}
-            onChange={(value) => onCommit({ weeklyTarget: Number(value) })}
-          >
-            {WEEKLY_TARGETS.map((chipTarget) => (
-              <SegmentedControlItem key={chipTarget} value={String(chipTarget)} label={String(chipTarget)} />
-            ))}
-          </SegmentedControl>
-        </Tooltip>
+        {/* Plain numbers, with only the chosen one drawn as a filled circle,
+            so the target is the one thing the row says loudly. */}
+        <div className="weekly-target-numbers" role="radiogroup" aria-label="Times a week">
+          {WEEKLY_TARGETS.map((chipTarget) => {
+            const isTarget = chipTarget === target;
+            const targetLabel = `${chipTarget} ${chipTarget === 1 ? "time" : "times"} a week`;
+
+            return (
+              <Tooltip
+                key={chipTarget}
+                // The count lives here, on hover: the line under the numbers
+                // already shows how far along it is.
+                content={isTarget ? `${targetLabel} · ${isDone ? "done for the week" : `${left} to go`}` : targetLabel}
+                hasHoverIndication={false}
+              >
+                <button
+                  type="button"
+                  role="radio"
+                  aria-checked={isTarget}
+                  aria-label={targetLabel}
+                  className="weekly-target-number"
+                  data-selected={isTarget}
+                  data-done={isDone}
+                  onClick={() => onCommit({ weeklyTarget: chipTarget })}
+                >
+                  {chipTarget}
+                </button>
+              </Tooltip>
+            );
+          })}
+        </div>
 
         {/* The progress, right under the numbers it counts against: a
             segment under each one up to the target, filled as they are done,

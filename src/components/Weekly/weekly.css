@@ -47,7 +47,47 @@
   }
 }
 
+.weekly-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  gap: var(--spacing-2) var(--spacing-6);
+}
+
+@media (min-width: 900px) {
+  .weekly-columns[data-split="true"] {
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  }
+
+  /*
+   * On a wide screen the page is the window: the header and the week stay
+   * put, and the lists take the height left under them, each scrolling on
+   * its own when it runs longer. A phone scrolls the page as usual.
+   */
+  .weekly-page {
+    box-sizing: border-box;
+    height: 100dvh;
+  }
+
+  .weekly-columns {
+    flex: 1;
+    min-height: 0;
+    grid-template-rows: minmax(0, 1fr);
+    align-items: stretch;
+  }
+
+  .weekly-groups {
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    /* Room for the scrollbar, so it does not sit on the cards' edge. */
+    padding-inline-end: var(--spacing-1);
+  }
+}
+
+/* A container, so a row lays itself out by the column it is in rather than by the window. */
 .weekly-groups {
+  container-type: inline-size;
   display: flex;
   flex-direction: column;
   gap: var(--spacing-2);
@@ -134,10 +174,11 @@
 }
 
 /*
- * A phone gets two lines: the name with the count and its buttons, then the
- * targets with the rest, set by order rather than by a second layout.
+ * A narrow column (a phone, or the right-hand one) gets two lines: the name
+ * with the count buttons, then the targets with the rest, set by order rather
+ * than by a second layout.
  */
-@media (max-width: 599px) {
+@container (max-width: 599px) {
   .weekly-row {
     flex-wrap: wrap;
     row-gap: var(--spacing-1);
@@ -170,6 +211,46 @@
   display: flex;
   flex-direction: column;
   gap: 3px;
+}
+
+.weekly-target-numbers {
+  display: flex;
+}
+
+.weekly-target-number {
+  flex: 1;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--color-text-disabled);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.weekly-target-number:hover {
+  color: var(--color-text-primary);
+}
+
+.weekly-target-number:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: -2px;
+  border-radius: var(--radius-full);
+}
+
+/* The chosen target: a filled circle, amber while the week still wants more, green once it is done. */
+.weekly-target-number[data-selected="true"] {
+  color: var(--color-on-warning);
+  font-weight: 700;
+  background: radial-gradient(circle closest-side, var(--color-warning) 11px, transparent 11.5px);
+}
+
+.weekly-target-number[data-selected="true"][data-done="true"] {
+  color: var(--color-on-success);
+  background: radial-gradient(circle closest-side, var(--color-success) 11px, transparent 11.5px);
 }
 
 .weekly-progress-line {
