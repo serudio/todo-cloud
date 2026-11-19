@@ -35,8 +35,10 @@ const GROUP_TITLES: Record<WeeklyGroup, string> = {
   doneForWeek: "done this week",
 };
 
-// Set aside for now: shown in their own column on the right of a wide screen.
-const SIDE_GROUPS = new Set<WeeklyGroup>(["notToday", "doneForWeek"]);
+// Dealt with for now — counted today, put off for today, or finished for the
+// week: shown in their own column on the right of a wide screen, so the left
+// is only what is still to do.
+const SIDE_GROUPS = new Set<WeeklyGroup>(["doneToday", "notToday", "doneForWeek"]);
 
 type Props = {
   // The whole list, because a weekly task is a task: it is in there with the
@@ -202,8 +204,8 @@ export const WeeklyPage: React.FC<Props> = ({
       {weeklyTodos.length > 0 && <WeeklyTotalsCard todos={weeklyTodos} daysLeft={daysLeft} />}
 
       {/* Each state under a heading of its own. On a wide screen what is
-          still in play today keeps the left, and what is set aside — put off
-          for today, or finished for the week — moves to a column on the right. */}
+          still to do keeps the left, and everything dealt with for now moves
+          to a column on the right. */}
       <div className="weekly-columns" data-split={mainGroups.length > 0 && sideGroups.length > 0}>
         {mainGroups.length > 0 && <div className="weekly-groups">{mainGroups.map(renderGroup)}</div>}
         {sideGroups.length > 0 && <div className="weekly-groups">{sideGroups.map(renderGroup)}</div>}
