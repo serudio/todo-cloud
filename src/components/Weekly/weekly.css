@@ -56,7 +56,8 @@
 
 @media (min-width: 900px) {
   .weekly-columns[data-split="true"] {
-    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    /* About a third for what is set aside, but never so narrow that its two-line rows wrap again. */
+    grid-template-columns: minmax(0, 13fr) minmax(360px, 7fr);
   }
 
   /*
