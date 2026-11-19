@@ -44,7 +44,7 @@ export const WeeklyActivityCard: React.FC<Props> = ({
       <Card variant="muted" padding={0} className="weekly-folded">
         <span className="weekly-folded-name">{todo.text || "untitled"}</span>
         <Text type="supporting" textWrap="nowrap">
-          {done}/{target} · not today
+          not today
         </Text>
         <Button variant="ghost" size="sm" label={`Bring ${name} back for today`} onClick={onToggleNotToday}>
           today
@@ -67,9 +67,15 @@ export const WeeklyActivityCard: React.FC<Props> = ({
       {/* How often, as the whole range rather than a box to type in: a target
           is set once and is always a single digit. */}
       <div className="weekly-targets">
-        <Tooltip content={`${target} ${target === 1 ? "time" : "times"} a week`} hasHoverIndication={false}>
+        {/* The count lives here now, on hover: the line under the numbers
+            already shows how far along it is. */}
+        <Tooltip
+          content={`${target} ${target === 1 ? "time" : "times"} a week · ${isDone ? "done for the week" : `${left} to go`}`}
+          hasHoverIndication={false}
+        >
           <SegmentedControl
             size="sm"
+            layout="fill"
             label="Times a week"
             value={String(target)}
             onChange={(value) => onCommit({ weeklyTarget: Number(value) })}
@@ -79,16 +85,23 @@ export const WeeklyActivityCard: React.FC<Props> = ({
             ))}
           </SegmentedControl>
         </Tooltip>
+
+        {/* The progress, right under the numbers it counts against: a
+            segment under each one up to the target, filled as they are done,
+            and nothing under the numbers past it. */}
+        <div className="weekly-progress-line" data-done={isDone} aria-hidden>
+          {WEEKLY_TARGETS.map((chipTarget) => (
+            <span
+              key={chipTarget}
+              data-in-target={chipTarget <= target}
+              data-filled={chipTarget <= Math.min(done, target)}
+            />
+          ))}
+        </div>
       </div>
 
-      {/* The phone's line break, between the count and the targets. */}
+      {/* The phone's line break, between the count buttons and the targets. */}
       <span className="weekly-line-break" />
-
-      <Tooltip content={isDone ? "Done for the week" : `${left} still to go this week`} hasHoverIndication={false}>
-        <Text type="supporting" hasTabularNumbers className="weekly-count">
-          {done}/{target}
-        </Text>
-      </Tooltip>
 
       <div className="weekly-actions" data-part="count">
         <IconButton
@@ -128,14 +141,6 @@ export const WeeklyActivityCard: React.FC<Props> = ({
           icon={<Trash2 size={16} />}
           onClick={onDelete}
         />
-      </div>
-
-      {/* The progress, as a line along the bottom: one segment per time it
-          should happen, filled as they are done. */}
-      <div className="weekly-progress-line" data-done={isDone} aria-hidden>
-        {Array.from({ length: target }, (_unused, index) => (
-          <span key={index} data-filled={index < Math.min(done, target)} />
-        ))}
       </div>
     </Card>
   );
