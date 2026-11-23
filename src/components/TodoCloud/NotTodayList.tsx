@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef, useState } from "react";
 import { Box, Chip, Typography } from "@mui/material";
 import EventRepeatIcon from "@mui/icons-material/EventRepeat";
 import type { Todo } from "../../types/todo";
@@ -22,6 +23,31 @@ export const NotTodayList: React.FC<Props> = ({ todos, allTodos, updateTodo, upd
     updateTodo(markTodoNow(newTodo));
   };
 
+  // One row of chips unless asked for the rest: these are set aside for today,
+  // and a long list of them pushed today's cloud down the page.
+  const [isExpanded, setIsExpanded] = useState(false);
+  const chipsRef = useRef<HTMLDivElement>(null);
+  const [hiddenCount, setHiddenCount] = useState(0);
+
+  // How many chips sit below the first row, measured rather than guessed, since
+  // that depends on the names and the width of the window.
+  useLayoutEffect(() => {
+    const chips = chipsRef.current;
+    if (!chips) return;
+
+    const measure = () => {
+      const children = Array.from(chips.children) as HTMLElement[];
+      const firstTop = children[0]?.offsetTop ?? 0;
+      setHiddenCount(children.filter((child) => child.offsetTop > firstTop).length);
+    };
+
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(chips);
+
+    return () => observer.disconnect();
+  }, [todos]);
+
   const handleBringAllBack = () =>
     updateTodos(
       getTodosWithNotTodayReleased(
@@ -34,9 +60,10 @@ export const NotTodayList: React.FC<Props> = ({ todos, allTodos, updateTodo, upd
     <Box
       sx={{
         display: "flex",
-        alignItems: "center",
+        // The label and the buttons stay on the first row; the chips wrap
+        // between them when the list is opened.
+        alignItems: "flex-start",
         gap: 0.5,
-        flexWrap: "wrap",
         px: 1,
         py: 0.5,
         borderBottom: 1,
@@ -48,20 +75,44 @@ export const NotTodayList: React.FC<Props> = ({ todos, allTodos, updateTodo, upd
         not today
       </Typography>
 
-      {todos.map((todo) => (
+      <Box
+        ref={chipsRef}
+        sx={{
+          flex: 1,
+          minWidth: 0,
+          display: "flex",
+          flexWrap: "wrap",
+          gap: 0.5,
+          // One chip high, the rest cut off below, until the list is opened.
+          maxHeight: isExpanded ? "none" : 18,
+          overflow: "hidden",
+        }}
+      >
+        {todos.map((todo) => (
+          <Chip
+            key={todo.id}
+            onClick={handleClick(todo.id)}
+            size="small"
+            variant="outlined"
+            // The week's own are marked here too: set aside for today is a
+            // different thing for something the week still wants three more of.
+            color={isWeeklyTodo(todo) ? "warning" : "default"}
+            icon={isWeeklyTodo(todo) ? <EventRepeatIcon sx={{ fontSize: 12 }} /> : undefined}
+            label={todo.text}
+            sx={{ height: 18, fontSize: 11 }}
+          />
+        ))}
+      </Box>
+
+      {(hiddenCount > 0 || isExpanded) && (
         <Chip
-          key={todo.id}
-          onClick={handleClick(todo.id)}
+          onClick={() => setIsExpanded((previous) => !previous)}
           size="small"
           variant="outlined"
-          // The week's own are marked here too: set aside for today is a
-          // different thing for something the week still wants three more of.
-          color={isWeeklyTodo(todo) ? "warning" : "default"}
-          icon={isWeeklyTodo(todo) ? <EventRepeatIcon sx={{ fontSize: 12 }} /> : undefined}
-          label={todo.text}
-          sx={{ height: 18, fontSize: 11 }}
+          label={isExpanded ? "show less" : `show all · +${hiddenCount}`}
+          sx={{ height: 18, fontSize: 11, flexShrink: 0 }}
         />
-      ))}
+      )}
 
       {todos.length > 1 && (
         <Chip
@@ -70,7 +121,7 @@ export const NotTodayList: React.FC<Props> = ({ todos, allTodos, updateTodo, upd
           color="warning"
           variant="filled"
           label="all back"
-          sx={{ height: 18, fontSize: 11, ml: "auto" }}
+          sx={{ height: 18, fontSize: 11, flexShrink: 0 }}
         />
       )}
     </Box>
