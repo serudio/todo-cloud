@@ -1,7 +1,5 @@
-import { Card } from "@astryxdesign/core/Card";
-import { ProgressBar } from "@astryxdesign/core/ProgressBar";
-import { Text } from "@astryxdesign/core/Text";
-import { Tooltip } from "@astryxdesign/core/Tooltip";
+import { Box, Card, LinearProgress, Tooltip, Typography } from "@mui/material";
+import { alpha } from "@mui/material/styles";
 import dayjs from "dayjs";
 import type { Todo } from "../../types/todo";
 import { getWeekDays, getWeekTotals } from "../../utils/weekly";
@@ -26,54 +24,62 @@ const DAY_INITIALS = ["M", "T", "W", "T", "F", "S", "S"];
 export const WeeklyTotalsCard: React.FC<Props> = ({ todos, daysLeft }) => {
   const totals = getWeekTotals(todos);
   const weekDays = getWeekDays(todos);
+  const color = totals.isDone ? "success" : "warning";
 
   return (
-    <Card padding={3} className="weekly-totals" data-done={totals.isDone}>
-      <div className="weekly-totals-days" aria-hidden>
-        {weekDays.map((day) => (
-          <span key={day.dayStart} data-counted={day.done > 0} data-today={day.isToday} />
+    <Card
+      sx={{ position: "relative", overflow: "hidden", p: 1.5, display: "flex", flexDirection: "column", gap: 1 }}
+    >
+      <Box aria-hidden sx={{ position: "absolute", inset: 0, display: "flex", pointerEvents: "none" }}>
+        {weekDays.map((day, index) => (
+          <Box
+            key={day.dayStart}
+            sx={{
+              flex: 1,
+              borderRight: index === weekDays.length - 1 ? 0 : 1,
+              borderColor: "divider",
+              // A light wash, so a column of it does not shout.
+              bgcolor: (theme) => (day.done > 0 ? alpha(theme.palette[color].main, 0.14) : "transparent"),
+              // Today is where the week actually is, so it is marked whether or
+              // not anything has happened on it yet.
+              boxShadow: (theme) => (day.isToday ? `inset 0 -2px 0 ${theme.palette.warning.main}` : "none"),
+            }}
+          />
         ))}
-      </div>
+      </Box>
 
-      <div className="weekly-totals-content">
-        <div className="weekly-totals-initials">
-          {weekDays.map((day, index) => (
-            // A box of its own per day: the tooltip wraps its trigger, so the
-            // column width has to live on something outside it.
-            <div key={day.dayStart} className="weekly-totals-day">
-              <Tooltip
-                content={`${dayjs(day.dayStart).format("ddd D MMM")} — ${day.done || "nothing"}${day.done ? " counted" : ""}`}
-                hasHoverIndication={false}
+      <Box sx={{ position: "relative", display: "flex", alignItems: "center" }}>
+        {weekDays.map((day, index) => (
+          <Box key={day.dayStart} sx={{ flex: 1, minWidth: 0, display: "flex", justifyContent: "center" }}>
+            <Tooltip
+              title={`${dayjs(day.dayStart).format("ddd D MMM")} — ${day.done || "nothing"}${day.done ? " counted" : ""}`}
+            >
+              <Typography
+                variant="caption"
+                color={day.isToday ? "warning.main" : day.done > 0 ? "text.primary" : "text.disabled"}
+                sx={{ fontWeight: day.isToday ? 700 : undefined }}
               >
-                <Text
-                  type="supporting"
-                  color={day.isToday ? "accent" : day.done > 0 ? "primary" : "disabled"}
-                  weight={day.isToday ? "semibold" : undefined}
-                  justify="center"
-                  display="block"
-                >
-                  {DAY_INITIALS[index]}
-                </Text>
-              </Tooltip>
-            </div>
-          ))}
-        </div>
+                {DAY_INITIALS[index]}
+              </Typography>
+            </Tooltip>
+          </Box>
+        ))}
+      </Box>
 
-        <ProgressBar
-          label="This week"
-          isLabelHidden
-          value={totals.done}
-          max={Math.max(totals.target, 1)}
-          variant={totals.isDone ? "success" : "warning"}
-        />
+      <LinearProgress
+        variant="determinate"
+        color={color}
+        aria-label="This week"
+        value={Math.min(100, (totals.done / Math.max(totals.target, 1)) * 100)}
+        sx={{ position: "relative", height: 6, borderRadius: 999 }}
+      />
 
-        <Text type="supporting">
-          {totals.done} of {totals.target} this week
-          {totals.isDone
-            ? " — the whole week is done"
-            : ` · ${totals.target - totals.done} to go, ${daysLeft} ${daysLeft === 1 ? "day" : "days"} left`}
-        </Text>
-      </div>
+      <Typography variant="caption" color="text.secondary" sx={{ position: "relative" }}>
+        {totals.done} of {totals.target} this week
+        {totals.isDone
+          ? " — the whole week is done"
+          : ` · ${totals.target - totals.done} to go, ${daysLeft} ${daysLeft === 1 ? "day" : "days"} left`}
+      </Typography>
     </Card>
   );
 };

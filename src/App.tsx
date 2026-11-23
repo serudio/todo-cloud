@@ -11,7 +11,6 @@ import { SettingsDialog } from "./components/SettingsDialog.tsx";
 import { TodoCloud } from "./components/TodoCloud/TodoCloud";
 import { WeeklyPage } from "./components/Weekly/WeeklyPage";
 import { WeeklyChips } from "./components/Weekly/WeeklyChips";
-import { WeeklyTheme } from "./components/Weekly/WeeklyTheme";
 import { ResetCountsButton } from "./components/Shared/ResetCountsButton";
 import { isSupabaseConfigured } from "./supabase";
 import { Box, Drawer } from "@mui/material";
@@ -148,7 +147,7 @@ export default function App() {
 
   if (route.name === "weekly") {
     return (
-      <WeeklyTheme>
+      <Box sx={{ bgcolor: "background.body", color: "text.primary", minHeight: "100vh" }}>
         <RefreshBar isLoading={isLoadingTodos} />
         <WeeklyPage
           todos={todos}
@@ -163,7 +162,7 @@ export default function App() {
             and this page saves counts as often as the cloud saves tasks. */}
         <NotificationsToast notification={notification} onClose={closeNotification} />
         {settingsDialog}
-      </WeeklyTheme>
+      </Box>
     );
   }
 

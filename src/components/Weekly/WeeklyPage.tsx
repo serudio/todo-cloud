@@ -1,13 +1,11 @@
 import { useState } from "react";
-import { AlertDialog } from "@astryxdesign/core/AlertDialog";
-import { Button } from "@astryxdesign/core/Button";
-import { IconButton } from "@astryxdesign/core/IconButton";
-import { Spinner } from "@astryxdesign/core/Spinner";
-import { Text } from "@astryxdesign/core/Text";
-import { ArrowLeft, Plus, RefreshCw, Settings } from "lucide-react";
+import { Box, Button, IconButton, Tooltip, Typography } from "@mui/material";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import AddIcon from "@mui/icons-material/Add";
+import SettingsIcon from "@mui/icons-material/Settings";
+import RefreshRoundedIcon from "@mui/icons-material/RefreshRounded";
 import type { Todo } from "../../types/todo";
 import { navigate, todosPath } from "../../hooks/route";
-import { GOALS_URL, HUNDRED_TODO_URL, SPORT_URL } from "../../constants/ui";
 import { markTodoBackToday, markTodoNotToday } from "../../utils/todos";
 import {
   DEFAULT_WEEKLY_TARGET,
@@ -24,15 +22,24 @@ import {
   sortWeeklyByRemaining,
   undoWeeklyDone,
 } from "../../utils/weekly";
+import { AppLinks } from "../Layout/AppLinks";
+import { LoadingComponent } from "../Layout/LoadingComponent";
+import { ConfirmDialog } from "../Shared/ConfirmDialog";
 import { WeeklyActivityCard } from "./WeeklyActivityCard";
 import { WeeklyTotalsCard } from "./WeeklyTotalsCard";
-import "./weekly.css";
 
 const GROUP_TITLES: Record<WeeklyGroup, string> = {
   owed: "to do",
   doneToday: "done today",
   notToday: "not today",
   doneForWeek: "done this week",
+};
+
+const GROUP_COLORS: Record<WeeklyGroup, string> = {
+  owed: "text.primary",
+  doneToday: "warning.main",
+  notToday: "text.disabled",
+  doneForWeek: "success.main",
 };
 
 // Dealt with for now — counted today, put off for today, or finished for the
@@ -132,10 +139,21 @@ export const WeeklyPage: React.FC<Props> = ({
   };
 
   const renderGroup = ({ group, todos: groupTodos }: (typeof groups)[number]) => (
-    <section key={group} aria-label={GROUP_TITLES[group]} className="weekly-group">
-      <div className="weekly-group-heading" data-group={group}>
-        {GROUP_TITLES[group]} · {groupTodos.length}
-      </div>
+    <Box
+      key={group}
+      component="section"
+      aria-label={GROUP_TITLES[group]}
+      sx={{ display: "flex", flexDirection: "column", gap: 1 }}
+    >
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 1 }}>
+        <Typography
+          variant="caption"
+          sx={{ textTransform: "uppercase", letterSpacing: 1.5, fontWeight: 700, color: GROUP_COLORS[group] }}
+        >
+          {GROUP_TITLES[group]} · {groupTodos.length}
+        </Typography>
+        <Box sx={{ flex: 1, borderBottom: 1, borderColor: "divider" }} />
+      </Box>
       {groupTodos.map((todo) => (
         <WeeklyActivityCard
           key={todo.id}
@@ -153,73 +171,92 @@ export const WeeklyPage: React.FC<Props> = ({
           onToggleNotToday={() => handleToggleNotToday(todo.id)}
         />
       ))}
-    </section>
+    </Box>
   );
 
+  const isSplit = mainGroups.length > 0 && sideGroups.length > 0;
+  // A container, so a row lays itself out by the column it is in rather than
+  // by the window. On a wide screen each column scrolls on its own.
+  const columnSx = {
+    containerType: "inline-size",
+    display: "flex",
+    flexDirection: "column",
+    gap: 1,
+    minHeight: { md: 0 },
+    overflowY: { md: "auto" },
+    overscrollBehavior: "contain",
+    // Room for the scrollbar, so it does not sit on the cards' edge.
+    pr: { md: 0.5 },
+  } as const;
+
   return (
-    <div className="weekly-page">
-      <header className="weekly-header">
-        <IconButton
-          variant="ghost"
-          label="Back to tasks"
-          icon={<ArrowLeft size={18} />}
-          onClick={() => navigate(todosPath)}
-        />
-        <Text weight="semibold" className="weekly-title">
+    <Box
+      sx={{
+        width: "min(1100px, calc(100% - 16px))",
+        mx: "auto",
+        py: 2,
+        display: "flex",
+        flexDirection: "column",
+        gap: 2,
+        // On a wide screen the page is the window: the header and the week
+        // stay put, and the lists take the height left under them, each
+        // scrolling on its own when it runs longer. A phone scrolls the page.
+        boxSizing: "border-box",
+        height: { md: "100dvh" },
+      }}
+    >
+      <Box component="header" sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
+        <Button onClick={() => navigate(todosPath)} color="secondary" sx={{ minWidth: 0 }} aria-label="Back to tasks">
+          <ArrowBackIcon />
+        </Button>
+        <Typography variant="subtitle2" sx={{ textTransform: "uppercase", letterSpacing: 2 }}>
           Weekly
-        </Text>
-        <Text type="supporting" className="weekly-header-range">
+        </Typography>
+        <Typography variant="caption" color="text.secondary" sx={{ mr: "auto" }}>
           {formatWeekRange(getWeekStart())} · {daysLeft} {daysLeft === 1 ? "day" : "days"} left
-        </Text>
-
-        <nav aria-label="Apps" className="weekly-app-links">
-          <Button variant="ghost" size="sm" label="todo cloud" onClick={() => navigate(todosPath)} />
-          <Button variant="ghost" size="sm" label="goals" href={GOALS_URL} target="_blank" rel="noreferrer" />
-          <Button variant="ghost" size="sm" label="100 todo" href={HUNDRED_TODO_URL} target="_blank" rel="noreferrer" />
-          <Button variant="ghost" size="sm" label="sport" href={SPORT_URL} target="_blank" rel="noreferrer" />
-        </nav>
-
+        </Typography>
+        {/* A line of their own on a phone, last, so the page's own controls
+            keep the first one. */}
+        <Box sx={{ order: { xs: 10, sm: 0 }, width: { xs: "100%", sm: "auto" } }}>
+          <AppLinks />
+        </Box>
         <Button
-          size="sm"
-          label="Add"
-          icon={<Plus size={16} />}
+          size="small"
+          startIcon={<AddIcon />}
           onClick={() => {
             const newTodo = getNewWeeklyTodo(DEFAULT_WEEKLY_TARGET);
             setJustAddedId(newTodo.id);
             addTodo(newTodo);
           }}
-        />
+        >
+          add
+        </Button>
         {/* The same reload as the cloud's: this page reads the same list, and
             a count made on the phone should be one tap away on the laptop. */}
-        <IconButton
-          variant="ghost"
-          size="sm"
-          label="Refresh"
-          tooltip="Refresh"
-          icon={<RefreshCw size={16} />}
-          isDisabled={isLoadingTodos}
-          onClick={onRefresh}
-        />
+        <Tooltip title="Refresh">
+          <span>
+            <IconButton size="small" color="secondary" onClick={onRefresh} disabled={isLoadingTodos} aria-label="Refresh">
+              <RefreshRoundedIcon fontSize="small" />
+            </IconButton>
+          </span>
+        </Tooltip>
         {/* The theme lives in settings, and this page is somewhere you can end
             up and stay — so it needs the same way in as the cloud has. */}
-        <IconButton
-          variant="ghost"
-          size="sm"
-          label="Open settings"
-          tooltip="Settings"
-          icon={<Settings size={16} />}
-          onClick={onSettingsClick}
-        />
-      </header>
+        <Tooltip title="Settings">
+          <IconButton size="small" color="secondary" onClick={onSettingsClick} aria-label="Open settings">
+            <SettingsIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
+      </Box>
 
       {/* Only the first load has nothing to show; a reload keeps the list on
           screen, with the bar at the top of the window saying so. */}
-      {isLoadingTodos && !todos.length && <Spinner size="lg" />}
+      <LoadingComponent loading={isLoadingTodos && !todos.length} />
 
       {!isLoadingTodos && !weeklyTodos.length && (
-        <Text>
+        <Typography>
           Things you owe the week rather than a day — read five times, yoga twice. Counts start again every Monday.
-        </Text>
+        </Typography>
       )}
 
       {/* The week as one line, before the things it is made of: whether this
@@ -228,29 +265,38 @@ export const WeeklyPage: React.FC<Props> = ({
 
       {/* Each state under a heading of its own. On a wide screen what is
           still to do keeps the left, and everything dealt with for now moves
-          to a column on the right. */}
-      {/* Busy while the list is read again, so a count cannot land on the copy
-          about to be replaced. */}
-      <div
-        className="weekly-columns"
-        data-split={mainGroups.length > 0 && sideGroups.length > 0}
-        data-busy={isLoadingTodos}
+          to a column on the right. Busy while the list is read again, so a
+          count cannot land on the copy about to be replaced. */}
+      <Box
         aria-busy={isLoadingTodos}
-      >
-        {mainGroups.length > 0 && <div className="weekly-groups">{mainGroups.map(renderGroup)}</div>}
-        {sideGroups.length > 0 && <div className="weekly-groups">{sideGroups.map(renderGroup)}</div>}
-      </div>
-
-      <AlertDialog
-        isOpen={Boolean(todoPendingDelete)}
-        onOpenChange={(isOpen) => {
-          if (!isOpen) setTodoPendingDelete(null);
+        sx={{
+          display: "grid",
+          gridTemplateColumns: {
+            xs: "minmax(0, 1fr)",
+            // About a third for what is set aside, but never so narrow that
+            // its two-line rows wrap again.
+            md: isSplit ? "minmax(0, 13fr) minmax(360px, 7fr)" : "minmax(0, 1fr)",
+          },
+          gridTemplateRows: { md: "minmax(0, 1fr)" },
+          alignItems: { xs: "start", md: "stretch" },
+          gap: "8px 24px",
+          flex: { md: 1 },
+          minHeight: { md: 0 },
+          pointerEvents: isLoadingTodos ? "none" : undefined,
         }}
+      >
+        {mainGroups.length > 0 && <Box sx={columnSx}>{mainGroups.map(renderGroup)}</Box>}
+        {sideGroups.length > 0 && <Box sx={columnSx}>{sideGroups.map(renderGroup)}</Box>}
+      </Box>
+
+      <ConfirmDialog
+        open={Boolean(todoPendingDelete)}
         title="Remove this?"
-        description={`"${todoPendingDelete?.text || "Untitled"}" and everything counted against it will be gone.`}
-        actionLabel="Remove"
-        onAction={handleDeleteConfirm}
+        confirmLabel="Remove"
+        message={`"${todoPendingDelete?.text || "Untitled"}" and everything counted against it will be gone.`}
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setTodoPendingDelete(null)}
       />
-    </div>
+    </Box>
   );
 };

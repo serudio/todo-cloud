@@ -1,9 +1,8 @@
-import { Button } from "@astryxdesign/core/Button";
-import { Card } from "@astryxdesign/core/Card";
-import { IconButton } from "@astryxdesign/core/IconButton";
-import { Text } from "@astryxdesign/core/Text";
-import { Tooltip } from "@astryxdesign/core/Tooltip";
-import { Minus, Plus, Trash2 } from "lucide-react";
+import { Box, Button, ButtonBase, Card, IconButton, InputBase, Tooltip, Typography } from "@mui/material";
+import { alpha } from "@mui/material/styles";
+import AddIcon from "@mui/icons-material/Add";
+import RemoveIcon from "@mui/icons-material/Remove";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutlineOutlined";
 import type { Todo } from "../../types/todo";
 import { getDoneThisWeek, getWeeklyTarget, isWeeklyDoneToday, WEEKLY_TARGETS } from "../../utils/weekly";
 
@@ -19,6 +18,8 @@ type Props = {
   isNotToday: boolean;
   onToggleNotToday: () => void;
 };
+
+const textButtonSx = { minWidth: 0, p: 0, px: 0.75, fontWeight: 700, textTransform: "lowercase" } as const;
 
 export const WeeklyActivityCard: React.FC<Props> = ({
   todo,
@@ -36,19 +37,44 @@ export const WeeklyActivityCard: React.FC<Props> = ({
   const left = Math.max(0, target - done);
   const isDone = left === 0;
   const isDoneToday = isWeeklyDoneToday(todo);
+  // Counted today, but the week still wants more: dealt with until tomorrow,
+  // so it takes less room than what is still to do.
+  const isCompact = isDoneToday && !isDone;
   const name = todo.text || "this";
+  const doneColor = isDone ? "success" : "warning";
 
   // Folded to one line for the rest of the day: it is still owed this week, so
   // it stays on the page, but not today, and the targets are the part that
   // takes the room. It unfolds at midnight on its own.
   if (isNotToday) {
     return (
-      <Card variant="muted" padding={0} className="weekly-folded">
-        <span className="weekly-folded-name">{todo.text || "untitled"}</span>
-        <Text type="supporting" textWrap="nowrap">
+      <Card
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: 1,
+          px: 1.5,
+          py: 0.25,
+          opacity: 0.75,
+          bgcolor: (theme) => alpha(theme.palette.text.primary, 0.04),
+        }}
+      >
+        <Typography
+          sx={{
+            flex: 1,
+            minWidth: 0,
+            letterSpacing: "1.3px",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {todo.text || "untitled"}
+        </Typography>
+        <Typography variant="caption" color="text.secondary" sx={{ whiteSpace: "nowrap" }}>
           not today
-        </Text>
-        <Button variant="ghost" size="sm" label={`Bring ${name} back for today`} onClick={onToggleNotToday}>
+        </Typography>
+        <Button size="small" onClick={onToggleNotToday} aria-label={`Bring ${name} back for today`} sx={textButtonSx}>
           today
         </Button>
       </Card>
@@ -56,108 +82,173 @@ export const WeeklyActivityCard: React.FC<Props> = ({
   }
 
   return (
-    <Card padding={0} className="weekly-row" data-done-today={isDoneToday && !isDone}>
-      <input
-        className="weekly-name"
+    <Card
+      sx={{
+        position: "relative",
+        overflow: "hidden",
+        display: "flex",
+        alignItems: "center",
+        columnGap: 1,
+        rowGap: isCompact ? 0 : 0.5,
+        px: 1.5,
+        py: isCompact ? "2px" : 0.5,
+        // Counted today, but the week still wants more: marked at the edge.
+        borderLeft: 3,
+        borderLeftColor: isCompact ? "warning.main" : "transparent",
+        // A narrow column (a phone, or the right-hand one) gets two lines: the
+        // name with the count buttons, then the targets with the rest, set by
+        // order rather than by a second layout.
+        "@container (max-width: 599px)": {
+          flexWrap: "wrap",
+          "& [data-part='count']": { order: 3 },
+          "& [data-part='break']": { display: "block", order: 4 },
+          "& [data-part='targets']": { order: 5 },
+          "& [data-part='more']": { order: 6, ml: "auto" },
+        },
+      }}
+    >
+      <InputBase
         value={todo.text}
         placeholder="what, and how often"
-        aria-label="Name"
         autoFocus={isJustAdded}
+        inputProps={{ "aria-label": "Name" }}
         onChange={(event) => onChange({ text: event.target.value })}
         onBlur={() => onCommit({ text: todo.text })}
+        sx={{
+          flex: "1 1 0",
+          minWidth: 0,
+          fontSize: isCompact ? "0.875rem" : "1rem",
+          letterSpacing: "1.3px",
+          "& input": { py: isCompact ? 0 : 0.5 },
+        }}
       />
 
       {/* How often, as the whole range rather than a box to type in: a target
-          is set once and is always a single digit. */}
-      <div className="weekly-targets">
+          is set once and is always a single digit. The numbers and the
+          progress under them share one fixed width, so each segment of the
+          line sits under its own number. */}
+      <Box data-part="targets" sx={{ width: 196, display: "flex", flexDirection: "column", gap: isCompact ? "2px" : "3px" }}>
         {/* Plain numbers, with only the chosen one drawn as a filled circle,
             so the target is the one thing the row says loudly. */}
-        <div className="weekly-target-numbers" role="radiogroup" aria-label="Times a week">
+        <Box role="radiogroup" aria-label="Times a week" sx={{ display: "flex" }}>
           {WEEKLY_TARGETS.map((chipTarget) => {
             const isTarget = chipTarget === target;
             const targetLabel = `${chipTarget} ${chipTarget === 1 ? "time" : "times"} a week`;
+            const radius = isCompact ? 9 : 11;
 
             return (
               <Tooltip
                 key={chipTarget}
                 // The count lives here, on hover: the line under the numbers
                 // already shows how far along it is.
-                content={isTarget ? `${targetLabel} · ${isDone ? "done for the week" : `${left} to go`}` : targetLabel}
-                hasHoverIndication={false}
+                title={isTarget ? `${targetLabel} · ${isDone ? "done for the week" : `${left} to go`}` : targetLabel}
+                placement="top"
+                disableInteractive
               >
-                <button
-                  type="button"
+                <ButtonBase
                   role="radio"
                   aria-checked={isTarget}
                   aria-label={targetLabel}
-                  className="weekly-target-number"
-                  data-selected={isTarget}
-                  data-done={isDone}
                   onClick={() => onCommit({ weeklyTarget: chipTarget })}
+                  sx={{
+                    flex: 1,
+                    height: isCompact ? 20 : 24,
+                    fontSize: isCompact ? 12 : 13,
+                    color: "text.disabled",
+                    borderRadius: "50%",
+                    "&:hover": { color: "text.primary" },
+                    ...(isTarget && {
+                      color: `${doneColor}.contrastText`,
+                      fontWeight: 700,
+                      "&:hover": { color: `${doneColor}.contrastText` },
+                      background: (theme) =>
+                        `radial-gradient(circle closest-side, ${theme.palette[doneColor].main} ${radius}px, transparent ${radius + 0.5}px)`,
+                    }),
+                  }}
                 >
                   {chipTarget}
-                </button>
+                </ButtonBase>
               </Tooltip>
             );
           })}
-        </div>
+        </Box>
 
-        {/* The progress, right under the numbers it counts against: a
-            segment under each one up to the target, filled as they are done,
-            and nothing under the numbers past it. */}
-        <div className="weekly-progress-line" data-done={isDone} aria-hidden>
+        {/* The progress, right under the numbers it counts against: a segment
+            under each one up to the target, filled as they are done, and
+            nothing under the numbers past it. */}
+        <Box aria-hidden sx={{ height: 3, display: "flex", gap: "2px", px: "2px" }}>
           {WEEKLY_TARGETS.map((chipTarget) => (
-            <span
+            <Box
               key={chipTarget}
-              data-in-target={chipTarget <= target}
-              data-filled={chipTarget <= Math.min(done, target)}
+              sx={{
+                flex: 1,
+                borderRadius: 999,
+                bgcolor:
+                  chipTarget <= Math.min(done, target)
+                    ? `${doneColor}.main`
+                    : chipTarget <= target
+                      ? "divider"
+                      : "transparent",
+              }}
             />
           ))}
-        </div>
-      </div>
+        </Box>
+      </Box>
 
-      {/* The phone's line break, between the count buttons and the targets. */}
-      <span className="weekly-line-break" />
+      {/* The narrow layout's line break, between the count buttons and the targets. */}
+      <Box data-part="break" sx={{ display: "none", flexBasis: "100%", height: 0 }} />
 
-      <div className="weekly-actions" data-part="count">
-        <IconButton
-          variant="ghost"
-          size="sm"
-          label={`Take one back from ${name}`}
-          tooltip="Take the last one back"
-          icon={<Minus size={16} />}
-          isDisabled={done === 0}
-          onClick={onUndoOne}
-        />
-        <IconButton
-          variant={isDone ? "secondary" : "primary"}
-          size="sm"
-          label={`Count one for ${name}`}
-          tooltip="Did it once"
-          icon={<Plus size={16} />}
-          onClick={onCountOne}
-        />
-      </div>
+      <Box data-part="count" sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+        <Tooltip title="Take the last one back">
+          <span>
+            <IconButton
+              size="small"
+              onClick={onUndoOne}
+              disabled={done === 0}
+              aria-label={`Take one back from ${name}`}
+              sx={{ p: isCompact ? "2px" : undefined }}
+            >
+              <RemoveIcon fontSize="small" />
+            </IconButton>
+          </span>
+        </Tooltip>
 
-      <div className="weekly-actions" data-part="more">
-        <Button
-          variant="ghost"
-          size="sm"
-          label={`Not today for ${name}`}
-          tooltip="Not today: fold it away until tomorrow"
-          onClick={onToggleNotToday}
-        >
-          <s>today</s>
-        </Button>
-        <IconButton
-          variant="ghost"
-          size="sm"
-          label={`Remove ${name}`}
-          tooltip="Remove this"
-          icon={<Trash2 size={16} />}
-          onClick={onDelete}
-        />
-      </div>
+        <Tooltip title="Did it once">
+          <IconButton
+            size="small"
+            onClick={onCountOne}
+            color={doneColor}
+            aria-label={`Count one for ${name}`}
+            sx={{ border: 1, borderColor: "divider", p: isCompact ? "2px" : undefined }}
+          >
+            <AddIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
+      </Box>
+
+      <Box data-part="more" sx={{ display: "flex", alignItems: "center", gap: 0.25 }}>
+        <Tooltip title="Not today: fold it away until tomorrow">
+          <Button
+            size="small"
+            onClick={onToggleNotToday}
+            aria-label={`Not today for ${name}`}
+            sx={{ ...textButtonSx, minHeight: isCompact ? 24 : undefined }}
+          >
+            <s>today</s>
+          </Button>
+        </Tooltip>
+
+        <Tooltip title="Remove this">
+          <IconButton
+            size="small"
+            onClick={onDelete}
+            aria-label={`Remove ${name}`}
+            sx={{ p: isCompact ? "2px" : undefined }}
+          >
+            <DeleteOutlineIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
+      </Box>
     </Card>
   );
 };
