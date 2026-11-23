@@ -24,6 +24,7 @@ export const DatePicker: React.FC<Props> = ({ value, onChange, onOpen }) => {
   const [calendarAnchorElement, setCalendarAnchorElement] = useState<HTMLElement | null>(null);
   const tooltip = value ? `Due ${formatDateKey(value)}` : "Set due date";
   const isCalendarOpen = Boolean(calendarAnchorElement);
+  const isDueToday = value !== null && dayjs(value).isSame(dayjs(), "day");
 
   function handleDueDateChange(date: Dayjs | null) {
     onChange(date ? date.startOf("day").valueOf() : null);
@@ -68,7 +69,11 @@ export const DatePicker: React.FC<Props> = ({ value, onChange, onOpen }) => {
             showDaysOutsideCurrentMonth
           />
         </LocalizationProvider>
-        <Box sx={{ display: "flex", justifyContent: "flex-end", px: 2, pb: 1.5 }}>
+        <Box sx={{ display: "flex", justifyContent: "space-between", px: 2, pb: 1.5 }}>
+          {/* The most common due date, one tap rather than finding it in the month. */}
+          <Button disabled={isDueToday} onClick={() => handleDueDateChange(dayjs())} size="small" variant="text">
+            Today
+          </Button>
           <Button disabled={!value} onClick={clearDueDate} size="small" variant="text">
             Clear
           </Button>
