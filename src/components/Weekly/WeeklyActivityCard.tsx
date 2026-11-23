@@ -9,6 +9,8 @@ import { getDoneThisWeek, getWeeklyTarget, isWeeklyDoneToday, WEEKLY_TARGETS } f
 
 type Props = {
   todo: Todo;
+  // Just made with Add: the name field takes the cursor.
+  isJustAdded?: boolean;
   onChange: (input: { text?: string; weeklyTarget?: number }) => void;
   onCommit: (input: { text?: string; weeklyTarget?: number }) => void;
   onCountOne: () => void;
@@ -20,6 +22,7 @@ type Props = {
 
 export const WeeklyActivityCard: React.FC<Props> = ({
   todo,
+  isJustAdded = false,
   onChange,
   onCommit,
   onCountOne,
@@ -59,6 +62,7 @@ export const WeeklyActivityCard: React.FC<Props> = ({
         value={todo.text}
         placeholder="what, and how often"
         aria-label="Name"
+        autoFocus={isJustAdded}
         onChange={(event) => onChange({ text: event.target.value })}
         onBlur={() => onCommit({ text: todo.text })}
       />

@@ -73,6 +73,9 @@ export const WeeklyPage: React.FC<Props> = ({
   // Typing is local until it is committed, so every keystroke is not a write of
   // the whole list; the text in hand wins over the one that came back.
   const [drafts, setDrafts] = useState<Record<string, string>>({});
+  // The row just added, so its name field takes the cursor: a new row is
+  // nothing until it is named.
+  const [justAddedId, setJustAddedId] = useState<string | null>(null);
 
   const daysLeft = getDaysLeftInWeek();
   const weeklyTodos = getWeeklyTodos(todos).map((todo) =>
@@ -137,8 +140,12 @@ export const WeeklyPage: React.FC<Props> = ({
         <WeeklyActivityCard
           key={todo.id}
           todo={todo}
+          isJustAdded={todo.id === justAddedId}
           onChange={(input) => handleChange(todo.id, input)}
-          onCommit={(input) => handleCommit(todo.id, input)}
+          onCommit={(input) => {
+            handleCommit(todo.id, input);
+            if (todo.id === justAddedId) setJustAddedId(null);
+          }}
           onCountOne={() => applyToTodo(todo.id, (current) => markWeeklyDone(current))}
           onUndoOne={() => applyToTodo(todo.id, (current) => undoWeeklyDone(current))}
           onDelete={() => setTodoPendingDelete(todo)}
@@ -176,7 +183,11 @@ export const WeeklyPage: React.FC<Props> = ({
           size="sm"
           label="Add"
           icon={<Plus size={16} />}
-          onClick={() => addTodo(getNewWeeklyTodo(DEFAULT_WEEKLY_TARGET))}
+          onClick={() => {
+            const newTodo = getNewWeeklyTodo(DEFAULT_WEEKLY_TARGET);
+            setJustAddedId(newTodo.id);
+            addTodo(newTodo);
+          }}
         />
         {/* The same reload as the cloud's: this page reads the same list, and
             a count made on the phone should be one tap away on the laptop. */}
