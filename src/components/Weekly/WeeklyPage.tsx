@@ -212,7 +212,9 @@ export const WeeklyPage: React.FC<Props> = ({
         />
       </header>
 
-      {isLoadingTodos && <Spinner size="lg" />}
+      {/* Only the first load has nothing to show; a reload keeps the list on
+          screen, with the bar at the top of the window saying so. */}
+      {isLoadingTodos && !todos.length && <Spinner size="lg" />}
 
       {!isLoadingTodos && !weeklyTodos.length && (
         <Text>
@@ -227,7 +229,14 @@ export const WeeklyPage: React.FC<Props> = ({
       {/* Each state under a heading of its own. On a wide screen what is
           still to do keeps the left, and everything dealt with for now moves
           to a column on the right. */}
-      <div className="weekly-columns" data-split={mainGroups.length > 0 && sideGroups.length > 0}>
+      {/* Busy while the list is read again, so a count cannot land on the copy
+          about to be replaced. */}
+      <div
+        className="weekly-columns"
+        data-split={mainGroups.length > 0 && sideGroups.length > 0}
+        data-busy={isLoadingTodos}
+        aria-busy={isLoadingTodos}
+      >
         {mainGroups.length > 0 && <div className="weekly-groups">{mainGroups.map(renderGroup)}</div>}
         {sideGroups.length > 0 && <div className="weekly-groups">{sideGroups.map(renderGroup)}</div>}
       </div>

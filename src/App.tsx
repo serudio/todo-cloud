@@ -19,6 +19,7 @@ import { Header } from "./components/Layout";
 import { PanelHandle } from "./components/Layout/PanelHandle";
 import { AddTask } from "./components/TodoCloud/AddTask.tsx";
 import { LoadingComponent } from "./components/Layout/LoadingComponent.tsx";
+import { RefreshBar } from "./components/Layout/RefreshBar";
 import { useAppInit } from "./hooks/app.ts";
 import { NotificationsToast } from "./components/Layout/NotificationAlert";
 import { listsPath, navigate, useRoute, weeklyPath } from "./hooks/route.ts";
@@ -148,6 +149,7 @@ export default function App() {
   if (route.name === "weekly") {
     return (
       <WeeklyTheme>
+        <RefreshBar isLoading={isLoadingTodos} />
         <WeeklyPage
           todos={todos}
           isLoadingTodos={isLoadingTodos}
@@ -183,6 +185,7 @@ export default function App() {
 
   return (
     <Box sx={{ bgcolor: "background.body", color: "text.primary" }}>
+      <RefreshBar isLoading={isLoadingTodos} />
       {saveError && <p>{saveError}</p>}
 
       <NotificationsToast notification={notification} onClose={closeNotification} />
