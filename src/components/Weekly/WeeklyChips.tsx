@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Card, Chip, Tooltip, Typography } from "@mui/material";
+import { Box, Card, Chip, Tooltip, Typography } from "@mui/material";
 import CheckIcon from "@mui/icons-material/Check";
 import type { Todo } from "../../types/todo";
 import { navigate, weeklyPath } from "../../hooks/route";
@@ -14,6 +14,7 @@ import {
   sortWeeklyByRemaining,
 } from "../../utils/weekly";
 import { matchesSearch } from "../../utils/search";
+import { useHiddenPastFirstRow } from "../../hooks/firstRow";
 
 type Props = {
   todos: Todo[];
@@ -43,55 +44,87 @@ export const WeeklyChips: React.FC<Props> = ({ todos, search, onCountOne }) => {
   const isSetAside = (todo: Todo) => isWeeklyDone(todo) || isWeeklyDoneToday(todo) || isWeeklyNotToday(todo);
   const setAsideCount = matchingTodos.filter(isSetAside).length;
   const shownTodos = isShowingSetAside ? matchingTodos : matchingTodos.filter((todo) => !isSetAside(todo));
+  // One row unless asked for the rest, so a long week does not push the
+  // cloud down the page.
+  const [isExpanded, setIsExpanded] = useState(false);
+  const { ref: chipsRef, hiddenCount } = useHiddenPastFirstRow<HTMLDivElement>(
+    shownTodos.map((todo) => todo.id).join(),
+  );
 
   // Nothing set up, or nothing matching what is being searched for: the strip
   // is a reminder, and an empty reminder is just a bar taking up room.
   if (!matchingTodos.length) return null;
 
   return (
-    <Card sx={{ display: "flex", alignItems: "center", gap: 0.5, flexWrap: "wrap", px: 1, py: 0.5 }}>
+    // The label and the buttons stay on the first row; the chips wrap between
+    // them when the strip is opened.
+    <Card sx={{ display: "flex", alignItems: "flex-start", gap: 0.5, px: 1, py: 0.5 }}>
       <Tooltip title="Open the week">
         <Typography
           variant="caption"
           color="text.secondary"
           onClick={() => navigate(weeklyPath)}
           role="button"
-          sx={{ mr: 0.5, cursor: "pointer", textTransform: "uppercase", letterSpacing: 1.5 }}
+          sx={{ mr: 0.5, lineHeight: "22px", cursor: "pointer", textTransform: "uppercase", letterSpacing: 1.5 }}
         >
           weekly
         </Typography>
       </Tooltip>
 
-      {shownTodos.map((todo) => {
-        const done = getDoneThisWeek(todo);
-        const target = getWeeklyTarget(todo);
-        const isDone = done >= target;
-        // Counted today: still owed this week, but already dealt with once
-        // since this morning, which is the thing being asked at a glance.
-        const isDoneToday = isWeeklyDoneToday(todo);
-        const isNotToday = isWeeklyNotToday(todo);
+      <Box
+        ref={chipsRef}
+        sx={{
+          flex: 1,
+          minWidth: 0,
+          display: "flex",
+          flexWrap: "wrap",
+          gap: 0.5,
+          // One chip high, the rest cut off below, until the strip is opened.
+          maxHeight: isExpanded ? "none" : 22,
+          overflow: "hidden",
+        }}
+      >
+        {shownTodos.map((todo) => {
+          const done = getDoneThisWeek(todo);
+          const target = getWeeklyTarget(todo);
+          const isDone = done >= target;
+          // Counted today: still owed this week, but already dealt with once
+          // since this morning, which is the thing being asked at a glance.
+          const isDoneToday = isWeeklyDoneToday(todo);
+          const isNotToday = isWeeklyNotToday(todo);
 
-        return (
-          <Tooltip
-            key={todo.id}
-            title={
-              isDone
-                ? "Done for the week — tap to count another"
-                : `${isNotToday ? "Not today · " : isDoneToday ? "Counted today · " : ""}Tap to count one · ${daysLeft} days left`
-            }
-          >
-            <Chip
-              onClick={() => onCountOne(todo.id)}
-              size="small"
-              variant={isDone ? "filled" : "outlined"}
-              color={isDone ? "success" : isDoneToday ? "warning" : "default"}
-              icon={isDone ? <CheckIcon /> : undefined}
-              label={`${todo.text || "untitled"} ${done}/${target}`}
-              sx={{ height: 22, fontSize: 12, letterSpacing: 1.2, ...(isNotToday && !isDone && { opacity: 0.55 }) }}
-            />
-          </Tooltip>
-        );
-      })}
+          return (
+            <Tooltip
+              key={todo.id}
+              title={
+                isDone
+                  ? "Done for the week — tap to count another"
+                  : `${isNotToday ? "Not today · " : isDoneToday ? "Counted today · " : ""}Tap to count one · ${daysLeft} days left`
+              }
+            >
+              <Chip
+                onClick={() => onCountOne(todo.id)}
+                size="small"
+                variant={isDone ? "filled" : "outlined"}
+                color={isDone ? "success" : isDoneToday ? "warning" : "default"}
+                icon={isDone ? <CheckIcon /> : undefined}
+                label={`${todo.text || "untitled"} ${done}/${target}`}
+                sx={{ height: 22, fontSize: 12, letterSpacing: 1.2, ...(isNotToday && !isDone && { opacity: 0.55 }) }}
+              />
+            </Tooltip>
+          );
+        })}
+      </Box>
+
+      {(hiddenCount > 0 || isExpanded) && (
+        <Chip
+          onClick={() => setIsExpanded((previous) => !previous)}
+          size="small"
+          variant="outlined"
+          label={isExpanded ? "show less" : `show all · +${hiddenCount}`}
+          sx={{ height: 18, fontSize: 11, mt: "2px", flexShrink: 0 }}
+        />
+      )}
 
       {setAsideCount > 0 && (
         <Chip
@@ -101,7 +134,7 @@ export const WeeklyChips: React.FC<Props> = ({ todos, search, onCountOne }) => {
           variant="filled"
           aria-pressed={isShowingSetAside}
           label={isShowingSetAside ? "hide" : `show ${setAsideCount}`}
-          sx={{ height: 18, fontSize: 11, ml: "auto" }}
+          sx={{ height: 18, fontSize: 11, mt: "2px", flexShrink: 0 }}
         />
       )}
     </Card>

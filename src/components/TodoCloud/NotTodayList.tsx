@@ -1,9 +1,10 @@
-import { useLayoutEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { Box, Chip, Typography } from "@mui/material";
 import EventRepeatIcon from "@mui/icons-material/EventRepeat";
 import type { Todo } from "../../types/todo";
 import { getTodosWithNotTodayReleased, markTodoNow } from "../../utils/todos";
 import { isWeeklyTodo } from "../../utils/weekly";
+import { useHiddenPastFirstRow } from "../../hooks/firstRow";
 
 type Props = {
   // Only the tasks hidden for today; the full list is needed to save them back.
@@ -26,27 +27,7 @@ export const NotTodayList: React.FC<Props> = ({ todos, allTodos, updateTodo, upd
   // One row of chips unless asked for the rest: these are set aside for today,
   // and a long list of them pushed today's cloud down the page.
   const [isExpanded, setIsExpanded] = useState(false);
-  const chipsRef = useRef<HTMLDivElement>(null);
-  const [hiddenCount, setHiddenCount] = useState(0);
-
-  // How many chips sit below the first row, measured rather than guessed, since
-  // that depends on the names and the width of the window.
-  useLayoutEffect(() => {
-    const chips = chipsRef.current;
-    if (!chips) return;
-
-    const measure = () => {
-      const children = Array.from(chips.children) as HTMLElement[];
-      const firstTop = children[0]?.offsetTop ?? 0;
-      setHiddenCount(children.filter((child) => child.offsetTop > firstTop).length);
-    };
-
-    measure();
-    const observer = new ResizeObserver(measure);
-    observer.observe(chips);
-
-    return () => observer.disconnect();
-  }, [todos]);
+  const { ref: chipsRef, hiddenCount } = useHiddenPastFirstRow<HTMLDivElement>(todos);
 
   const handleBringAllBack = () =>
     updateTodos(
