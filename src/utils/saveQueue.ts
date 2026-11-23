@@ -29,5 +29,10 @@ export function createSaveQueue() {
 
       return queuedSave;
     },
+
+    /** Resolves once every save queued so far has run, so a reload cannot drop one. */
+    whenIdle() {
+      return queue;
+    },
   };
 }

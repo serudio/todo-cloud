@@ -151,6 +151,27 @@ export function useAppInit() {
     };
   }, [session, todoListId, isLoadingTodos, tags, links, notes]);
 
+  // Coming back to the tab reads the list again, so what is on screen is what
+  // the phone or another tab left there rather than what this tab saw last.
+  // Saves still in line go first, so the reload cannot drop a change just made.
+  useEffect(() => {
+    if (!session) return;
+
+    const userId = session.user.id;
+
+    function handleVisibilityChange() {
+      if (document.visibilityState !== "visible") return;
+
+      saveQueueRef.current.whenIdle().then(() => {
+        if (document.visibilityState === "visible") loadTodoList(userId);
+      });
+    }
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, [session?.user.id]);
+
   // Manually reloads the current user's todo list from Supabase.
   function refreshTodoList() {
     if (!session) return;
