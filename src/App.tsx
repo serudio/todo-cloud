@@ -115,6 +115,12 @@ export default function App() {
     />
   );
 
+  // While the list is read again — opened, refreshed, or come back to from
+  // another tab — the page waits for it: dimmed, and inert so nothing can be
+  // clicked, focused or typed into. A change made in that moment would land on
+  // the copy about to be replaced and be lost.
+  const pageLoader = <LoadingComponent loading={isLoadingTodos} />;
+
   if (!isSupabaseConfigured) return <SetupRequired />;
 
   // Share links open without an account, so this route comes before the auth gate.
@@ -147,8 +153,9 @@ export default function App() {
 
   if (route.name === "weekly") {
     return (
-      <Box sx={{ bgcolor: "background.body", color: "text.primary", minHeight: "100vh" }}>
+      <Box sx={{ bgcolor: "background.body", color: "text.primary", minHeight: "100vh" }} inert={isLoadingTodos}>
         <RefreshBar isLoading={isLoadingTodos} />
+        {pageLoader}
         <WeeklyPage
           todos={todos}
           isLoadingTodos={isLoadingTodos}
@@ -183,8 +190,9 @@ export default function App() {
   }
 
   return (
-    <Box sx={{ bgcolor: "background.body", color: "text.primary" }}>
+    <Box sx={{ bgcolor: "background.body", color: "text.primary" }} inert={isLoadingTodos}>
       <RefreshBar isLoading={isLoadingTodos} />
+      {pageLoader}
       {saveError && <p>{saveError}</p>}
 
       <NotificationsToast notification={notification} onClose={closeNotification} />

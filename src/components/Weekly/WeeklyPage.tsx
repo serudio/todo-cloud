@@ -23,7 +23,6 @@ import {
   undoWeeklyDone,
 } from "../../utils/weekly";
 import { AppLinks } from "../Layout/AppLinks";
-import { LoadingComponent } from "../Layout/LoadingComponent";
 import { ConfirmDialog } from "../Shared/ConfirmDialog";
 import { WeeklyActivityCard } from "./WeeklyActivityCard";
 import { WeeklyTotalsCard } from "./WeeklyTotalsCard";
@@ -249,9 +248,6 @@ export const WeeklyPage: React.FC<Props> = ({
         </Tooltip>
       </Box>
 
-      {/* Only the first load has nothing to show; a reload keeps the list on
-          screen, with the bar at the top of the window saying so. */}
-      <LoadingComponent loading={isLoadingTodos && !todos.length} />
 
       {!isLoadingTodos && !weeklyTodos.length && (
         <Typography>
@@ -265,8 +261,7 @@ export const WeeklyPage: React.FC<Props> = ({
 
       {/* Each state under a heading of its own. On a wide screen what is
           still to do keeps the left, and everything dealt with for now moves
-          to a column on the right. Busy while the list is read again, so a
-          count cannot land on the copy about to be replaced. */}
+          to a column on the right. */}
       <Box
         aria-busy={isLoadingTodos}
         sx={{
@@ -282,7 +277,6 @@ export const WeeklyPage: React.FC<Props> = ({
           gap: "8px 24px",
           flex: { md: 1 },
           minHeight: { md: 0 },
-          pointerEvents: isLoadingTodos ? "none" : undefined,
         }}
       >
         {mainGroups.length > 0 && <Box sx={columnSx}>{mainGroups.map(renderGroup)}</Box>}

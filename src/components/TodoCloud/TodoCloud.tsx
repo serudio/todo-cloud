@@ -3,7 +3,6 @@ import type { Todo, TodoTag } from "../../types/todo";
 import { NotTodayList } from "./NotTodayList";
 import { TodoItem } from "./TodoItem";
 import { Box, Card, Typography } from "@mui/material";
-import { LoadingComponent } from "../Layout/LoadingComponent";
 import {
   getNotTodayTodos,
   getTodosSortedByName,
@@ -133,7 +132,8 @@ export const TodoCloud: React.FC<Props> = ({
   }
 
   const actionsTodo = todos.find((todo) => todo.id === actionsTodoId) ?? null;
-  // Only the first load has nothing to show; a reload keeps the list on screen.
+  // The loader itself is the page's; here the first load only holds back the
+  // empty-list message and the strips, so they do not flash in before the list.
   const isFirstLoad = isLoadingTodos && todos.length === 0;
 
   if (isMobile) {
@@ -141,7 +141,6 @@ export const TodoCloud: React.FC<Props> = ({
 
     return (
       <Card sx={{ flex: 1, position: "relative", display: "flex", flexDirection: "column", p: 1, gap: 0.5 }}>
-        <LoadingComponent loading={isLoadingTodos} isQuiet={!isFirstLoad} />
         {!isFirstLoad && notTodayTodos.length > 0 && (
           <NotTodayList todos={notTodayTodos} allTodos={todos} updateTodo={updateTodo} updateTodos={updateTodos} />
         )}
@@ -225,7 +224,6 @@ export const TodoCloud: React.FC<Props> = ({
   return (
     // The bounds a tile's hover card keeps inside, so it is never cut off at the edge.
     <Card data-cloud-bounds sx={{ flex: 1, position: "relative", display: "flex", flexDirection: "column" }}>
-      <LoadingComponent loading={isLoadingTodos} isQuiet={!isFirstLoad} />
       {!isFirstLoad && notTodayTodos.length > 0 && (
         <NotTodayList todos={notTodayTodos} allTodos={todos} updateTodo={updateTodo} updateTodos={updateTodos} />
       )}

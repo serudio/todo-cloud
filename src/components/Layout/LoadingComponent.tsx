@@ -3,20 +3,14 @@ import { Backdrop, CircularProgress } from "@mui/material";
 
 type Props = {
   loading: boolean;
-  // Reloading a list that is already on screen: nothing dimmed and no spinner
-  // (the bar at the top says it), but taps still wait, so a change cannot be
-  // made to the copy that is about to be replaced.
-  isQuiet?: boolean;
 };
 
-export const LoadingComponent: React.FC<Props> = ({ loading, isQuiet = false }) => {
+export const LoadingComponent: React.FC<Props> = ({ loading }) => {
   return (
-    <Backdrop
-      open={loading}
-      transitionDuration={isQuiet ? 0 : undefined}
-      sx={{ zIndex: MODAL_Z, ...(isQuiet && { backgroundColor: "transparent" }) }}
-    >
-      {!isQuiet && <CircularProgress />}
+    // In at once: the page stops taking input the moment loading starts, so it
+    // should look it, rather than fade in over a page that already is not answering.
+    <Backdrop open={loading} transitionDuration={{ enter: 0, exit: 200 }} sx={{ zIndex: MODAL_Z }}>
+      <CircularProgress />
     </Backdrop>
   );
 };
