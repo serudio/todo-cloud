@@ -5,14 +5,11 @@ import LogoutIcon from "@mui/icons-material/Logout";
 import { signOut } from "../../utils/auth";
 import { HeaderMenu } from "./HeaderMenu";
 import { AppLinks } from "./AppLinks";
-import { getAbsoluteUrl, pointsPath } from "../../hooks/route";
 import { useIsMobile } from "../../hooks/mobile";
 import { MAIN_SITE_URL } from "../../constants/ui";
 import { LinksPopover, type LinksPopoverProps } from "../LinksCard/LinksPopover";
 import MenuOpenIcon from "@mui/icons-material/MenuOpen";
 import LinkIcon from "@mui/icons-material/Link";
-import BalanceIcon from "@mui/icons-material/Balance";
-import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 import HomeIcon from "@mui/icons-material/Home";
 import SettingsIcon from "@mui/icons-material/Settings";
 import SortByAlphaIcon from "@mui/icons-material/SortByAlpha";
@@ -27,7 +24,6 @@ type Props = LinksPopoverProps & {
   onRefresh: () => void;
   onLeftMenuClick: () => void;
   onRightMenuClick: () => void;
-  onListsClick: () => void;
   onWeeklyClick: () => void;
   onSettingsClick: () => void;
   isCloudSortedByName: boolean;
@@ -44,7 +40,6 @@ export const Header: React.FC<Props> = ({
   onRefresh,
   onLeftMenuClick,
   onRightMenuClick,
-  onListsClick,
   onWeeklyClick,
   onSettingsClick,
   isCloudSortedByName,
@@ -117,7 +112,6 @@ export const Header: React.FC<Props> = ({
         <HeaderMenu
           isCloudSortedByName={isCloudSortedByName}
           onCloudSortClick={onCloudSortClick}
-          onListsClick={onListsClick}
           onWeeklyClick={onWeeklyClick}
           onSettingsClick={onSettingsClick}
           links={linksProps.links}
@@ -205,11 +199,6 @@ export const Header: React.FC<Props> = ({
           </Button>
         </Tooltip>
 
-        <Tooltip title="Pros and cons lists">
-          <Button variant="text" color="secondary" onClick={onListsClick} sx={{ minWidth: 0 }} aria-label="Open lists">
-            <BalanceIcon />
-          </Button>
-        </Tooltip>
         <Tooltip title="This week's counts">
           <Button
             variant="text"
@@ -244,20 +233,6 @@ export const Header: React.FC<Props> = ({
             aria-label="Open the main site in a new tab"
           >
             <HomeIcon />
-          </Button>
-        </Tooltip>
-        <Tooltip title="Reward points (opens a new tab)">
-          <Button
-            variant="text"
-            color="secondary"
-            component="a"
-            href={getAbsoluteUrl(pointsPath)}
-            target="_blank"
-            rel="noreferrer"
-            sx={{ minWidth: 0 }}
-            aria-label="Open rewards in a new tab"
-          >
-            <EmojiEventsIcon />
           </Button>
         </Tooltip>
 

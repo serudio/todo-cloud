@@ -21,7 +21,7 @@ import { LoadingComponent } from "./components/Layout/LoadingComponent.tsx";
 import { RefreshBar } from "./components/Layout/RefreshBar";
 import { useAppInit } from "./hooks/app.ts";
 import { NotificationsToast } from "./components/Layout/NotificationAlert";
-import { listsPath, navigate, useRoute, weeklyPath } from "./hooks/route.ts";
+import { navigate, useRoute, weeklyPath } from "./hooks/route.ts";
 import { useSectionSettings } from "./hooks/settings.ts";
 import { markWeeklyDone } from "./utils/weekly.ts";
 import { SIDE_PANEL_WIDTH } from "./constants/ui.ts";
@@ -274,7 +274,6 @@ export default function App() {
             onRefresh={refreshTodoList}
             onLeftMenuClick={handleLeftMenuClick}
             onRightMenuClick={handleRightMenuClick}
-            onListsClick={() => navigate(listsPath)}
             onWeeklyClick={() => navigate(weeklyPath)}
             onSettingsClick={() => setIsSettingsOpen(true)}
             links={links}

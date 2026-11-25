@@ -2,15 +2,12 @@ import { useRef, useState } from "react";
 import { Divider, IconButton, ListItemIcon, ListItemText, Menu, MenuItem } from "@mui/material";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import LinkIcon from "@mui/icons-material/Link";
-import BalanceIcon from "@mui/icons-material/Balance";
-import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 import HomeIcon from "@mui/icons-material/Home";
 import SettingsIcon from "@mui/icons-material/Settings";
 import SortByAlphaIcon from "@mui/icons-material/SortByAlpha";
 import EventRepeatIcon from "@mui/icons-material/EventRepeat";
 import LogoutIcon from "@mui/icons-material/Logout";
 import { signOut } from "../../utils/auth";
-import { getAbsoluteUrl, pointsPath } from "../../hooks/route";
 import { GOALS_URL, HUNDRED_TODO_URL, MAIN_SITE_URL, SPORT_URL } from "../../constants/ui";
 import FitnessCenterIcon from "@mui/icons-material/FitnessCenter";
 import FlagIcon from "@mui/icons-material/Flag";
@@ -20,7 +17,6 @@ import { LinksPopover, type LinksPopoverProps } from "../LinksCard/LinksPopover"
 type Props = LinksPopoverProps & {
   isCloudSortedByName: boolean;
   onCloudSortClick: () => void;
-  onListsClick: () => void;
   onWeeklyClick: () => void;
   onSettingsClick: () => void;
 };
@@ -30,7 +26,6 @@ type Props = LinksPopoverProps & {
 export const HeaderMenu: React.FC<Props> = ({
   isCloudSortedByName,
   onCloudSortClick,
-  onListsClick,
   onWeeklyClick,
   onSettingsClick,
   ...linksProps
@@ -54,7 +49,6 @@ export const HeaderMenu: React.FC<Props> = ({
       onClick: onCloudSortClick,
     },
     { label: "Weekly", icon: <EventRepeatIcon />, onClick: onWeeklyClick },
-    { label: "Pros and cons lists", icon: <BalanceIcon />, onClick: onListsClick },
     { label: "Settings", icon: <SettingsIcon />, onClick: onSettingsClick },
   ];
 
@@ -99,19 +93,6 @@ export const HeaderMenu: React.FC<Props> = ({
           <ListItemText>Sport</ListItemText>
         </MenuItem>
         <Divider />
-
-        <MenuItem
-          component="a"
-          href={getAbsoluteUrl(pointsPath)}
-          target="_blank"
-          rel="noreferrer"
-          onClick={() => setAnchorElement(null)}
-        >
-          <ListItemIcon>
-            <EmojiEventsIcon />
-          </ListItemIcon>
-          <ListItemText>Rewards</ListItemText>
-        </MenuItem>
 
         <MenuItem
           component="a"
