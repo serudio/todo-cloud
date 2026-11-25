@@ -6,7 +6,9 @@
 // cannot land on a number that means nothing.
 export const WEEKLY_TARGETS = [1, 2, 3, 4, 5, 6, 7];
 export const MAX_WEEKLY_TARGET = WEEKLY_TARGETS[WEEKLY_TARGETS.length - 1];
-export const DEFAULT_WEEKLY_TARGET = 3;
+// A new one starts at once a week and is raised from there: most start as
+// "at least once", and a higher number is a choice made on the Weekly page.
+export const DEFAULT_WEEKLY_TARGET = 1;
 
 // How much history is kept on a weekly task: enough to look back on whether a
 // habit is holding, not so much that its dates grow forever.
