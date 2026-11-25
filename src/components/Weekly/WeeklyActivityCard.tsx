@@ -37,9 +37,11 @@ export const WeeklyActivityCard: React.FC<Props> = ({
   const left = Math.max(0, target - done);
   const isDone = left === 0;
   const isDoneToday = isWeeklyDoneToday(todo);
-  // Counted today, but the week still wants more: dealt with until tomorrow,
-  // so it takes less room than what is still to do.
-  const isCompact = isDoneToday && !isDone;
+  // Counted today, but the week still wants more: marked at the edge.
+  const isMarked = isDoneToday && !isDone;
+  // Counted today or done for the week: dealt with for now, so it takes less
+  // room than what is still to do.
+  const isCompact = isDoneToday || isDone;
   const name = todo.text || "this";
   const doneColor = isDone ? "success" : "warning";
 
@@ -94,7 +96,7 @@ export const WeeklyActivityCard: React.FC<Props> = ({
         py: isCompact ? "2px" : 0.5,
         // Counted today, but the week still wants more: marked at the edge.
         borderLeft: 3,
-        borderLeftColor: isCompact ? "warning.main" : "transparent",
+        borderLeftColor: isMarked ? "warning.main" : "transparent",
         // A narrow column (a phone, or the right-hand one) gets two lines: the
         // name with the count buttons, then the targets with the rest, set by
         // order rather than by a second layout.
