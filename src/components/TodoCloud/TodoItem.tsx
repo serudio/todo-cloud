@@ -136,9 +136,10 @@ export const TodoItem: React.FC<Props> = ({
         borderColor: showActions ? CLOUD_ACCENT : CLOUD_TILE_BORDER,
         borderRadius: 999,
         fontSize: getTodoFontSize(size),
-        fontWeight: 600,
-        letterSpacing: "0.12em",
-        textTransform: "uppercase",
+        fontWeight: 500,
+        // Normal case, with the spacing kept airy: capitals made every name a
+        // good deal wider, and the cloud is about fitting them in.
+        letterSpacing: "0.08em",
         cursor: !isEdit ? "grab" : "text",
         zIndex: showActions ? TASK_ACTION_HOVER_Z : TASK_Z,
         transform: showActions ? "translateY(-2px)" : "none",
