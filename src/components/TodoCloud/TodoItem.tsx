@@ -49,6 +49,12 @@ export const TodoItem: React.FC<Props> = ({
   const shouldHighlightDue = shouldHighlightDueDate(todo.dueDate);
 
   const size = getTodoSize(todo.count);
+  // The tile is a pill, and the pointer only counts as over it inside the
+  // rounded shape. A button on the box's corner sits outside a big tile's
+  // curve, so reaching for it left the tile and it vanished: it goes on the
+  // flat top edge instead, just before the curve starts.
+  const tileRadius = (parseFloat(getTodoFontSize(size)) * 16 + parseFloat(getTodoPadding(size)) * 2) / 2;
+  const editButtonRight = Math.max(0, tileRadius - 11);
 
   useEffect(() => {
     if (!isEdit) return;
@@ -163,11 +169,11 @@ export const TodoItem: React.FC<Props> = ({
             e.stopPropagation();
             handleEdit();
           }}
-          // On the corner rather than over the name, so it never covers the end of it.
+          // On the top edge rather than over the name, so it never covers the end of it.
           sx={{
             position: "absolute",
             top: -10,
-            right: -10,
+            right: editButtonRight,
             zIndex: TASK_ACTIONS_Z,
             width: 22,
             height: 22,
