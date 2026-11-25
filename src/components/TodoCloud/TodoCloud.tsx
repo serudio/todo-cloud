@@ -2,7 +2,7 @@ import { useEffect, useState, type DragEvent } from "react";
 import type { Todo, TodoTag } from "../../types/todo";
 import { NotTodayList } from "./NotTodayList";
 import { TodoItem } from "./TodoItem";
-import { Box, Card, Typography } from "@mui/material";
+import { Box, Card, Typography, useTheme } from "@mui/material";
 import {
   getNotTodayTodos,
   getTodosSortedByName,
@@ -22,7 +22,9 @@ import { useIsMobile } from "../../hooks/mobile";
 import { useToday } from "../../hooks/day";
 import { isWeeklyDone, isWeeklyDoneToday, isWeeklyTodo } from "../../utils/weekly";
 import { WeeklyCloudItem } from "./WeeklyCloudItem";
-import cloudBackground from "../../assets/cloud-background.webp";
+import cloudBackgroundDark from "../../assets/cloud-background.webp";
+import cloudBackgroundLight from "../../assets/cloud-background-light.webp";
+import { getCloudPalette } from "../../constants/ui";
 
 type Props = {
   todos: Todo[];
@@ -51,6 +53,8 @@ export const TodoCloud: React.FC<Props> = ({
   deleteTodo,
 }) => {
   const isMobile = useIsMobile();
+  const theme = useTheme();
+  const cloud = getCloudPalette(theme.palette.mode);
   const [actionsTodoId, setActionsTodoId] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(() => Date.now());
   const today = useToday();
@@ -229,11 +233,12 @@ export const TodoCloud: React.FC<Props> = ({
         position: "relative",
         display: "flex",
         flexDirection: "column",
-        // "Do one until done" behind the tiles: contained rather than cropped,
-        // so the line reads whole at any width, on the image's own black, and
+        // "Do one until done" behind the tiles, in a light or dark version to
+        // match the theme: contained rather than cropped, so the line reads
+        // whole at any width, on the picture's own page colour, and
         // a little dimmed so the tiles crossing it still read first.
-        backgroundColor: "#0e0e0e",
-        // No dark-mode paper sheen: the card is the picture's own black.
+        backgroundColor: cloud.base,
+        // No dark-mode paper sheen: the card is the picture's own page colour.
         backgroundImage: "none",
         isolation: "isolate",
         "&::before": {
@@ -242,7 +247,7 @@ export const TodoCloud: React.FC<Props> = ({
           inset: 0,
           zIndex: -1,
           pointerEvents: "none",
-          backgroundImage: `url(${cloudBackground})`,
+          backgroundImage: `url(${theme.palette.mode === "dark" ? cloudBackgroundDark : cloudBackgroundLight})`,
           backgroundSize: "contain",
           backgroundRepeat: "no-repeat",
           backgroundPosition: "center",

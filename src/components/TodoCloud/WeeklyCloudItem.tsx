@@ -1,13 +1,12 @@
 import { useState } from "react";
-import { Box, Button, Card, Tooltip, Typography } from "@mui/material";
+import { Box, Button, Card, Tooltip, Typography, useTheme } from "@mui/material";
 import EventRepeatIcon from "@mui/icons-material/EventRepeat";
 import type { Todo } from "../../types/todo";
 import { getDoneThisWeek, getWeeklyTarget } from "../../utils/weekly";
 import { NotTodayButton } from "../Shared/NotTodayButton";
 import {
   CLOUD_ACCENT,
-  CLOUD_INK,
-  CLOUD_TILE_BG,
+  getCloudPalette,
   TASK_ACTIONS_Z,
   TASK_ACTION_HOVER_Z,
   TASK_Z,
@@ -40,6 +39,7 @@ export const WeeklyCloudItem: React.FC<Props> = ({
   isRow = false,
 }) => {
   const [hovered, setHovered] = useState(false);
+  const cloud = getCloudPalette(useTheme().palette.mode);
   const done = getDoneThisWeek(todo);
   const target = getWeeklyTarget(todo);
   const name = todo.text || "untitled";
@@ -132,10 +132,10 @@ export const WeeklyCloudItem: React.FC<Props> = ({
             border: 1,
             borderStyle: "dashed",
             borderColor: CLOUD_ACCENT,
-            background: CLOUD_TILE_BG,
+            background: cloud.tileBg,
             backdropFilter: "blur(10px)",
             WebkitBackdropFilter: "blur(10px)",
-            color: CLOUD_INK,
+            color: cloud.ink,
             fontWeight: 500,
             letterSpacing: "0.08em",
             fontSize: 13,

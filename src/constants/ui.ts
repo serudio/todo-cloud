@@ -29,9 +29,38 @@ export const FULL_WIDTH_STORAGE_KEY = "todo-cloud:full-width";
 // is meant to be sitting on.
 export const SIDE_PANEL_WIDTH = 250;
 
-// The cloud's own look, drawn over its dark background picture: frosted tiles,
-// off-white type, and the picture's orange as the one accent.
-export const CLOUD_INK = "#f2efe9";
+// The cloud's own look, over its background picture: frosted tiles, plain
+// type, and the picture's orange as the one accent. Light and dark each have
+// their own version, so the cloud follows the theme with the rest of the app.
 export const CLOUD_ACCENT = "#ff6233";
-export const CLOUD_TILE_BG = "rgba(20, 20, 20, 0.55)";
-export const CLOUD_TILE_BORDER = "rgba(255, 255, 255, 0.14)";
+
+export type CloudPalette = {
+  base: string;
+  ink: string;
+  muted: string;
+  tileBg: string;
+  tileBorder: string;
+  raised: string;
+  raisedHover: string;
+};
+
+export const getCloudPalette = (mode: "light" | "dark"): CloudPalette =>
+  mode === "dark"
+    ? {
+        base: "#0e0e0e",
+        ink: "#f2efe9",
+        muted: "rgba(242, 239, 233, 0.7)",
+        tileBg: "rgba(20, 20, 20, 0.55)",
+        tileBorder: "rgba(255, 255, 255, 0.14)",
+        raised: "#141414",
+        raisedHover: "#1f1f1f",
+      }
+    : {
+        base: "#f4f2ee",
+        ink: "#161616",
+        muted: "rgba(22, 22, 22, 0.6)",
+        tileBg: "rgba(255, 255, 255, 0.62)",
+        tileBorder: "rgba(0, 0, 0, 0.12)",
+        raised: "#ffffff",
+        raisedHover: "#f1efeb",
+      };

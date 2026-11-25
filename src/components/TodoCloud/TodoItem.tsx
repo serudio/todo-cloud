@@ -1,13 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Todo, TodoTag } from "../../types/todo";
 import { getTodoSize, isStaleTodo, markTodoDone, normalizeTodoText, shouldHighlightDueDate } from "../../utils/todos";
-import { Box, IconButton } from "@mui/material";
+import { Box, IconButton, useTheme } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import {
   CLOUD_ACCENT,
-  CLOUD_INK,
-  CLOUD_TILE_BG,
-  CLOUD_TILE_BORDER,
+  getCloudPalette,
   TASK_ACTION_HOVER_Z,
   TASK_ACTIONS_Z,
   TASK_Z,
@@ -40,6 +38,7 @@ export const TodoItem: React.FC<Props> = ({
 
   const isStale = isStaleTodo(todo.lastAddedDate);
   const selectedTag = tags.find((tag) => tag.id === todo.tagId);
+  const cloud = getCloudPalette(useTheme().palette.mode);
 
   const [isEdit, setIsEdit] = useState(false);
   const [editText, setEditText] = useState("");
@@ -128,12 +127,20 @@ export const TodoItem: React.FC<Props> = ({
         padding: getTodoPadding(size),
         // Frosted glass over the background picture: the headline behind
         // blurs away under a tile, so the name on it reads first.
-        color: CLOUD_INK,
-        background: CLOUD_TILE_BG,
+        color: cloud.ink,
+        // A tag tints the whole tile and its outline in its colour, so a
+        // tagged task reads at a glance while keeping the same quiet shape.
+        background: selectedTag
+          ? `color-mix(in srgb, ${selectedTag.color} 26%, ${cloud.tileBg})`
+          : cloud.tileBg,
         backdropFilter: "blur(10px)",
         WebkitBackdropFilter: "blur(10px)",
         border: 1,
-        borderColor: showActions ? CLOUD_ACCENT : CLOUD_TILE_BORDER,
+        borderColor: showActions
+          ? CLOUD_ACCENT
+          : selectedTag
+            ? `color-mix(in srgb, ${selectedTag.color} 70%, transparent)`
+            : cloud.tileBorder,
         borderRadius: 999,
         fontSize: getTodoFontSize(size),
         fontWeight: 500,
@@ -165,22 +172,15 @@ export const TodoItem: React.FC<Props> = ({
             width: 22,
             height: 22,
             p: 0,
-            color: CLOUD_INK,
-            bgcolor: "#141414",
+            color: cloud.ink,
+            bgcolor: cloud.raised,
             border: 1,
             borderColor: CLOUD_ACCENT,
-            "&:hover": { bgcolor: "#1f1f1f" },
+            "&:hover": { bgcolor: cloud.raisedHover },
           }}
         >
           <EditIcon sx={{ fontSize: 12 }} />
         </IconButton>
-      )}
-      {/* The tag as a dot rather than a fill, so every tile is the same quiet shape. */}
-      {selectedTag && !isEdit && (
-        <Box
-          aria-hidden
-          sx={{ width: 6, height: 6, flexShrink: 0, borderRadius: "50%", bgcolor: selectedTag.color }}
-        />
       )}
       <Box sx={{ display: !isEdit ? "block" : "none", textAlign: "center", lineHeight: 1 }} onClick={handleClick}>
         {text}

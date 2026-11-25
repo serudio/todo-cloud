@@ -1,6 +1,7 @@
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
-import { Box, Tooltip } from "@mui/material";
+import { Box, Tooltip, useTheme } from "@mui/material";
+import { getCloudPalette } from "../../constants/ui";
 import HourglassBottomIcon from "@mui/icons-material/HourglassBottom";
 
 dayjs.extend(relativeTime);
@@ -13,6 +14,8 @@ type Props = {
 
 // "STALE" said a task was old but not how old, which is the only part worth knowing.
 export const StaleBadge: React.FC<Props> = ({ lastAddedDate, isFloating }) => {
+  const cloud = getCloudPalette(useTheme().palette.mode);
+
   if (!lastAddedDate) return null;
 
   const age = dayjs(lastAddedDate).fromNow(true);
@@ -39,9 +42,9 @@ export const StaleBadge: React.FC<Props> = ({ lastAddedDate, isFloating }) => {
                 position: "absolute",
                 bottom: -9,
                 right: 14,
-                color: "rgba(242, 239, 233, 0.7)",
-                backgroundColor: "#141414",
-                border: "1px solid rgba(255, 255, 255, 0.14)",
+                color: cloud.muted,
+                backgroundColor: cloud.raised,
+                border: `1px solid ${cloud.tileBorder}`,
                 textTransform: "none",
                 fontWeight: 400,
               }
