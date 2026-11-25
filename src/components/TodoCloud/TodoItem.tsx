@@ -3,7 +3,15 @@ import type { Todo, TodoTag } from "../../types/todo";
 import { getTodoSize, isStaleTodo, markTodoDone, normalizeTodoText, shouldHighlightDueDate } from "../../utils/todos";
 import { Box, IconButton } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
-import { DEFAULT_TAG_COLOR, TASK_ACTION_HOVER_Z, TASK_ACTIONS_Z, TASK_Z } from "../../constants/ui";
+import {
+  CLOUD_ACCENT,
+  CLOUD_INK,
+  CLOUD_TILE_BG,
+  CLOUD_TILE_BORDER,
+  TASK_ACTION_HOVER_Z,
+  TASK_ACTIONS_Z,
+  TASK_Z,
+} from "../../constants/ui";
 import { getTodoFontSize, getTodoPadding } from "../../utils/ui";
 import { TodoActions } from "./TodoActions";
 import { DueDateChip } from "./DueDateChip";
@@ -12,7 +20,6 @@ import { StaleBadge } from "../Shared/StaleBadge";
 type Props = {
   todo: Todo;
   updateTodo: (todo: Todo) => void;
-  index: number;
   isSnoozed: boolean;
   onToggleWeek: (todoId: string) => void;
   onToggleSnooze: () => void;
@@ -23,7 +30,6 @@ type Props = {
 export const TodoItem: React.FC<Props> = ({
   todo,
   updateTodo,
-  index,
   isSnoozed,
   onToggleWeek,
   onToggleSnooze,
@@ -34,7 +40,6 @@ export const TodoItem: React.FC<Props> = ({
 
   const isStale = isStaleTodo(todo.lastAddedDate);
   const selectedTag = tags.find((tag) => tag.id === todo.tagId);
-  const { color = DEFAULT_TAG_COLOR } = selectedTag || {};
 
   const [isEdit, setIsEdit] = useState(false);
   const [editText, setEditText] = useState("");
@@ -115,23 +120,30 @@ export const TodoItem: React.FC<Props> = ({
       sx={{
         display: "flex",
         alignItems: "center",
-        position: "relative",
-        transform: `rotate(calc((${index % 5} - 2) * 2deg))`,
-        color: "#000",
-        background: color,
-        maxWidth: 300,
-        borderRadius: size,
-        paddingLeft: 2,
-        paddingRight: 2,
-        letterSpacing: 1.5,
-        fontSize: getTodoFontSize(size),
-        padding: getTodoPadding(size),
-        cursor: !isEdit ? "grab" : "text",
-        minWidth: 120,
         justifyContent: "center",
+        gap: "0.5em",
+        position: "relative",
+        maxWidth: 300,
+        minWidth: 120,
+        padding: getTodoPadding(size),
+        // Frosted glass over the background picture: the headline behind
+        // blurs away under a tile, so the name on it reads first.
+        color: CLOUD_INK,
+        background: CLOUD_TILE_BG,
+        backdropFilter: "blur(10px)",
+        WebkitBackdropFilter: "blur(10px)",
+        border: 1,
+        borderColor: showActions ? CLOUD_ACCENT : CLOUD_TILE_BORDER,
+        borderRadius: 999,
+        fontSize: getTodoFontSize(size),
+        fontWeight: 600,
+        letterSpacing: "0.12em",
+        textTransform: "uppercase",
+        cursor: !isEdit ? "grab" : "text",
         zIndex: showActions ? TASK_ACTION_HOVER_Z : TASK_Z,
-        scale: showActions ? 1.03 : 1,
-        opacity: isStale && !showActions ? 0.72 : 1,
+        transform: showActions ? "translateY(-2px)" : "none",
+        transition: "transform 150ms ease, border-color 150ms ease",
+        opacity: isStale && !showActions ? 0.6 : 1,
       }}
     >
       {showActions && (
@@ -143,10 +155,31 @@ export const TodoItem: React.FC<Props> = ({
             e.stopPropagation();
             handleEdit();
           }}
-          sx={{ position: "absolute", right: -1, zIndex: TASK_ACTIONS_Z }}
+          // On the corner rather than over the name, so it never covers the end of it.
+          sx={{
+            position: "absolute",
+            top: -10,
+            right: -10,
+            zIndex: TASK_ACTIONS_Z,
+            width: 22,
+            height: 22,
+            p: 0,
+            color: CLOUD_INK,
+            bgcolor: "#141414",
+            border: 1,
+            borderColor: CLOUD_ACCENT,
+            "&:hover": { bgcolor: "#1f1f1f" },
+          }}
         >
-          <EditIcon fontSize="small" />
+          <EditIcon sx={{ fontSize: 12 }} />
         </IconButton>
+      )}
+      {/* The tag as a dot rather than a fill, so every tile is the same quiet shape. */}
+      {selectedTag && !isEdit && (
+        <Box
+          aria-hidden
+          sx={{ width: 6, height: 6, flexShrink: 0, borderRadius: "50%", bgcolor: selectedTag.color }}
+        />
       )}
       <Box sx={{ display: !isEdit ? "block" : "none", textAlign: "center", lineHeight: 1 }} onClick={handleClick}>
         {text}
@@ -155,6 +188,16 @@ export const TodoItem: React.FC<Props> = ({
         <form onSubmit={handleEditSubmit}>
           <input
             ref={editInputRef}
+            style={{
+              background: "transparent",
+              border: 0,
+              outline: "none",
+              color: "inherit",
+              font: "inherit",
+              letterSpacing: "inherit",
+              textTransform: "inherit",
+              textAlign: "center",
+            }}
             value={editText}
             onBlur={finishEditing}
             onChange={(e) => setEditText(e.target.value)}

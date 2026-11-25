@@ -22,6 +22,7 @@ import { useIsMobile } from "../../hooks/mobile";
 import { useToday } from "../../hooks/day";
 import { isWeeklyDone, isWeeklyDoneToday, isWeeklyTodo } from "../../utils/weekly";
 import { WeeklyCloudItem } from "./WeeklyCloudItem";
+import cloudBackground from "../../assets/cloud-background.webp";
 
 type Props = {
   todos: Todo[];
@@ -149,12 +150,11 @@ export const TodoCloud: React.FC<Props> = ({
           <p>{isSearching(search) ? `Nothing matches "${search.trim()}".` : "No todos yet. Add the first one."}</p>
         )}
 
-        {listTodos.map((todo, index) =>
+        {listTodos.map((todo) =>
           isWeeklyTodo(todo) ? (
             <WeeklyCloudItem
               key={todo.id}
               todo={todo}
-              index={index}
               isRow
               isSnoozed={false}
               onCount={() => onCountWeekly(todo.id)}
@@ -179,12 +179,11 @@ export const TodoCloud: React.FC<Props> = ({
             <Typography variant="caption" color="text.secondary" sx={{ mt: 1 }}>
               snoozed
             </Typography>
-            {snoozedTodos.map((todo, index) =>
+            {snoozedTodos.map((todo) =>
               isWeeklyTodo(todo) ? (
                 <WeeklyCloudItem
                   key={todo.id}
                   todo={todo}
-                  index={index}
                   isRow
                   isSnoozed
                   onCount={() => onCountWeekly(todo.id)}
@@ -223,7 +222,34 @@ export const TodoCloud: React.FC<Props> = ({
 
   return (
     // The bounds a tile's hover card keeps inside, so it is never cut off at the edge.
-    <Card data-cloud-bounds sx={{ flex: 1, position: "relative", display: "flex", flexDirection: "column" }}>
+    <Card
+      data-cloud-bounds
+      sx={{
+        flex: 1,
+        position: "relative",
+        display: "flex",
+        flexDirection: "column",
+        // "Do one until done" behind the tiles: contained rather than cropped,
+        // so the line reads whole at any width, on the image's own black, and
+        // a little dimmed so the tiles crossing it still read first.
+        backgroundColor: "#0e0e0e",
+        // No dark-mode paper sheen: the card is the picture's own black.
+        backgroundImage: "none",
+        isolation: "isolate",
+        "&::before": {
+          content: '""',
+          position: "absolute",
+          inset: 0,
+          zIndex: -1,
+          pointerEvents: "none",
+          backgroundImage: `url(${cloudBackground})`,
+          backgroundSize: "contain",
+          backgroundRepeat: "no-repeat",
+          backgroundPosition: "center",
+          opacity: 0.7,
+        },
+      }}
+    >
       {!isFirstLoad && notTodayTodos.length > 0 && (
         <NotTodayList todos={notTodayTodos} allTodos={todos} updateTodo={updateTodo} updateTodos={updateTodos} />
       )}
@@ -250,12 +276,11 @@ export const TodoCloud: React.FC<Props> = ({
         {!isFirstLoad && activeTodos.length === 0 && (
           <p>{isSearching(search) ? `Nothing matches "${search.trim()}".` : "No todos yet. Add the first one."}</p>
         )}
-        {cloudTodos.map((todo, index) => (
+        {cloudTodos.map((todo) => (
           <Box key={todo.id} sx={{ display: "inline-flex", overflow: "visible" }}>
             {isWeeklyTodo(todo) ? (
               <WeeklyCloudItem
                 todo={todo}
-                index={index}
                 isSnoozed={false}
                 onCount={() => onCountWeekly(todo.id)}
                 onSnooze={() => handleToggleSnooze(todo.id)}
@@ -265,7 +290,6 @@ export const TodoCloud: React.FC<Props> = ({
               <TodoItem
                 todo={todo}
                 updateTodo={updateTodo}
-                index={index}
                 isSnoozed={false}
                 onToggleSnooze={() => handleToggleSnooze(todo.id)}
                 onToggleWeek={onToggleWeek}

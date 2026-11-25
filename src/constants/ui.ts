@@ -28,3 +28,10 @@ export const FULL_WIDTH_STORAGE_KEY = "todo-cloud:full-width";
 // drawers and the handle read it, so the handle cannot drift off the edge it
 // is meant to be sitting on.
 export const SIDE_PANEL_WIDTH = 250;
+
+// The cloud's own look, drawn over its dark background picture: frosted tiles,
+// off-white type, and the picture's orange as the one accent.
+export const CLOUD_INK = "#f2efe9";
+export const CLOUD_ACCENT = "#ff6233";
+export const CLOUD_TILE_BG = "rgba(20, 20, 20, 0.55)";
+export const CLOUD_TILE_BORDER = "rgba(255, 255, 255, 0.14)";

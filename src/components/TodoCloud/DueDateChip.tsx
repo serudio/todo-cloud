@@ -1,23 +1,32 @@
-import { Chip } from "@mui/material";
+import { Box } from "@mui/material";
+import { CLOUD_ACCENT } from "../../constants/ui";
 
+// Due today: a small tag on the tile's edge in the cloud's accent, pulsing
+// softly so it is noticed without shouting.
 export const DueDateChip: React.FC = () => {
   return (
-    <Chip
-      label="today"
-      color="info"
+    <Box
       sx={{
         position: "absolute",
-        top: "-10%",
-        left: "20%",
-        letterSpacing: 2,
-        opacity: 0.8,
-        "@keyframes pulse-animation": {
-          "0%": { boxShadow: "0 0 0 0 rgba(244, 67, 54, 0)" },
-          "10%": { boxShadow: "0 0 0 2px rgba(244, 67, 54, 0.8)" },
-          "100%": { boxShadow: "0 0 0 4px rgba(244, 67, 54, 0)" },
+        top: -9,
+        left: 14,
+        px: 0.75,
+        borderRadius: 999,
+        fontSize: 10,
+        fontWeight: 700,
+        letterSpacing: "0.14em",
+        lineHeight: "16px",
+        textTransform: "uppercase",
+        color: "#0e0e0e",
+        bgcolor: CLOUD_ACCENT,
+        "@keyframes due-pulse": {
+          "0%": { boxShadow: "0 0 0 0 rgba(255, 98, 51, 0.6)" },
+          "100%": { boxShadow: "0 0 0 6px rgba(255, 98, 51, 0)" },
         },
-        animation: "pulse-animation 1.5s infinite",
+        animation: "due-pulse 1.6s ease-out infinite",
       }}
-    />
+    >
+      today
+    </Box>
   );
 };

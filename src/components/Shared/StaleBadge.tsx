@@ -35,7 +35,16 @@ export const StaleBadge: React.FC<Props> = ({ lastAddedDate, isFloating }) => {
           color: "text.secondary",
           backgroundColor: "action.hover",
           ...(isFloating
-            ? { position: "absolute", bottom: -14, right: 2, color: "#000", backgroundColor: "rgba(255,255,255,0.85)" }
+            ? {
+                position: "absolute",
+                bottom: -9,
+                right: 14,
+                color: "rgba(242, 239, 233, 0.7)",
+                backgroundColor: "#141414",
+                border: "1px solid rgba(255, 255, 255, 0.14)",
+                textTransform: "none",
+                fontWeight: 400,
+              }
             : {}),
         }}
       >

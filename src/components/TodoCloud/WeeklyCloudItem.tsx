@@ -2,15 +2,19 @@ import { useState } from "react";
 import { Box, Button, Card, Tooltip, Typography } from "@mui/material";
 import EventRepeatIcon from "@mui/icons-material/EventRepeat";
 import type { Todo } from "../../types/todo";
-import { alpha } from "@mui/material/styles";
 import { getDoneThisWeek, getWeeklyTarget } from "../../utils/weekly";
 import { NotTodayButton } from "../Shared/NotTodayButton";
-import { TASK_ACTIONS_Z, TASK_ACTION_HOVER_Z, TASK_Z } from "../../constants/ui";
+import {
+  CLOUD_ACCENT,
+  CLOUD_INK,
+  CLOUD_TILE_BG,
+  TASK_ACTIONS_Z,
+  TASK_ACTION_HOVER_Z,
+  TASK_Z,
+} from "../../constants/ui";
 
 type Props = {
   todo: Todo;
-  /** Its place in the cloud's run of tilts, counted across the tasks as well. */
-  index: number;
   isSnoozed: boolean;
   onCount: () => void;
   onSnooze: () => void;
@@ -29,7 +33,6 @@ type Props = {
  */
 export const WeeklyCloudItem: React.FC<Props> = ({
   todo,
-  index,
   isSnoozed,
   onCount,
   onSnooze,
@@ -118,30 +121,33 @@ export const WeeklyCloudItem: React.FC<Props> = ({
             alignItems: "center",
             justifyContent: "center",
             gap: 0.75,
-            // Tilted with the tiles around it, because it is laid out among
-            // them — but a chip, not a tile: it carries its own numbers, and a
-            // tile carries nothing but its name.
-            transform: `rotate(calc((${index % 5} - 2) * 2deg))`,
-            scale: hovered ? 1.03 : 1,
+            // The same frosted pill as the tasks around it, with a dashed
+            // outline in the accent: it is counted, not finished.
+            transform: hovered ? "translateY(-2px)" : "none",
+            transition: "transform 150ms ease, border-color 150ms ease",
             maxWidth: 300,
-            px: 1.5,
-            py: 0.75,
+            px: 1.75,
+            py: 0.9,
             borderRadius: 999,
             border: 1,
             borderStyle: "dashed",
-            borderColor: "warning.main",
-            bgcolor: (theme) => alpha(theme.palette.warning.main, 0.08),
-            color: "text.primary",
-            letterSpacing: 1.5,
-            fontSize: 14,
+            borderColor: CLOUD_ACCENT,
+            background: CLOUD_TILE_BG,
+            backdropFilter: "blur(10px)",
+            WebkitBackdropFilter: "blur(10px)",
+            color: CLOUD_INK,
+            fontWeight: 600,
+            letterSpacing: "0.12em",
+            textTransform: "uppercase",
+            fontSize: 13,
             lineHeight: 1,
             cursor: "pointer",
             userSelect: "none",
           }}
         >
-          <EventRepeatIcon fontSize="small" color="warning" />
+          <EventRepeatIcon sx={{ fontSize: 15, color: CLOUD_ACCENT }} />
           <Box component="span">{name}</Box>
-          <Box component="span" sx={{ fontSize: 12, opacity: 0.75 }}>
+          <Box component="span" sx={{ fontSize: 11, opacity: 0.6, letterSpacing: "0.05em" }}>
             {done}/{target}
           </Box>
         </Box>
