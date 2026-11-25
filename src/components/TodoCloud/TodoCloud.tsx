@@ -223,7 +223,8 @@ export const TodoCloud: React.FC<Props> = ({
   }
 
   return (
-    <Card sx={{ flex: 1, position: "relative", display: "flex", flexDirection: "column" }}>
+    // The bounds a tile's hover card keeps inside, so it is never cut off at the edge.
+    <Card data-cloud-bounds sx={{ flex: 1, position: "relative", display: "flex", flexDirection: "column" }}>
       <LoadingComponent loading={isLoadingTodos} isQuiet={!isFirstLoad} />
       {!isFirstLoad && notTodayTodos.length > 0 && (
         <NotTodayList todos={notTodayTodos} allTodos={todos} updateTodo={updateTodo} updateTodos={updateTodos} />
@@ -242,6 +243,8 @@ export const TodoCloud: React.FC<Props> = ({
           flex: 1,
           padding: 1,
           paddingTop: 4,
+          // Room under the last row for its hover card, which hangs below the tile.
+          paddingBottom: 6,
         }}
         onDragOver={handleCloudDragOver}
         onDrop={handleCloudDrop}
