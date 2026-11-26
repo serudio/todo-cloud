@@ -5,6 +5,10 @@ import type { Todo } from "../../types/todo";
 import { getTodosWithNotTodayReleased, markTodoNow } from "../../utils/todos";
 import { isWeeklyTodo } from "../../utils/weekly";
 import { useHiddenPastFirstRow } from "../../hooks/firstRow";
+import { CLOUD_ITEM_FONT_SIZE, CLOUD_ITEM_HEIGHT } from "../../constants/ui";
+
+// The same height and type as the tiles on the cloud below.
+const chipSx = { height: CLOUD_ITEM_HEIGHT, fontSize: CLOUD_ITEM_FONT_SIZE, borderRadius: 999 };
 
 type Props = {
   // Only the tasks hidden for today; the full list is needed to save them back.
@@ -52,7 +56,11 @@ export const NotTodayList: React.FC<Props> = ({ todos, allTodos, updateTodo, upd
         backgroundColor: "action.hover",
       }}
     >
-      <Typography variant="caption" color="text.secondary" sx={{ mr: 0.5, flexShrink: 0 }}>
+      <Typography
+        variant="caption"
+        color="text.secondary"
+        sx={{ mr: 0.5, flexShrink: 0, lineHeight: `${CLOUD_ITEM_HEIGHT}px` }}
+      >
         not today
       </Typography>
 
@@ -65,7 +73,7 @@ export const NotTodayList: React.FC<Props> = ({ todos, allTodos, updateTodo, upd
           flexWrap: "wrap",
           gap: 0.5,
           // One chip high, the rest cut off below, until the list is opened.
-          maxHeight: isExpanded ? "none" : 18,
+          maxHeight: isExpanded ? "none" : CLOUD_ITEM_HEIGHT,
           overflow: "hidden",
         }}
       >
@@ -78,9 +86,9 @@ export const NotTodayList: React.FC<Props> = ({ todos, allTodos, updateTodo, upd
             // The week's own are marked here too: set aside for today is a
             // different thing for something the week still wants three more of.
             color={isWeeklyTodo(todo) ? "warning" : "default"}
-            icon={isWeeklyTodo(todo) ? <EventRepeatIcon sx={{ fontSize: 12 }} /> : undefined}
+            icon={isWeeklyTodo(todo) ? <EventRepeatIcon sx={{ fontSize: 16 }} /> : undefined}
             label={todo.text}
-            sx={{ height: 18, fontSize: 11 }}
+            sx={chipSx}
           />
         ))}
       </Box>
@@ -91,7 +99,7 @@ export const NotTodayList: React.FC<Props> = ({ todos, allTodos, updateTodo, upd
           size="small"
           variant="outlined"
           label={isExpanded ? "show less" : `show all · +${hiddenCount}`}
-          sx={{ height: 18, fontSize: 11, flexShrink: 0 }}
+          sx={{ ...chipSx, flexShrink: 0 }}
         />
       )}
 
@@ -102,7 +110,7 @@ export const NotTodayList: React.FC<Props> = ({ todos, allTodos, updateTodo, upd
           color="warning"
           variant="filled"
           label="all back"
-          sx={{ height: 18, fontSize: 11, flexShrink: 0 }}
+          sx={{ ...chipSx, flexShrink: 0 }}
         />
       )}
     </Box>

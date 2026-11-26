@@ -1,7 +1,6 @@
 import type { CustomLink, Todo, TodoListItems, TodoTag } from "../types/todo";
 import dayjs from "dayjs";
 import { getDateInputValue, getLocalDateKey } from "./date";
-import { MAX_ITEM_WEIGHT } from "./lists";
 import { MAX_WEEKLY_TARGET } from "../constants/weekly";
 
 export const SNOOZE_DURATION_MS = 60 * 60 * 1000;
@@ -388,10 +387,6 @@ function getLatestDate(firstDate: string | null, secondDate: string | null) {
   if (!secondDate) return firstDate;
 
   return firstDate > secondDate ? firstDate : secondDate;
-}
-
-export function getTodoSize(count: number) {
-  return Math.min(MAX_ITEM_WEIGHT, Math.max(1, count));
 }
 
 // Applies one daily repeat to todos marked for end-of-day auto-add.

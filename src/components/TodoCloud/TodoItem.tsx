@@ -1,16 +1,17 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Todo, TodoTag } from "../../types/todo";
-import { getTodoSize, isStaleTodo, markTodoDone, normalizeTodoText, shouldHighlightDueDate } from "../../utils/todos";
+import { isStaleTodo, markTodoDone, normalizeTodoText, shouldHighlightDueDate } from "../../utils/todos";
 import { Box, IconButton, useTheme } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import {
   CLOUD_ACCENT,
+  CLOUD_ITEM_FONT_SIZE,
+  CLOUD_ITEM_HEIGHT,
   getCloudPalette,
   TASK_ACTION_HOVER_Z,
   TASK_ACTIONS_Z,
   TASK_Z,
 } from "../../constants/ui";
-import { getTodoFontSize, getTodoPadding } from "../../utils/ui";
 import { TodoActions } from "./TodoActions";
 import { DueDateChip } from "./DueDateChip";
 import { StaleBadge } from "../Shared/StaleBadge";
@@ -48,13 +49,11 @@ export const TodoItem: React.FC<Props> = ({
   const showActions = (hovered || actionsFocused) && !isEdit;
   const shouldHighlightDue = shouldHighlightDueDate(todo.dueDate);
 
-  const size = getTodoSize(todo.count);
   // The tile is a pill, and the pointer only counts as over it inside the
-  // rounded shape. A button on the box's corner sits outside a big tile's
-  // curve, so reaching for it left the tile and it vanished: it goes on the
-  // flat top edge instead, just before the curve starts.
-  const tileRadius = (parseFloat(getTodoFontSize(size)) * 16 + parseFloat(getTodoPadding(size)) * 2) / 2;
-  const editButtonRight = Math.max(0, tileRadius - 11);
+  // rounded shape. A button on the box's corner sits outside the curve, so
+  // reaching for it left the tile and it vanished: it goes on the flat top
+  // edge instead, just before the curve starts.
+  const editButtonRight = CLOUD_ITEM_HEIGHT / 2 - 11;
 
   useEffect(() => {
     if (!isEdit) return;
@@ -130,7 +129,9 @@ export const TodoItem: React.FC<Props> = ({
         position: "relative",
         maxWidth: 300,
         minWidth: 120,
-        padding: getTodoPadding(size),
+        boxSizing: "border-box",
+        height: CLOUD_ITEM_HEIGHT,
+        px: 1.75,
         // Frosted glass over the background picture: the headline behind
         // blurs away under a tile, so the name on it reads first.
         color: cloud.ink,
@@ -148,7 +149,7 @@ export const TodoItem: React.FC<Props> = ({
             ? `color-mix(in srgb, ${selectedTag.color} 70%, transparent)`
             : cloud.tileBorder,
         borderRadius: 999,
-        fontSize: getTodoFontSize(size),
+        fontSize: CLOUD_ITEM_FONT_SIZE,
         fontWeight: 500,
         // Normal case, with the spacing kept airy: capitals made every name a
         // good deal wider, and the cloud is about fitting them in.

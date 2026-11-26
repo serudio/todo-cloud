@@ -6,6 +6,8 @@ import { getDoneThisWeek, getWeeklyTarget } from "../../utils/weekly";
 import { NotTodayButton } from "../Shared/NotTodayButton";
 import {
   CLOUD_ACCENT,
+  CLOUD_ITEM_FONT_SIZE,
+  CLOUD_ITEM_HEIGHT,
   getCloudPalette,
   TASK_ACTIONS_Z,
   TASK_ACTION_HOVER_Z,
@@ -126,8 +128,9 @@ export const WeeklyCloudItem: React.FC<Props> = ({
             transform: hovered ? "translateY(-2px)" : "none",
             transition: "transform 150ms ease, border-color 150ms ease",
             maxWidth: 300,
+            boxSizing: "border-box",
+            height: CLOUD_ITEM_HEIGHT,
             px: 1.75,
-            py: 0.9,
             borderRadius: 999,
             border: 1,
             borderStyle: "dashed",
@@ -138,7 +141,7 @@ export const WeeklyCloudItem: React.FC<Props> = ({
             color: cloud.ink,
             fontWeight: 500,
             letterSpacing: "0.08em",
-            fontSize: 13,
+            fontSize: CLOUD_ITEM_FONT_SIZE,
             lineHeight: 1,
             cursor: "pointer",
             userSelect: "none",

@@ -34,6 +34,11 @@ export const SIDE_PANEL_WIDTH = 250;
 // their own version, so the cloud follows the theme with the rest of the app.
 export const CLOUD_ACCENT = "#ff6233";
 
+// One size for every item on the cloud and in the not-today strip, whatever
+// its count: a task no longer grows each time it is added again.
+export const CLOUD_ITEM_HEIGHT = 32;
+export const CLOUD_ITEM_FONT_SIZE = 14;
+
 export type CloudPalette = {
   base: string;
   ink: string;
