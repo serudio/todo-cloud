@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Todo, TodoTag } from "../../types/todo";
 import { isStaleTodo, markTodoDone, normalizeTodoText, shouldHighlightDueDate } from "../../utils/todos";
 import { Box, IconButton, useTheme } from "@mui/material";
@@ -107,13 +107,12 @@ export const TodoItem: React.FC<Props> = ({
     handleTodoDragStart(event, todo.id);
   }
 
-  const handleClick = useCallback(
-    (e: React.MouseEvent<HTMLDivElement>) => {
-      e.preventDefault();
-      updateTodo(markTodoDone(todo));
-    },
-    [updateTodo],
-  );
+  // Marks the task as it is now: a handler kept from an earlier render would
+  // save an old copy, undoing anything set since (auto-repeat, a tag, a date).
+  function handleClick(e: React.MouseEvent<HTMLDivElement>) {
+    e.preventDefault();
+    updateTodo(markTodoDone(todo));
+  }
 
   return (
     <Box
