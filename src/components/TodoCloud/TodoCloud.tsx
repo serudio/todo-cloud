@@ -253,6 +253,25 @@ export const TodoCloud: React.FC<Props> = ({
           backgroundPosition: "center",
           opacity: 0.7,
         },
+        // One word over the headline, as large as the card allows, in the same
+        // heavy condensed type, and quiet enough to sit under the tiles.
+        "&::after": {
+          content: '"FOCUS"',
+          position: "absolute",
+          top: "4%",
+          left: 0,
+          right: 0,
+          zIndex: -1,
+          pointerEvents: "none",
+          textAlign: "center",
+          fontFamily: 'Impact, "Anton", "Oswald", "Arial Narrow", sans-serif',
+          fontWeight: 900,
+          fontSize: "clamp(72px, 17vw, 260px)",
+          lineHeight: 1,
+          letterSpacing: "0.04em",
+          color: cloud.ink,
+          opacity: 0.12,
+        },
       }}
     >
       {!isFirstLoad && notTodayTodos.length > 0 && (
