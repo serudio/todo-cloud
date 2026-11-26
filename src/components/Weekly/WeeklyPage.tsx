@@ -142,7 +142,7 @@ export const WeeklyPage: React.FC<Props> = ({
       key={group}
       component="section"
       aria-label={GROUP_TITLES[group]}
-      sx={{ display: "flex", flexDirection: "column", gap: 1 }}
+      sx={{ display: "flex", flexDirection: "column", gap: group === "doneForWeek" ? 0.5 : 1 }}
     >
       <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 1 }}>
         <Typography

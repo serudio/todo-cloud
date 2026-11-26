@@ -83,6 +83,51 @@ export const WeeklyActivityCard: React.FC<Props> = ({
     );
   }
 
+  // Done for the week: nothing left to choose or count, so one thin line with
+  // the name, the tally, and a way to take the last one back.
+  if (isDone) {
+    return (
+      <Card
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: 0.75,
+          pl: 1.5,
+          pr: 0.5,
+          minHeight: 28,
+          bgcolor: (theme) => alpha(theme.palette.success.main, 0.06),
+        }}
+      >
+        <Typography
+          variant="body2"
+          sx={{
+            flex: 1,
+            minWidth: 0,
+            letterSpacing: "1.3px",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {todo.text || "untitled"}
+        </Typography>
+        <Typography variant="caption" color="success.main" sx={{ fontWeight: 700, whiteSpace: "nowrap" }}>
+          ✓ {done}/{target}
+        </Typography>
+        <Tooltip title="Take the last one back">
+          <IconButton size="small" onClick={onUndoOne} aria-label={`Take one back from ${name}`} sx={{ p: "2px" }}>
+            <RemoveIcon sx={{ fontSize: 16 }} />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title="Remove this">
+          <IconButton size="small" onClick={onDelete} aria-label={`Remove ${name}`} sx={{ p: "2px" }}>
+            <DeleteOutlineIcon sx={{ fontSize: 16 }} />
+          </IconButton>
+        </Tooltip>
+      </Card>
+    );
+  }
+
   return (
     <Card
       sx={{
