@@ -266,6 +266,10 @@ export default function App() {
             flexDirection: "column",
             gap: 2,
             flex: 1,
+            // Never wider than the screen: without this a long chip in a strip
+            // stretches the column past a phone's edges, and the centred page
+            // spills off the left where it cannot be scrolled to.
+            minWidth: 0,
             maxWidth: isFullWidth ? "none" : 1000,
           }}
         >
