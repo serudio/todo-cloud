@@ -26,6 +26,20 @@ import cloudBackgroundDark from "../../assets/cloud-background.webp";
 import cloudBackgroundLight from "../../assets/cloud-background-light.webp";
 import { getCloudPalette } from "../../constants/ui";
 
+// The background picture's size, and where its headline starts from the top.
+const PICTURE_WIDTH = 2000;
+const PICTURE_HEIGHT = 837;
+const HEADLINE_TOP = 288;
+
+// One large word over the headline, in the same heavy condensed type, as an
+// image with the picture's proportions: laid over it with the same fit, the
+// two scale together and can never drift into each other.
+const getFocusLayer = (color: string) => {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${PICTURE_WIDTH} ${PICTURE_HEIGHT}"><text x="${PICTURE_WIDTH / 2}" y="${HEADLINE_TOP - 28}" text-anchor="middle" font-family="Impact, Anton, Oswald, 'Arial Narrow', sans-serif" font-weight="900" font-size="300" letter-spacing="12" fill="${color}" fill-opacity="0.18">FOCUS</text></svg>`;
+
+  return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
+};
+
 type Props = {
   todos: Todo[];
   isLoadingTodos: boolean;
@@ -247,30 +261,13 @@ export const TodoCloud: React.FC<Props> = ({
           inset: 0,
           zIndex: -1,
           pointerEvents: "none",
-          backgroundImage: `url(${theme.palette.mode === "dark" ? cloudBackgroundDark : cloudBackgroundLight})`,
+          // FOCUS is drawn in the picture's own frame, so the two are fitted
+          // and centred as one and it always sits right above the headline.
+          backgroundImage: `${getFocusLayer(cloud.ink)}, url(${theme.palette.mode === "dark" ? cloudBackgroundDark : cloudBackgroundLight})`,
           backgroundSize: "contain",
           backgroundRepeat: "no-repeat",
           backgroundPosition: "center",
           opacity: 0.7,
-        },
-        // One word over the headline, as large as the card allows, in the same
-        // heavy condensed type, and quiet enough to sit under the tiles.
-        "&::after": {
-          content: '"FOCUS"',
-          position: "absolute",
-          top: "4%",
-          left: 0,
-          right: 0,
-          zIndex: -1,
-          pointerEvents: "none",
-          textAlign: "center",
-          fontFamily: 'Impact, "Anton", "Oswald", "Arial Narrow", sans-serif',
-          fontWeight: 900,
-          fontSize: "clamp(72px, 17vw, 260px)",
-          lineHeight: 1,
-          letterSpacing: "0.04em",
-          color: cloud.ink,
-          opacity: 0.12,
         },
       }}
     >
